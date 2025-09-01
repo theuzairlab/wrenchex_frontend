@@ -8,9 +8,7 @@ import {
   ChevronDown, 
   ChevronUp, 
   Star,
-  MapPin,
   Package,
-  DollarSign
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -22,7 +20,12 @@ interface ProductFiltersProps {
   categories: Category[];
   currentFilters: Record<string, string | undefined>;
   totalProducts: number;
-  availableFilters?: ProductSearchResult['filters'];
+  availableFilters?: {
+    categories?: Array<{ id: string; name: string; count: number }>;
+    brands?: Array<{ name: string; count: number }>;
+    priceRange?: { min: number; max: number };
+    conditions?: Array<{ value: string; count: number }>;
+  };
 }
 
 interface FilterSectionProps {
@@ -100,12 +103,13 @@ const ProductFilters = ({
     // Reset to first page when filtering
     params.delete('page');
     
-    router.push(`/products?${params.toString()}`);
+    // Use router.replace to avoid adding to browser history for every filter change
+    router.replace(`/products?${params.toString()}`);
   };
 
   // Clear all filters
   const clearAllFilters = () => {
-    router.push('/products');
+    router.replace('/products');
   };
 
   // Apply price range filter
@@ -125,7 +129,7 @@ const ProductFilters = ({
     }
     
     params.delete('page');
-    router.push(`/products?${params.toString()}`);
+    router.replace(`/products?${params.toString()}`);
   };
 
   // Count active filters
@@ -142,20 +146,20 @@ const ProductFilters = ({
   ];
 
   const conditions = [
-    { value: 'NEW', label: 'New', count: availableFilters?.conditions?.find(c => c.value === 'NEW')?.count || 0 },
-    { value: 'USED', label: 'Used', count: availableFilters?.conditions?.find(c => c.value === 'USED')?.count || 0 },
-    { value: 'REFURBISHED', label: 'Refurbished', count: availableFilters?.conditions?.find(c => c.value === 'REFURBISHED')?.count || 0 },
+    { value: 'NEW', label: 'New', count: availableFilters?.conditions?.find((c: any) => c.value === 'NEW')?.count || 0 },
+    { value: 'USED', label: 'Used', count: availableFilters?.conditions?.find((c: any) => c.value === 'USED')?.count || 0 },
+    { value: 'REFURBISHED', label: 'Refurbished', count: availableFilters?.conditions?.find((c: any) => c.value === 'REFURBISHED')?.count || 0 },
   ];
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-2">
           <Filter className="h-5 w-5 text-gray-600" />
-          <h3 className="font-semibold text-gray-900">Filters</h3>
+          <h3 className="font-semibold text-gray-900 text-base sm:text-lg">Filters</h3>
           {activeFiltersCount > 0 && (
-            <span className="px-2 py-1 bg-wrench-accent text-black text-xs rounded-full">
+            <span className="px-2 py-1 bg-wrench-accent text-black text-xs rounded-full font-medium">
               {activeFiltersCount}
             </span>
           )}
@@ -166,10 +170,11 @@ const ProductFilters = ({
             variant="ghost" 
             size="sm"
             onClick={clearAllFilters}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-gray-500 hover:text-gray-700 text-sm"
           >
             <X className="h-4 w-4 mr-1" />
-            Clear
+            <span className="hidden sm:inline">Clear</span>
+            <span className="sm:hidden">×</span>
           </Button>
         )}
       </div>
@@ -235,7 +240,7 @@ const ProductFilters = ({
       {/* Price Range Filter */}
       <FilterSection
         title="Price Range"
-        icon={<DollarSign className="h-4 w-4 text-gray-600" />}
+        icon={<div>AED</div>}
         defaultOpen={!!(currentFilters.minPrice || currentFilters.maxPrice)}
       >
         <div className="space-y-3">
@@ -278,7 +283,7 @@ const ProductFilters = ({
         count={popularBrands.length}
       >
         <div className="space-y-2 max-h-48 overflow-y-auto">
-          {popularBrands.map((brand) => (
+          {popularBrands.map((brand: { name: string; count: number }) => (
             <label key={brand.name} className="flex items-center space-x-2 cursor-pointer">
               <input
                 type="radio"

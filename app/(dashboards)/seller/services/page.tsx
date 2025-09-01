@@ -133,10 +133,11 @@ export default function SellerServicesPage() {
               </button>
             </div>
           ) : (
-            <SellerServiceDashboard 
+                        <SellerServiceDashboard
               services={data?.services || null}
               categories={data?.categories || []}
               currentFilters={currentFilters}
+              onServicesUpdate={setData}
             />
           )}
         </div>

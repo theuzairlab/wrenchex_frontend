@@ -95,7 +95,7 @@ const GlobalSearch = ({
               type: 'product',
               id: product.id,
               title: product.title,
-              subtitle: `PKR ${product.price?.toLocaleString() || '0'} • ${product.seller?.shopName || 'Auto Parts Store'}`,
+              subtitle: `AED ${product.price?.toLocaleString() || '0'} • ${product.seller?.shopName || 'Auto Parts Store'}`,
               image: product.images?.[0] || product.productImages?.[0]?.url,
               url: `/products/${product.id}`
             });
@@ -115,7 +115,7 @@ const GlobalSearch = ({
               type: 'service',
               id: service.id,
               title: service.title,
-              subtitle: `PKR ${service.price?.toLocaleString() || '0'} • ${service.seller?.shopName || 'Service Provider'}`,
+              subtitle: `AED ${service.price?.toLocaleString() || '0'} • ${service.seller?.shopName || 'Service Provider'}`,
               image: service.images?.[0],
               url: `/services/${service.id}`
             });

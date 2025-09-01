@@ -35,6 +35,7 @@ interface SellerProductDashboardProps {
   products: ProductSearchResult | null;
   categories: Category[];
   currentFilters: Record<string, string | undefined>;
+  onProductsUpdate: (products: ProductSearchResult | null) => void;
 }
 
 interface ProductStatsCardProps {
@@ -206,7 +207,7 @@ const ProductTableRow = ({ product, onEdit, onDelete, onToggleStatus }: ProductT
   );
 };
 
-const SellerProductDashboard = ({ products, categories, currentFilters }: SellerProductDashboardProps) => {
+const SellerProductDashboard = ({ products, categories, currentFilters, onProductsUpdate }: SellerProductDashboardProps) => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState(currentFilters.search || '');
   const [selectedCategory, setSelectedCategory] = useState(currentFilters.category || '');
@@ -249,17 +250,35 @@ const SellerProductDashboard = ({ products, categories, currentFilters }: Seller
   };
 
   const handleDeleteProduct = async (product: Product) => {
-    if (confirm(`Are you sure you want to delete "${product.title}"?`)) {
+    if (confirm(`⚠️ WARNING: This action cannot be undone!\n\nAre you sure you want to PERMANENTLY DELETE "${product.title}" from the database?\n\nThis will remove the product completely and cannot be recovered.`)) {
       try {
         const response = await apiClient.deleteProduct(product.id);
         if (response.success) {
-          // Refresh the page to update the product list
-          window.location.reload();
+          // Update local state to remove the deleted product
+          if (products) {
+            const updatedProducts = {
+              ...products,
+              products: products.products.filter(p => p.id !== product.id),
+              pagination: {
+                ...products.pagination,
+                total: products.pagination.total - 1
+              }
+            };
+            onProductsUpdate(updatedProducts);
+          }
+          
+          toast.success('Product Permanently Deleted', {
+            description: `"${product.title}" has been completely removed from the database`
+          });
         } else {
-          alert('Failed to delete product: ' + (response.error?.message || 'Unknown error'));
+          toast.error('Failed to delete product', {
+            description: response.error?.message || 'Unknown error occurred'
+          });
         }
       } catch (error: any) {
-        alert('Failed to delete product: ' + error.message);
+        toast.error('Failed to delete product', {
+          description: error.message || 'An unexpected error occurred'
+        });
       }
     }
   };
@@ -267,43 +286,25 @@ const SellerProductDashboard = ({ products, categories, currentFilters }: Seller
 // In your product list or dashboard component
 const handleToggleStatus = async (product: Product) => {
   try {
-    // Prepare the update payload with only isActive changed
-    const updatePayload: UpdateProductData = {
-      // Include all required fields from the existing product
-      title: product.title,
-      description: product.description,
-      price: product.price,
-
-      categoryId: product.categoryId,
-      
-      // Explicitly set the ID
-      id: product.id,
-      
-      // Toggle the active status
-      isActive: !product.isActive,
-      
-      // Include optional fields if they exist
-      specifications: product.specifications || {},
-      images: product.images || [],
-    };
-
-    const response = await apiClient.updateProduct(updatePayload);
+    const response = await apiClient.toggleProductStatus(product.id);
     
     if (response.success) {
       // Update local state to reflect the status change
-      // This depends on your state management approach
-      // For example, if using useState in a list component:
-      setUpdatedProducts(prevProducts => 
-        prevProducts.map(p => 
-          p.id === product.id 
-            ? { ...p, isActive: !p.isActive } 
-            : p
-        )
-      );
+      if (products) {
+        const updatedProducts = {
+          ...products,
+          products: products.products?.map(p => 
+            p.id === product.id 
+              ? { ...p, isActive: !p.isActive } 
+              : p
+          ) || []
+        };
+        onProductsUpdate(updatedProducts);
+      }
 
       // Show success toast
       toast.success('Product Status Updated', {
-        description: `"${product.title}" is now ${!product.isActive ? 'active' : 'inactive'}`
+        description: response.data?.message || `"${product.title}" is now ${!product.isActive ? 'active' : 'inactive'}`
       });
     } else {
       // Handle API error
@@ -350,36 +351,6 @@ const handleToggleStatus = async (product: Product) => {
           value={`AED ${stats.averagePrice.toLocaleString()}`}
           icon={<BarChart3 className="h-6 w-6 text-blue-600" />}
         />
-      </div>
-
-      {/* Actions Bar */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
-        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-          <Link href="/seller/products/add">
-            <Button className="whitespace-nowrap">
-              <Plus className="h-4 w-4 mr-2" />
-              Add New Product
-            </Button>
-          </Link>
-          
-          <div className="flex space-x-2">
-            <Button variant="outline" size="sm">
-              <Upload className="h-4 w-4 mr-2" />
-              Import CSV
-            </Button>
-            <Button variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Export Data
-            </Button>
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm">
-            <Settings className="h-4 w-4 mr-2" />
-            Bulk Actions
-          </Button>
-        </div>
       </div>
 
       {/* Search and Filters */}
@@ -459,9 +430,15 @@ const handleToggleStatus = async (product: Product) => {
             <div>
               <CardTitle>Your Products</CardTitle>
               <CardDescription>
-                {products ? `${products.totalCount} products found` : 'Loading products...'}
+                {products ? `${products.pagination.total} products found` : 'Loading products...'}
               </CardDescription>
             </div>
+            <Link href="/seller/products/add">
+            <Button className="whitespace-nowrap">
+              <Plus className="h-4 w-4 mr-2" />
+              Add New Product
+            </Button>
+          </Link>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -539,21 +516,21 @@ const handleToggleStatus = async (product: Product) => {
       </Card>
 
       {/* Pagination */}
-      {products && products.totalPages > 1 && (
+      {products && products.pagination.pages > 1 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-600">
-            Showing page {products.currentPage} of {products.totalPages} 
-            ({products.totalCount} total products)
+            Showing page {products.pagination.page} of {products.pagination.pages} 
+            ({products.pagination.total} total products)
           </div>
           
           <div className="flex space-x-2">
-            {products.hasPreviousPage && (
+            {products.pagination.page > 1 && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => {
                   const params = new URLSearchParams(window.location.search);
-                  params.set('page', (products.currentPage - 1).toString());
+                  params.set('page', (products.pagination.page - 1).toString());
                   router.push(`/seller/products?${params.toString()}`);
                 }}
               >
@@ -561,13 +538,13 @@ const handleToggleStatus = async (product: Product) => {
               </Button>
             )}
             
-            {products.hasNextPage && (
+            {products.pagination.page < products.pagination.pages && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => {
                   const params = new URLSearchParams(window.location.search);
-                  params.set('page', (products.currentPage + 1).toString());
+                  params.set('page', (products.pagination.page + 1).toString());
                   router.push(`/seller/products?${params.toString()}`);
                 }}
               >

@@ -171,7 +171,7 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
             </div>
 
             {/* Rating */}
-            {product.ratingAverage && product.ratingCount > 0 && (
+            {/* {product.ratingAverage && product.ratingCount > 0 && (
               <div className="flex items-center space-x-2 mb-4">
                 <div className="flex">
                   {[...Array(5)].map((_, i) => (
@@ -190,7 +190,7 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
                   {product.ratingAverage.toFixed(1)} ({product.ratingCount} reviews)
                 </span>
               </div>
-            )}
+            )} */}
           </div>
 
           {/* Price */}
@@ -231,7 +231,7 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
           </div>
 
           {/* Product Tags */}
-          {product.tags && product.tags.length > 0 && (
+          {/* {product.tags && product.tags.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {product.tags.map((tag, index) => (
                 <span
@@ -242,10 +242,10 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
                 </span>
               ))}
             </div>
-          )}
+          )} */}
 
           {/* Condition Badge */}
-          {product.condition && (
+          {/* {product.condition && (
             <div className="flex items-center space-x-2">
               <Package className="h-4 w-4 text-gray-500" />
               <span className="text-sm text-gray-600">Condition:</span>
@@ -258,37 +258,11 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
                 {product.condition}
               </span>
             </div>
-          )}
+          )} */}
 
           {/* Quantity and Add to Cart */}
           {isInStock && (
             <div className="space-y-4">
-              <div className="flex items-center space-x-4">
-                <span className="text-sm font-medium text-gray-700">Quantity:</span>
-                <div className="flex items-center border border-gray-300 rounded-lg">
-                  <button
-                    onClick={decrementQuantity}
-                    disabled={quantity <= (product.minOrderQuantity || 1)}
-                    className="p-2 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Minus className="h-4 w-4" />
-                  </button>
-                  <span className="px-4 py-2 font-medium">{quantity}</span>
-                  <button
-                    onClick={incrementQuantity}
-                    disabled={quantity >= (product.maxOrderQuantity || 99)}
-                    className="p-2 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
-                </div>
-                
-                {product.minOrderQuantity && product.minOrderQuantity > 1 && (
-                  <span className="text-sm text-gray-500">
-                    Min. order: {product.minOrderQuantity}
-                  </span>
-                )}
-              </div>
 
               <div className="flex space-x-4">
                 <ChatWithSellerButton 
@@ -308,7 +282,7 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
                   category={product.category?.name}
                   sellerName={product.seller.shopName}
                   size="lg"
-                  className="relative static"
+                  className="static w-12 h-12 flex items-center justify-center"
                 />
                 
                 <Button variant="outline" size="lg" onClick={handleShare}>

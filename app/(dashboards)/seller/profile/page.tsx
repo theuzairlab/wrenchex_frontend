@@ -26,13 +26,38 @@ export default function SellerProfilePage() {
       setIsLoading(true);
       setError(null);
       
-      const response = await apiClient.getSellerProfile();
-      console.log('Profile response:', response);
+      // Get profile data for personal and shop information
+      const profileResponse = await apiClient.getSellerProfile();
+      console.log('Profile response:', profileResponse);
       
-      if (response.success && response.data) {
-        setProfileData(response.data);
+      if (profileResponse.success && profileResponse.data) {
+        // Get dashboard data only for chat count stats
+        try {
+          const dashboardResponse = await apiClient.getSellerDashboard();
+          if (dashboardResponse.success && dashboardResponse.data) {
+            // Merge profile data with chat count from dashboard
+            const mergedData = {
+              ...profileResponse.data,
+              chatCount: dashboardResponse.data.stats.chats || 0
+            };
+            setProfileData(mergedData);
+          } else {
+            // If dashboard fails, still show profile data with 0 chat count
+            setProfileData({
+              ...profileResponse.data,
+              chatCount: 0
+            });
+          }
+        } catch (dashboardErr) {
+          console.warn('Dashboard fetch failed, using profile data only:', dashboardErr);
+          // If dashboard fails, still show profile data with 0 chat count
+          setProfileData({
+            ...profileResponse.data,
+            chatCount: 0
+          });
+        }
       } else {
-        setError(response.error?.message || 'Failed to load profile data');
+        setError(profileResponse.error?.message || 'Failed to load profile data');
       }
     } catch (err: any) {
       console.error('Profile error:', err);

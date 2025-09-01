@@ -12,7 +12,8 @@ import { Service, CreateAppointmentData } from '@/types';
 import { toast } from 'sonner';
 import { 
   ArrowLeft, Star, Clock, MapPin, Phone, MessageCircle,
-  Calendar, CheckCircle, Shield, Wrench, User, DollarSign
+  Calendar, CheckCircle, Shield, Wrench, User,
+  Store
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -143,9 +144,9 @@ export default function ServiceDetailPage() {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-PK', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'PKR',
+      currency: 'AED',
       minimumFractionDigits: 0,
     }).format(price);
   };
@@ -320,13 +321,15 @@ export default function ServiceDetailPage() {
                   </div>
 
                   <div className="flex gap-2 pt-4 border-t">
+                    <Link href={`/shop/${service.seller.id}`}>
                     <Button 
                       variant="outline" 
-                      leftIcon={<MessageCircle className="h-4 w-4" />}
+                      leftIcon={<Store className="h-4 w-4" />}
                       className="flex-1"
                     >
-                      Message Seller
+                      Seller's Shop
                     </Button>
+                    </Link>
                   </div>
                 </div>
               </CardContent>
@@ -346,8 +349,8 @@ export default function ServiceDetailPage() {
                 {!showBookingForm ? (
                   <div className="space-y-4">
                     <div className="text-center p-6 border-2 border-dashed border-gray-300 rounded-lg">
-                      <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                      <h3 className="font-semibold text-lg mb-2">{formatPrice(service.price)}</h3>
+                      
+                      <h3 className="font-semibold text-lg mb-2">AED {formatPrice(service.price)}</h3>
                       <p className="text-gray-600 text-sm mb-4">
                         Duration: {formatDuration(service.durationMinutes)}
                       </p>

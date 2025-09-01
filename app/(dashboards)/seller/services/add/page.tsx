@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { FileUpload } from '@/components/ui/FileUpload';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import Link from 'next/link';
-import { ArrowLeft, Save, Upload, Clock, DollarSign, MapPin } from 'lucide-react';
+import { ArrowLeft, Save, Upload, Clock, MapPin } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { apiClient } from '@/lib/api/client';
 import { Category } from '@/types';
@@ -337,14 +337,13 @@ export default function AddServicePage() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <DollarSign className="w-5 h-5" />
                       Pricing & Duration
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="flex gap-8">
                     <div>
                       <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">
-                        Service Price (PKR) *
+                        Service Price (AED) *
                       </label>
                       <Input
                         type="number"
@@ -395,7 +394,7 @@ export default function AddServicePage() {
                         <h3 className="font-medium">{formData.title}</h3>
                         {formData.price && (
                           <p className="text-green-600 font-bold">
-                            PKR {parseFloat(formData.price).toLocaleString()}
+                            AED {parseFloat(formData.price).toLocaleString()}
                           </p>
                         )}
                         {formData.durationMinutes && (

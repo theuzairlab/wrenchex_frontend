@@ -151,6 +151,7 @@ export default function SellerProductsPage() {
               products={products || null}
               categories={categories || []}
               currentFilters={params}
+              onProductsUpdate={setProducts}
             />
           )}
         </div>

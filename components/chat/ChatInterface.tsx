@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Send, Image, DollarSign } from 'lucide-react';
+import { Send } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
@@ -224,7 +224,7 @@ export function ChatInterface({ chatId }: ChatInterfaceProps) {
           <div className="flex-1">
             <h3 className="font-semibold text-gray-900">{chat.product.title}</h3>
             <p className="text-sm text-gray-600">
-              ${chat.product.price.toFixed(2)} • Chat with{' '}
+              AED {chat.product.price.toFixed(2)} • Chat with{' '}
               {user?.id === chat.sellerId 
                 ? `${chat.buyer.firstName} ${chat.buyer.lastName}`
                 : `${chat.seller.firstName} ${chat.seller.lastName}`
@@ -256,7 +256,6 @@ export function ChatInterface({ chatId }: ChatInterfaceProps) {
                 }`}>
                   {msg.messageType === 'PRICE_OFFER' && (
                     <div className="flex items-center gap-1 text-sm opacity-75 mb-1">
-                      <DollarSign size={14} />
                       Price Offer
                     </div>
                   )}
@@ -309,7 +308,7 @@ export function ChatInterface({ chatId }: ChatInterfaceProps) {
           />
           </div>          
           {/* Send as Price Offer */}
-          {message.match(/^\$?\d+(\.\d{1,2})?$/) && (
+          {message.match(/^AED\d+(\.\d{1,2})?$/) && (
             <Button
               onClick={() => sendMessage('PRICE_OFFER')}
               disabled={isSending}
@@ -317,7 +316,7 @@ export function ChatInterface({ chatId }: ChatInterfaceProps) {
               size="sm"
               className="text-green-600 border-green-600 hover:bg-green-50"
             >
-              <DollarSign size={16} />
+              AED
             </Button>
           )}
           
@@ -331,9 +330,9 @@ export function ChatInterface({ chatId }: ChatInterfaceProps) {
           </Button>
         </div>
         
-        {message.match(/^\$?\d+(\.\d{1,2})?$/) && (
+        {message.match(/^AED\d+(\.\d{1,2})?$/) && (
           <p className="text-xs text-gray-500 mt-1">
-            💡 Detected a price! Click the $ button to send as a price offer.
+            💡 Detected a price! Click the AED button to send as a price offer.
           </p>
         )}
       </div>

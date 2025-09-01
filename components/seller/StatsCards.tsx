@@ -2,30 +2,15 @@
 
 import { Card, CardContent } from '@/components/ui/Card';
 import { SellerStats } from '@/types';
-import { Package, ShoppingBag, Calendar, DollarSign } from 'lucide-react';
+import { Package, ShoppingBag, Calendar, Wrench } from 'lucide-react';
 
 interface StatsCardsProps {
   stats: SellerStats;
 }
 
 export function StatsCards({ stats }: StatsCardsProps) {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-PK', {
-      style: 'currency',
-      currency: 'PKR',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
 
   const statsData = [
-    {
-      title: 'Monthly Earnings',
-      value: formatCurrency(stats.monthlyEarnings),
-      icon: DollarSign,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
-      change: stats.monthlyEarnings > 0 ? '+' : ''
-    },
     {
       title: 'Active Products',
       value: stats.totalProducts.toString(),
@@ -48,6 +33,14 @@ export function StatsCards({ stats }: StatsCardsProps) {
       icon: Calendar,
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
+      change: ''
+    },
+    {
+      title: 'Total Services',
+      value: stats.totalServices.toString(),
+      icon: Wrench,
+      color: 'text-green-600',
+      bgColor: 'bg-green-50',
       change: ''
     }
   ];

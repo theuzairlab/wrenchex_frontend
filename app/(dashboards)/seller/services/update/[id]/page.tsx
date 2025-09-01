@@ -12,7 +12,7 @@ import { FileUpload } from '@/components/ui/FileUpload';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ArrowLeft, Save, Upload, Clock, DollarSign, MapPin, Trash2 } from 'lucide-react';
+import { ArrowLeft, Save, Upload, Clock, MapPin, Trash2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { apiClient } from '@/lib/api/client';
 import { Category, Service } from '@/types';
@@ -392,14 +392,13 @@ export default function UpdateServicePage() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <DollarSign className="w-5 h-5" />
                       Pricing & Duration
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
                       <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">
-                        Service Price (PKR) *
+                        Service Price (AED) *
                       </label>
                       <Input
                         type="number"
@@ -448,7 +447,7 @@ export default function UpdateServicePage() {
                     <div className="space-y-2 text-sm">
                       <h3 className="font-medium">{service.title}</h3>
                       <p className="text-green-600 font-bold">
-                        PKR {service.price.toLocaleString()}
+                        AED {service.price.toLocaleString()}
                       </p>
                       <p className="text-gray-600">
                         Duration: {formatDuration(service.durationMinutes)}

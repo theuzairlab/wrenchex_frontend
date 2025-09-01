@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
@@ -20,7 +20,10 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useAuthStore, useUser, useUserRole } from '@/lib/stores/auth';
+import { useWebSocket } from '@/hooks/useWebSocket';
+import { apiClient } from '@/lib/api/client';
 import { cn } from '@/lib/utils';
+import { ChatDropdown } from './ChatDropdown';
 
 interface HeaderProps {
   className?: string;
@@ -31,10 +34,15 @@ export function Header({ className }: HeaderProps) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isChatDropdownOpen, setIsChatDropdownOpen] = useState(false);
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
+
+  const chatButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const user = useUser();
   const role = useUserRole();
   const { logout, isAuthenticated, isLoading } = useAuthStore();
+  const { isConnected } = useWebSocket();
   const router = useRouter();
 
   // Debug logging for header
@@ -44,8 +52,14 @@ export function Header({ className }: HeaderProps) {
     isAuthenticated, 
     isLoading,
     userName: user?.firstName,
-    userRole: user?.role 
+    userRole: user?.role,
+    unreadChatCount
   });
+
+  // Debug unread count changes
+  useEffect(() => {
+    console.log('Header: Unread chat count changed to:', unreadChatCount);
+  }, [unreadChatCount]);
 
   const handleLogout = () => {
     logout();
@@ -61,6 +75,111 @@ export function Header({ className }: HeaderProps) {
       setIsSearchOpen(false);
     }
   };
+
+  // Load unread chat count once on mount
+  const loadUnreadChatCount = useCallback(async () => {
+    if (!isAuthenticated) return;
+    
+    try {
+      const response = await apiClient.getUnreadChatCount();
+      
+      console.log('Header: Chat count response:', response);
+      
+      if (response.success && response.data) {
+        console.log('Header: Setting unread count to:', response.data.count);
+        setUnreadChatCount(response.data.count);
+      } else {
+        console.log('Header: Failed to get chat count:', response);
+      }
+    } catch (error) {
+      console.error('Failed to load unread chat count:', error);
+    }
+  }, [isAuthenticated]);
+
+  // Toggle chat dropdown
+  const toggleChatDropdown = () => {
+    const newState = !isChatDropdownOpen;
+    setIsChatDropdownOpen(newState);
+    
+    // Refresh chat count when opening dropdown
+    if (newState) {
+      console.log('Header: Opening chat dropdown, refreshing count');
+      loadUnreadChatCount();
+    }
+  };
+
+  // Close chat dropdown
+  const closeChatDropdown = () => {
+    setIsChatDropdownOpen(false);
+  };
+
+
+
+  // Handle conversation click from dropdown - update unread count
+  const handleConversationClick = useCallback((chatId: string) => {
+    console.log('Header: Conversation clicked, updating unread count');
+    // Decrease unread count by 1 since this conversation was marked as read
+    setUnreadChatCount(prev => Math.max(0, prev - 1));
+  }, []);
+
+  // Load chat count on mount and when authenticated
+  useEffect(() => {
+    console.log('Header: useEffect triggered - isAuthenticated:', isAuthenticated, 'user:', user);
+    if (isAuthenticated && user?.id) {
+      console.log('Header: Loading chat count...');
+      // Add a small delay to ensure user data is fully loaded
+      const timer = setTimeout(() => {
+        loadUnreadChatCount();
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated, user?.id, loadUnreadChatCount]);
+
+  // Real-time updates via WebSocket
+  useEffect(() => {
+    if (!isConnected || !isAuthenticated) return;
+
+    // Listen for unread count updates
+    const handleUnreadCountUpdate = (data: { count: number, chatId?: string, userId?: string }) => {
+      console.log('Header: WebSocket unread count update received:', data);
+      
+      if (data.count !== undefined) {
+        setUnreadChatCount(data.count);
+      }
+    };
+
+    // Set up WebSocket unread count listener
+    const socket = (window as any).socket;
+    if (socket) {
+      socket.on('unread_count_update', handleUnreadCountUpdate);
+      
+      return () => {
+        socket.off('unread_count_update', handleUnreadCountUpdate);
+      };
+    }
+  }, [isConnected, isAuthenticated]);
+
+  // Listen for page visibility changes to refresh chat count (only when needed)
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('Header: Page became visible, refreshing chat count');
+        // Only refresh if we don't have a count or if it's been a while
+        if (unreadChatCount === 0) {
+          loadUnreadChatCount();
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isAuthenticated, unreadChatCount, loadUnreadChatCount]);
 
   const getRoleBasedLinks = () => {
     if (!isAuthenticated) return [];
@@ -143,18 +262,34 @@ export function Header({ className }: HeaderProps) {
                   </span>
                 </Button>
 
-                {/* Cart (for buyers) */}
-                {(role === 'BUYER' || role === 'SELLER') && (
-                  <Link href="/chat">
-                    <Button variant="ghost" size="sm" className="relative">
-                      <MessageCircle className="h-5 w-5" />
-                      {/* TODO: Implement unread count from chat API */}
-                      <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                        3
-                      </span>
-                    </Button>
-                  </Link>
-                )}
+                                 {/* Chat Icon with Dropdown */}
+                 {(role === 'BUYER' || role === 'SELLER') && (
+                   <div className="relative">
+                     <button
+                       ref={chatButtonRef}
+                       onClick={toggleChatDropdown}
+                       className="relative p-2 rounded-md hover:bg-gray-100"
+                       style={{ backgroundColor: 'rgba(0,255,0,0.1)' }}
+                     >
+                       <MessageCircle className="h-5 w-5" />
+                       {/* Debug: Always show badge for testing */}
+                       <span 
+                         className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center z-10 font-bold"
+                         
+                       >
+                         {unreadChatCount || '0'}
+                       </span>
+                     </button>
+                     
+                     {/* Chat Dropdown */}
+                     <ChatDropdown
+                       isOpen={isChatDropdownOpen}
+                       onClose={closeChatDropdown}
+                       triggerRef={chatButtonRef}
+                       onConversationClick={handleConversationClick}
+                     />
+                   </div>
+                 )}
 
                 {/* User Menu */}
                 <div className="relative">
@@ -202,15 +337,6 @@ export function Header({ className }: HeaderProps) {
                           {link.label}
                         </Link>
                       ))}
-
-                      <Link
-                        href="/settings"
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                        onClick={() => setIsUserMenuOpen(false)}
-                      >
-                        <Settings className="h-4 w-4 mr-3" />
-                        Settings
-                      </Link>
 
                       <hr className="my-1" />
 

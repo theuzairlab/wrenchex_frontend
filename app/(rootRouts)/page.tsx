@@ -5,9 +5,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
-import { 
-  Search, ShoppingCart, Wrench, Users, Star, LogIn, UserPlus, 
-  ArrowRight, CheckCircle, Truck, Shield, Clock, Phone, Mail, 
+import {
+  Search, ShoppingCart, Wrench, Users, Star, LogIn, UserPlus,
+  ArrowRight, CheckCircle, Truck, Shield, Clock, Phone, Mail,
   MapPin, Facebook, Twitter, Instagram, Linkedin, Quote
 } from 'lucide-react';
 
@@ -34,13 +34,13 @@ export default function Home() {
         <div className="absolute inset-0 opacity-5">
           <svg className="w-full h-full" viewBox="0 0 100 100">
             <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
-              <path d="M 10 0 L 0 0 0 10" fill="none" stroke="currentColor" strokeWidth="1"/>
+              <path d="M 10 0 L 0 0 0 10" fill="none" stroke="currentColor" strokeWidth="1" />
             </pattern>
             <rect width="100" height="100" fill="url(#grid)" />
           </svg>
         </div>
 
-        <div className="container-responsive py-20 lg:py-32 relative">
+        <div className="container-responsive py-10 relative">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div className="space-y-8 text-center lg:text-left">
@@ -49,15 +49,15 @@ export default function Home() {
                   <Wrench className="h-4 w-4 mr-2" />
                   #1 Auto Parts Marketplace
                 </div>
-                
+
                 <h1 className="text-4xl lg:text-6xl font-bold leading-tight">
                   Your Trusted{' '}
                   <span className="text-wrench-accent">Auto Parts</span>{' '}
                   & Services Marketplace
                 </h1>
-                
+
                 <p className="text-xl text-text-secondary max-w-xl">
-                  Connect with verified sellers, find quality parts, and book professional services. 
+                  Connect with verified sellers, find quality parts, and book professional services.
                   Everything your vehicle needs, all in one place.
                 </p>
               </div>
@@ -126,7 +126,7 @@ export default function Home() {
                       <p className="text-sm text-text-secondary">Find parts instantly</p>
                     </div>
                   </div>
-                  
+
                   <form onSubmit={handleSearch} className="space-y-3">
                     <div className="relative">
                       <input
@@ -136,15 +136,15 @@ export default function Home() {
                         placeholder="Search for brake pads, oil filters..."
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-wrench-accent focus:border-wrench-accent"
                       />
-                      <Button 
+                      <Button
                         type="submit"
-                        className="absolute right-2 top-1/2 transform -translate-y-1/2" 
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2"
                         size="sm"
                       >
                         <Search className="h-4 w-4" />
                       </Button>
                     </div>
-                    
+
                     <div className="flex flex-wrap gap-2">
                       {['Brake Pads', 'Oil Filters', 'Spark Plugs', 'Tires'].map(tag => (
                         <button
@@ -160,7 +160,7 @@ export default function Home() {
                   </form>
                 </div>
               </div>
-              
+
               {/* Background decoration */}
               <div className="absolute -top-4 -right-4 w-72 h-72 bg-wrench-accent/20 rounded-full blur-3xl"></div>
               <div className="absolute -bottom-8 -left-8 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl"></div>
@@ -177,7 +177,7 @@ export default function Home() {
               Why Choose <span className="text-wrench-accent">WrenchEX</span>?
             </h2>
             <p className="text-xl text-text-secondary max-w-3xl mx-auto">
-              We've built the most comprehensive platform for all your automotive needs, 
+              We've built the most comprehensive platform for all your automotive needs,
               connecting you with trusted sellers and expert service providers.
             </p>
           </div>
@@ -390,7 +390,7 @@ export default function Home() {
                 <p className="text-sm text-text-secondary mb-4 leading-relaxed">
                   WrenchEX has transformed my business. I can now reach more customers and offer my services to a wider audience. The platform is easy to use!
                 </p>
-                
+
                 <div className="text-xs text-wrench-accent font-medium">
                   Brake Repair Service
                 </div>
@@ -420,7 +420,7 @@ export default function Home() {
                 <p className="text-sm text-text-secondary mb-4 leading-relaxed">
                   I found the exact brake pads for my 2019 Honda Civic at an amazing price. The delivery was fast and the quality is exactly as described. Highly recommended!
                 </p>
-                
+
                 <div className="text-xs text-wrench-accent font-medium">
                   Brake Pads Purchase
                 </div>
@@ -450,7 +450,7 @@ export default function Home() {
                 <p className="text-sm text-text-secondary mb-4 leading-relaxed">
                   As a parts seller, WrenchEX has given me access to customers I never could have reached before. Sales have increased by 300%!
                 </p>
-                
+
                 <div className="text-xs text-wrench-accent font-medium">
                   Auto Parts Sales
                 </div>
@@ -480,7 +480,7 @@ export default function Home() {
                 <p className="text-sm text-text-secondary mb-4 leading-relaxed">
                   Managing parts for our 50+ vehicle fleet is now so much easier. The bulk ordering system has saved us both time and money.
                 </p>
-                
+
                 <div className="text-xs text-wrench-accent font-medium">
                   Fleet Management
                 </div>
@@ -489,23 +489,30 @@ export default function Home() {
           </div>
 
           <div className="text-center mt-12">
-            <div className="inline-flex items-center space-x-8 bg-white rounded-xl px-8 py-4 shadow-md">
+            <div className="flex flex-col sm:flex-row w-1/2 mx-auto justify-center items-center sm:space-x-8 bg-white rounded-xl px-6 py-4 shadow-md space-y-4 sm:space-y-0">
+
               <div className="text-center">
                 <div className="text-2xl font-bold text-wrench-accent">4.9/5</div>
                 <div className="text-sm text-text-secondary">Average Rating</div>
               </div>
-              <div className="w-px h-8 bg-gray-200"></div>
+
+              <div className="hidden sm:block w-px h-8 bg-gray-200"></div>
+
               <div className="text-center">
                 <div className="text-2xl font-bold text-wrench-accent">25,000+</div>
                 <div className="text-sm text-text-secondary">Happy Customers</div>
               </div>
-              <div className="w-px h-8 bg-gray-200"></div>
+
+              <div className="hidden sm:block w-px h-8 bg-gray-200"></div>
+
               <div className="text-center">
                 <div className="text-2xl font-bold text-wrench-accent">98%</div>
                 <div className="text-sm text-text-secondary">Satisfaction Rate</div>
               </div>
+
             </div>
           </div>
+
         </div>
       </div>
 
@@ -516,7 +523,7 @@ export default function Home() {
           <p className="text-body text-text-secondary">
             Join our marketplace as a buyer or seller
           </p>
-          
+
           <div className="grid-responsive-2 max-w-4xl mx-auto">
             <Card variant="interactive" className="hover:border-wrench-accent">
               <CardContent className="text-center space-y-4">

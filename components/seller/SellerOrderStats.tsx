@@ -23,9 +23,9 @@ export function SellerOrderStats({ orders, onRefresh }: SellerOrderStatsProps) {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-PK', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'PKR',
+      currency: 'AED',
       minimumFractionDigits: 0,
     }).format(amount);
   };

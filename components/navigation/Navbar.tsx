@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import {
@@ -21,14 +21,18 @@ import {
   Home,
   BookOpen,
   HelpCircle,
-  BarChart3
+  BarChart3,
+  MessageSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Dropdown } from '@/components/ui_backup/Dropdown';
 import GlobalSearch from '@/components/search/GlobalSearch';
 import { useAuthStore, useUserRole } from '@/lib/stores/auth';
 import { useWishlistStore } from '@/lib/stores/wishlist';
+import { useWebSocket } from '@/hooks/useWebSocket';
+import { apiClient } from '@/lib/api/client';
 import { cn } from '@/lib/utils';
+import { ChatDropdown } from './ChatDropdown';
 
 interface NavbarProps {
   className?: string;
@@ -37,13 +41,17 @@ interface NavbarProps {
 const Navbar = ({ className }: NavbarProps) => {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, isAuthenticated, logout,  isLoading } = useAuthStore();
+  const { user, isAuthenticated, logout, isLoading } = useAuthStore();
   const { getCount: getWishlistCount } = useWishlistStore();
+  const { isConnected } = useWebSocket();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
   const searchDropdownRef = useRef<HTMLDivElement>(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isChatDropdownOpen, setIsChatDropdownOpen] = useState(false);
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
+  const chatButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const role = useUserRole();
   const wishlistCount = getWishlistCount();
@@ -56,10 +64,18 @@ const Navbar = ({ className }: NavbarProps) => {
 
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        searchDropdownRef.current && 
+        searchDropdownRef.current &&
         !searchDropdownRef.current.contains(event.target as Node)
       ) {
         setIsSearchDropdownOpen(false);
+      }
+
+      // Close mobile menu when clicking outside
+      if (
+        isMobileMenuOpen &&
+        !(event.target as Element).closest('[data-mobile-menu]')
+      ) {
+        setIsMobileMenuOpen(false);
       }
     };
 
@@ -70,7 +86,56 @@ const Navbar = ({ className }: NavbarProps) => {
       window.removeEventListener('scroll', handleScroll);
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [isMobileMenuOpen]);
+
+  // Load unread chat count once on mount
+  const loadUnreadChatCount = useCallback(async () => {
+    if (!isAuthenticated) return;
+
+    try {
+      const response = await apiClient.getUnreadChatCount();
+
+      if (response.success && response.data) {
+        setUnreadChatCount(response.data.count);
+      }
+    } catch (error) {
+      console.error('Failed to load unread chat count:', error);
+    }
+  }, [isAuthenticated]);
+
+  // Load chat count on mount and when authenticated
+  useEffect(() => {
+    if (isAuthenticated && user?.id) {
+      // Add a small delay to ensure user data is fully loaded
+      const timer = setTimeout(() => {
+        loadUnreadChatCount();
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated, user?.id, loadUnreadChatCount]);
+
+  // Real-time updates via WebSocket
+  useEffect(() => {
+    if (!isConnected || !isAuthenticated) return;
+
+    // Listen for unread count updates
+    const handleUnreadCountUpdate = (data: { count: number, chatId?: string, userId?: string }) => {
+      if (data.count !== undefined) {
+        setUnreadChatCount(data.count);
+      }
+    };
+
+    // Set up WebSocket unread count listener
+    const socket = (window as any).socket;
+    if (socket) {
+      socket.on('unread_count_update', handleUnreadCountUpdate);
+
+      return () => {
+        socket.off('unread_count_update', handleUnreadCountUpdate);
+      };
+    }
+  }, [isConnected, isAuthenticated]);
 
   // Toggle search dropdown
   const toggleSearchDropdown = () => {
@@ -79,125 +144,77 @@ const Navbar = ({ className }: NavbarProps) => {
 
   // Navigation links for different user roles
   const navigationLinks = [
-      {
-        href: '/products',
-        label: 'Products',
-        icon: <Package className="h-4 w-4" />
-      },
-      {
-        href: '/services',
-        label: 'Services',
-        icon: <Wrench className="h-4 w-4" />
-      },
-      {
-        href: '/about',
-        label: 'About',
-        icon: <BookOpen className="h-4 w-4" />
-      }
+    {
+      href: '/products',
+      label: 'Products',
+      icon: <Package className="h-4 w-4" />
+    },
+    {
+      href: '/services',
+      label: 'Services',
+      icon: <Wrench className="h-4 w-4" />
+    }
+  ];
+
+  const getRoleBasedLinks = () => {
+    if (!isAuthenticated) return [];
+
+    const baseLinks = [
+      { href: '/dashboard', label: 'Dashboard', icon: BarChart3 },
     ];
 
-    const getRoleBasedLinks = () => {
-      if (!isAuthenticated) return [];
-  
-      const baseLinks = [
-        { href: '/dashboard', label: 'Dashboard', icon: BarChart3 },
-      ];
-  
-      switch (role) {
-        case 'BUYER':
-          return [
-            ...baseLinks,
-            { href: '/orders', label: 'My Orders', icon: Package },
-            { href: '/favorites', label: 'Favorites', icon: Heart },
-            { href: '/cart', label: 'Cart', icon: ShoppingCart },
-          ];
-        case 'SELLER':
-          return [
-            ...baseLinks,
-            { href: '/seller/products', label: 'My Products', icon: Package },
-            { href: '/seller/orders', label: 'Orders', icon: ShoppingCart },
-            { href: '/seller/analytics', label: 'Analytics', icon: BarChart3 },
-          ];
-        case 'ADMIN':
-          return [
-            ...baseLinks,
-            { href: '/admin/users', label: 'Users', icon: User },
-            { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
-            { href: '/admin/settings', label: 'Settings', icon: Settings },
-          ];
-        default:
-          return baseLinks;
-      }
-    };
-  
-    const roleLinks = getRoleBasedLinks();
+    switch (role) {
+      case 'BUYER':
+        return [
+          ...baseLinks,
+          { href: '/wishlist', label: 'Favorites', icon: Heart },
+        ];
+      case 'SELLER':
+        return [
+          ...baseLinks,
+          { href: '/seller/products', label: 'My Products', icon: Package },
+        ];
+      case 'ADMIN':
+        return [
+          ...baseLinks,
+          { href: '/admin/users', label: 'Users', icon: User },
+          { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+          { href: '/admin/settings', label: 'Settings', icon: Settings },
+        ];
+      default:
+        return baseLinks;
+    }
+  };
 
-    const handleLogout = () => {
-      logout();
-      setIsUserMenuOpen(false);
-      router.push('/');
-    };
+  const roleLinks = getRoleBasedLinks();
 
-  const currentLinks = isAuthenticated && user?.role
-    // ? navigationLinks[user.role.toLowerCase() as keyof typeof navigationLinks] || navigationLinks.guest
-    // : navigationLinks.guest;
+  const handleLogout = () => {
+    logout();
+    setIsUserMenuOpen(false);
+    router.push('/');
+  };
 
-  // User dropdown menu items
-  const userDropdownItems = isAuthenticated ? [
-    {
-      id: 'profile',
-      label: 'My Profile',
-      icon: <User className="h-4 w-4" />,
-      onClick: () => router.push('/profile'),
-    },
-    {
-      id: 'dashboard',
-      label: 'Dashboard',
-      icon: <Settings className="h-4 w-4" />,
-      onClick: () => router.push('/dashboard'),
-    },
-    {
-      id: 'messages',
-      label: 'Messages',
-      icon: <MessageCircle className="h-4 w-4" />,
-      onClick: () => router.push('/messages'),
-    },
-    {
-      id: 'separator1',
-      label: '',
-      separator: true,
-    },
-    {
-      id: 'settings',
-      label: 'Settings',
-      icon: <Settings className="h-4 w-4" />,
-      onClick: () => router.push('/settings'),
-    },
-    {
-      id: 'help',
-      label: 'Help & Support',
-      icon: <HelpCircle className="h-4 w-4" />,
-      onClick: () => router.push('/help'),
-    },
-    {
-      id: 'separator2',
-      label: '',
-      separator: true,
-    },
-    {
-      id: 'logout',
-      label: 'Sign Out',
-      icon: <LogOut className="h-4 w-4" />,
-      onClick: () => {
-        logout();
-        router.push('/');
-      },
-      danger: true,
-    },
-  ] : [];
+  // Toggle chat dropdown
+  const toggleChatDropdown = () => {
+    const newState = !isChatDropdownOpen;
+    setIsChatDropdownOpen(newState);
 
-  // Cart count (would come from cart store in real app)
-  const cartCount = 3; // Mock value
+    // Refresh chat count when opening dropdown
+    if (newState) {
+      loadUnreadChatCount();
+    }
+  };
+
+  // Close chat dropdown
+  const closeChatDropdown = () => {
+    setIsChatDropdownOpen(false);
+  };
+
+  // Handle conversation click from dropdown - update unread count
+  const handleConversationClick = useCallback((chatId: string) => {
+    // Decrease unread count by 1 since this conversation was marked as read
+    setUnreadChatCount(prev => Math.max(0, prev - 1));
+  }, []);
 
   return (
     <nav className={cn(
@@ -234,31 +251,36 @@ const Navbar = ({ className }: NavbarProps) => {
             ))}
           </div>
 
-          {/* Global Search */}
-          <div className="relative" ref={searchDropdownRef}>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={toggleSearchDropdown}
-                className="flex items-center"
-              >
-                <Search className="h-5 w-5 mr-2" />
-                Search
-              </Button>
+                     {/* Global Search */}
+           <div className="relative flex justify-center lg:justify-start w-full lg:w-auto max-w-full" ref={searchDropdownRef}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleSearchDropdown}
+              className="flex items-center justify-center lg:justify-start w-full lg:w-auto max-w-xs lg:max-w-none"
+            >
+              <Search className="h-5 w-5 mr-2" />
+              <span className="hidden sm:inline">Search</span>
+            </Button>
 
-              {/* Search Dropdown */}
-              {isSearchDropdownOpen && (
-                <div 
-                  className="absolute top-full left-0 mt-2 w-[400px] bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50"
-                >
-                  <GlobalSearch
-                    placeholder="Search products, services, or brands..."
-                    className="w-full"
-                    showFilters={true}
-                    onSearch={() => setIsSearchDropdownOpen(false)}
-                  />
-                </div>
-              )}
+                           {/* Search Dropdown */}
+               {isSearchDropdownOpen && (
+                 <div 
+                   className="fixed lg:absolute top-20 lg:top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50
+                     w-[calc(100vw-2rem)] max-w-[400px] min-w-[280px]
+                     lg:w-[400px]
+                     p-3 sm:p-4
+                     left-4 right-4 lg:left-0 lg:right-auto lg:w-[400px]
+                     mx-auto lg:mx-0"
+                 >
+                   <GlobalSearch
+                     placeholder="Search products, services, or brands..."
+                     className="w-full"
+                     showFilters={true}
+                     onSearch={() => setIsSearchDropdownOpen(false)}
+                   />
+                 </div>
+               )}
           </div>
 
           {/* Desktop Actions */}
@@ -273,10 +295,36 @@ const Navbar = ({ className }: NavbarProps) => {
                   </span>
                 </Button>
 
-                {/* Cart (for buyers) */}
-                {isAuthenticated && (
-                  <>
-                  <Link href="/wishlist">
+                {/* Chat Icon with Dropdown */}
+                {(role === 'BUYER' || role === 'SELLER') && (
+                  <div className="relative">
+                    <button
+                      ref={chatButtonRef}
+                      onClick={toggleChatDropdown}
+                      className="relative p-2 rounded-md hover:bg-gray-100"
+                    >
+                      <MessageCircle className="h-5 w-5" />
+                      {/* Unread count badge */}
+                      {unreadChatCount > 0 && (
+                        <span
+                          className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center z-10 font-bold"
+                        >
+                          {unreadChatCount > 99 ? '99+' : unreadChatCount}
+                        </span>
+                      )}
+                    </button>
+
+                    {/* Chat Dropdown */}
+                    <ChatDropdown
+                      isOpen={isChatDropdownOpen}
+                      onClose={closeChatDropdown}
+                      triggerRef={chatButtonRef}
+                      onConversationClick={handleConversationClick}
+                    />
+                  </div>
+                )}
+
+                <Link href="/wishlist">
                   <Button variant="ghost" size="sm" className="relative">
                     <Heart className="h-5 w-5" />
                     {wishlistCount > 0 && (
@@ -286,8 +334,6 @@ const Navbar = ({ className }: NavbarProps) => {
                     )}
                   </Button>
                 </Link>
-                </>
-                )}
 
                 {/* User Menu */}
                 {/* User Menu */}
@@ -317,7 +363,7 @@ const Navbar = ({ className }: NavbarProps) => {
                         <span className={cn(
                           "inline-block px-2 py-1 rounded-full text-xs font-medium mt-1",
                           role === 'ADMIN' && "bg-red-100 text-red-700",
-                          role === 'SELLER' && "bg-green-100 text-green-700", 
+                          role === 'SELLER' && "bg-green-100 text-green-700",
                           role === 'BUYER' && "bg-blue-100 text-blue-700",
                           !role && "bg-gray-100 text-gray-700"
                         )}>
@@ -337,15 +383,6 @@ const Navbar = ({ className }: NavbarProps) => {
                         </Link>
                       ))}
 
-                      <Link
-                        href="/settings"
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                        onClick={() => setIsUserMenuOpen(false)}
-                      >
-                        <Settings className="h-4 w-4 mr-3" />
-                        Settings
-                      </Link>
-
                       <hr className="my-1" />
 
                       <button
@@ -361,6 +398,17 @@ const Navbar = ({ className }: NavbarProps) => {
               </>
             ) : (
               <div className="flex items-center space-x-3">
+                <Link href="/wishlist">
+                  <Button variant="ghost" size="sm" className="relative">
+                    <Heart className="h-5 w-5" />
+                    {wishlistCount > 0 && (
+                      <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
+                        {wishlistCount}
+                      </span>
+                    )}
+                  </Button>
+                </Link>
+
                 <Link href="/auth/login">
                   <Button variant="ghost" size="sm">
                     Sign In
@@ -377,32 +425,13 @@ const Navbar = ({ className }: NavbarProps) => {
 
           {/* Mobile Menu Button */}
           <div className="lg:hidden flex items-center space-x-2">
-            {/* Mobile Search */}
-            <Link href="/search">
-              <Button variant="ghost" size="sm">
-                <Search className="h-5 w-5" />
-              </Button>
-            </Link>
-
-            {/* Mobile Cart */}
-            {isAuthenticated &&  (
-              <Link href="/cart">
-                <Button variant="ghost" size="sm" className="relative">
-                  <ShoppingCart className="h-5 w-5" />
-                  {cartCount > 0 && (
-                    <span className="absolute -top-1 -right-1 h-4 w-4 bg-wrench-accent text-black text-xs rounded-full flex items-center justify-center font-medium">
-                      {cartCount}
-                    </span>
-                  )}
-                </Button>
-              </Link>
-            )}
 
             {/* Mobile Menu Toggle */}
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              data-mobile-menu
             >
               {isMobileMenuOpen ? (
                 <X className="h-5 w-5" />
@@ -415,7 +444,7 @@ const Navbar = ({ className }: NavbarProps) => {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden border-t border-gray-200 py-4">
+          <div className="lg:hidden border-t border-gray-200 py-4" data-mobile-menu>
             <div className="space-y-1">
               {/* Mobile Navigation Links */}
               {navigationLinks.map((link: any) => (
@@ -442,6 +471,7 @@ const Navbar = ({ className }: NavbarProps) => {
                   className="w-full"
                   autoFocus={false}
                   showFilters={false}
+                  onSearch={() => setIsMobileMenuOpen(false)}
                 />
               </div>
 
@@ -462,22 +492,39 @@ const Navbar = ({ className }: NavbarProps) => {
                     </div>
 
                     <div className="space-y-1">
-                      <Link
-                        href="/profile"
-                        className="flex items-center px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        <User className="h-4 w-4 mr-3" />
-                        My Profile
-                      </Link>
-                      <Link
-                        href="/dashboard"
-                        className="flex items-center px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        <Settings className="h-4 w-4 mr-3" />
-                        Dashboard
-                      </Link>
+                      {/* Mobile Chat Icon */}
+                      {(role === 'BUYER' || role === 'SELLER') && (
+                        <div className="px-4 py-2 border-b border-gray-100">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-700">Chats</span>
+                            {unreadChatCount > 0 && (
+                              <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center font-bold">
+                                {unreadChatCount > 99 ? '99+' : unreadChatCount}
+                              </span>
+                            )}
+                          </div>
+                          <Link
+                            href={role === 'SELLER' ? '/seller/chats' : '/buyer/chats'}
+                            className="flex items-center mt-2 text-sm text-wrench-orange-600 hover:text-wrench-orange-700"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            <MessageCircle className="h-4 w-4 mr-2" />
+                            View All Conversations
+                          </Link>
+                        </div>
+                      )}
+
+                      {roleLinks.map((link) => (
+                        <Link
+                          key={link.href}
+                          href={link.href}
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <link.icon className="h-4 w-4 mr-3" />
+                          {link.label}
+                        </Link>
+                      ))}
                       <button
                         onClick={() => {
                           logout();

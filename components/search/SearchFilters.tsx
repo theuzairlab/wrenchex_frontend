@@ -9,7 +9,6 @@ import {
   ChevronUp, 
   Star,
   Package,
-  DollarSign,
   Tag,
   Search,
   RotateCcw
@@ -259,7 +258,7 @@ const SearchFilters = ({
       {/* Price Range Filter */}
       <FilterSection
         title="Price Range"
-        icon={<DollarSign className="h-4 w-4 text-gray-600" />}
+        icon={<div>AED</div>}
         defaultOpen={!!(currentFilters.minPrice || currentFilters.maxPrice)}
       >
         <div className="space-y-3">

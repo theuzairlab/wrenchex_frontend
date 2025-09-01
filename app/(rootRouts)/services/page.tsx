@@ -135,9 +135,9 @@ export default function ServicesPage() {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-PK', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'PKR',
+      currency: 'AED',
       minimumFractionDigits: 0,
     }).format(price);
   };
@@ -208,7 +208,7 @@ export default function ServicesPage() {
       </div>
 
       {/* Filters & Controls */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <div className="bg-white border-b border-gray-200 ">
         <div className="container-responsive py-4">
           <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
             <div className="flex flex-wrap gap-4 items-center">

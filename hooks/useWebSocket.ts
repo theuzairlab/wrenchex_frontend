@@ -23,6 +23,7 @@ interface UseWebSocketReturn {
   onMessageReceived: (callback: (message: ProductMessage) => void) => void;
   onTypingStart: (callback: (user: TypingUser, chatId: string) => void) => void;
   onTypingStop: (callback: (user: TypingUser, chatId: string) => void) => void;
+  onUnreadCountUpdate: (callback: (data: { count: number, chatId?: string, userId?: string }) => void) => void;
 }
 
 export function useWebSocket(): UseWebSocketReturn {
@@ -34,6 +35,7 @@ export function useWebSocket(): UseWebSocketReturn {
   const messageCallbackRef = useRef<((message: ProductMessage) => void) | null>(null);
   const typingStartCallbackRef = useRef<((user: TypingUser, chatId: string) => void) | null>(null);
   const typingStopCallbackRef = useRef<((user: TypingUser, chatId: string) => void) | null>(null);
+  const unreadCountCallbackRef = useRef<((data: { count: number, chatId?: string, userId?: string }) => void) | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -110,6 +112,14 @@ export function useWebSocket(): UseWebSocketReturn {
       }
     });
 
+    // Unread count updates
+    newSocket.on('unread_count_update', (data: { count: number, chatId?: string, userId?: string }) => {
+      console.log('📊 Unread count update received:', data);
+      if (unreadCountCallbackRef.current) {
+        unreadCountCallbackRef.current(data);
+      }
+    });
+
     newSocket.on('error', (error) => {
       console.error('❌ WebSocket error:', error);
     });
@@ -175,6 +185,10 @@ export function useWebSocket(): UseWebSocketReturn {
     typingStopCallbackRef.current = callback;
   };
 
+  const onUnreadCountUpdate = (callback: (data: { count: number, chatId?: string, userId?: string }) => void) => {
+    unreadCountCallbackRef.current = callback;
+  };
+
   return {
     socket,
     isConnected,
@@ -186,6 +200,7 @@ export function useWebSocket(): UseWebSocketReturn {
     typingUsers,
     onMessageReceived,
     onTypingStart,
-    onTypingStop
+    onTypingStop,
+    onUnreadCountUpdate
   };
 }

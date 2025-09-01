@@ -1,4 +1,4 @@
-import { ArrowRight, BarChart3, Calendar, DollarSign, Plus, MessageCircle, Star } from "lucide-react";
+import { ArrowRight, BarChart3, Calendar, Plus, MessageCircle, Star, Package } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/Card";
 import { useState } from "react";
@@ -55,16 +55,12 @@ export function ShopDashboard({ User, Loading, dashboardData, error, formatDateT
             Manage your business, track performance, and grow your sales on WrenchEX.
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
-            <Link href="/seller/products/new">
+            <Link href="/seller/products/add">
               <Button variant="primary" leftIcon={<Plus className="h-4 w-4" />}>
                 Add Product
               </Button>
             </Link>
-            <Link href="/seller/earnings">
-              <Button variant="secondary" leftIcon={<BarChart3 className="h-4 w-4" />}>
-                View Analytics
-              </Button>
-            </Link>
+
           </div>
         </div>
   
@@ -74,17 +70,17 @@ export function ShopDashboard({ User, Loading, dashboardData, error, formatDateT
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+                  <p className="text-sm font-medium text-gray-600">Active Products</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {formatCurrency ? formatCurrency(dashboardData.monthlyEarnings || 0) : `$${dashboardData.monthlyEarnings || 0}`}
+                    {dashboardData.stats.products || 0}
                   </p>
                   <p className="text-sm text-green-600">
                     {dashboardData.stats.products > 0 
-                      ? `${dashboardData.stats.products} active products` 
+                      ? 'Products available for sale' 
                       : 'No active products'}
                   </p>
                 </div>
-                <DollarSign className="h-8 w-8 text-green-600" />
+                <Package className="h-8 w-8 text-green-600" />
               </div>
             </CardContent>
           </Card>

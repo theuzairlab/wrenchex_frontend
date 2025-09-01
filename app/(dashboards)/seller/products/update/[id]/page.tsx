@@ -34,7 +34,13 @@ export default function UpdateProductPage() {
                 ]);
 
                 if (productResponse.success) {
-                    setProduct(productResponse.data || null);
+                    console.log('Product data loaded:', productResponse.data);
+                    // The API returns {product: {...}} structure
+                    setProduct(productResponse.data?.product || productResponse.data || null);
+                } else {
+                    toast.error('Failed to load product', {
+                        description: productResponse.error?.message || 'Product not found'
+                    });
                 }
 
                 if (categoriesResponse.success) {

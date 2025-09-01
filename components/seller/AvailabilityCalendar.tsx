@@ -51,9 +51,31 @@ export function AvailabilityCalendar({ schedule, timeOff, onRefresh }: Availabil
     
     // Check if it's a time off day
     const isTimeOff = timeOff.some(to => {
+      if (!to.isActive) return false;
+      
+      // Parse dates and normalize to start of day to avoid timezone issues
       const start = new Date(to.startDate);
       const end = new Date(to.endDate);
-      return date >= start && date <= end && to.isActive;
+      const checkDate = new Date(date);
+      
+      // Set all dates to start of day (midnight) for accurate comparison
+      start.setHours(0, 0, 0, 0);
+      end.setHours(0, 0, 0, 0);
+      checkDate.setHours(0, 0, 0, 0);
+      
+      const isInTimeOff = checkDate >= start && checkDate <= end;
+      
+      // Debug logging for time off detection
+      if (isInTimeOff) {
+        console.log(`Date ${checkDate.toDateString()} is in time off:`, {
+          start: start.toDateString(),
+          end: end.toDateString(),
+          timeOffId: to.id,
+          reason: to.reason
+        });
+      }
+      
+      return isInTimeOff;
     });
     
     if (isTimeOff) {
@@ -229,7 +251,12 @@ export function AvailabilityCalendar({ schedule, timeOff, onRefresh }: Availabil
             <div>
               <span className="text-gray-600">Time Off Days:</span>
               <div className="font-medium text-red-600">
-                {days.filter(day => day && getAvailabilityForDate(day).status === 'timeoff').length}
+                {(() => {
+                  const timeOffDays = days.filter(day => day && getAvailabilityForDate(day).status === 'timeoff').length;
+                  console.log('Calendar Summary - Time Off Days:', timeOffDays, 'Total Days:', days.filter(day => day).length);
+                  console.log('Time Off Data:', timeOff);
+                  return timeOffDays;
+                })()}
               </div>
             </div>
             <div>

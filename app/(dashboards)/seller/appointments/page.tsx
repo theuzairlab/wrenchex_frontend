@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { useAuthStore, useUser } from '@/lib/stores/auth';
 import { apiClient } from '@/lib/api/client';
 import { Appointment, AppointmentFilters, AppointmentSearchResult, AppointmentStatus } from '@/types';
-import { Calendar, CheckCircle, Clock, DollarSign, Edit, MapPin, MessageCircle, User, XCircle } from 'lucide-react';
+import { Calendar, CheckCircle, Clock, Edit, MapPin, MessageCircle, User, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -267,11 +267,10 @@ export default function SellerAppointmentsPage() {
                   </div>
 
                   <div className="flex items-center space-x-3">
-                    <DollarSign className="h-5 w-5 text-wrench-accent" />
                     <div>
                       <p className="text-sm font-medium text-gray-700">Total Amount</p>
                       <p className="text-gray-900 font-bold">
-                        ${appointment.totalAmount.toFixed(2)}
+                        AED {appointment.totalAmount.toFixed(2)}
                       </p>
                     </div>
                   </div>

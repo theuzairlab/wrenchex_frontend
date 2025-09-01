@@ -135,6 +135,14 @@ class APIClient {
     });
   }
 
+  async patch<T = any>(endpoint: string, data?: any, config: RequestConfig = {}): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, {
+      ...config,
+      method: 'PATCH',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
   async delete<T = any>(endpoint: string, config: RequestConfig = {}): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, { ...config, method: 'DELETE' });
   }
@@ -222,6 +230,10 @@ class APIClient {
     return this.put(`/products/${productData.id}`, productData);
   }
 
+  async toggleProductStatus(id: string): Promise<ApiResponse<any>> {
+    return this.patch(`/products/${id}/toggle-status`, {});
+  }
+
   async deleteProduct(id: string): Promise<ApiResponse<null>> {
     return this.delete(`/products/${id}`);
   }
@@ -249,6 +261,10 @@ class APIClient {
 
   async updateService(serviceData: UpdateServiceData): Promise<ApiResponse<Service>> {
     return this.put(`/services/${serviceData.id}`, serviceData);
+  }
+
+  async toggleServiceStatus(id: string): Promise<ApiResponse<any>> {
+    return this.patch(`/services/${id}/toggle-status`, {});
   }
 
   async deleteService(id: string): Promise<ApiResponse<null>> {
@@ -370,6 +386,10 @@ class APIClient {
     return this.post('/availability/timeoff', timeOff);
   }
 
+  async updateTimeOff(timeOffId: string, timeOff: any): Promise<ApiResponse<any>> {
+    return this.put(`/availability/timeoff/${timeOffId}`, timeOff);
+  }
+
   async deleteTimeOff(timeOffId: string): Promise<ApiResponse<any>> {
     return this.delete(`/availability/timeoff/${timeOffId}`);
   }
@@ -447,6 +467,88 @@ class APIClient {
   // ===== PROFILE =====
   async updateProfile(profileData: any): Promise<ApiResponse<AuthUser>> {
     return this.put('/users/profile', profileData);
+  }
+
+  // ===== ADMIN ENDPOINTS =====
+  async getAdminStats(): Promise<ApiResponse<any>> {
+    return this.get('/admin/stats');
+  }
+
+  async getAdminUsers(filters: {
+    role?: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+  } = {}): Promise<ApiResponse<any>> {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        params.append(key, value.toString());
+      }
+    });
+    const queryString = params.toString();
+    const endpoint = queryString ? `/admin/users?${queryString}` : '/admin/users';
+    return this.get(endpoint);
+  }
+
+  async getAdminSellers(filters: {
+    isApproved?: boolean;
+    search?: string;
+    page?: number;
+    limit?: number;
+  } = {}): Promise<ApiResponse<any>> {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        params.append(key, value.toString());
+      }
+    });
+    const queryString = params.toString();
+    const endpoint = queryString ? `/admin/sellers?${queryString}` : '/admin/sellers';
+    return this.get(endpoint);
+  }
+
+  async updateSellerApproval(sellerId: string, isApproved: boolean): Promise<ApiResponse<any>> {
+    return this.put(`/admin/sellers/${sellerId}/approval`, { isApproved });
+  }
+
+  async getAdminChats(filters: {
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    limit?: number;
+  } = {}): Promise<ApiResponse<any>> {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        params.append(key, value.toString());
+      }
+    });
+    const queryString = params.toString();
+    const endpoint = queryString ? `/admin/chats?${queryString}` : '/admin/chats';
+    return this.get(endpoint);
+  }
+
+  async deleteAdminChat(chatId: string): Promise<ApiResponse<any>> {
+    return this.delete(`/admin/chats/${chatId}`);
+  }
+
+  async getAdminAppointments(filters: {
+    status?: string;
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    limit?: number;
+  } = {}): Promise<ApiResponse<any>> {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        params.append(key, value.toString());
+      }
+    });
+    const queryString = params.toString();
+    const endpoint = queryString ? `/admin/appointments?${queryString}` : '/admin/appointments';
+    return this.get(endpoint);
   }
 }
 

@@ -130,7 +130,7 @@ export function SellerProfileForm({ profile, isUpdating, onUpdate, onRefresh }: 
       {/* Status Card */}
       <Card className="border-l-4 border-l-wrench-orange-500">
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 bg-gradient-to-br from-wrench-orange-400 to-wrench-orange-600 rounded-xl flex items-center justify-center">
                 <span className="text-2xl font-bold text-white">
@@ -140,9 +140,10 @@ export function SellerProfileForm({ profile, isUpdating, onUpdate, onRefresh }: 
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">{profile.shopName}</h2>
                 <p className="text-gray-600">Seller ID: {profile.id?.slice(-8).toUpperCase()}</p>
+                <p className="text-sm text-gray-500">Member since {formatDate(profile.createdAt)}</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
               {getApprovalStatus()}
               <Button
                 variant="outline"
@@ -156,18 +157,18 @@ export function SellerProfileForm({ profile, isUpdating, onUpdate, onRefresh }: 
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <p className="text-sm text-gray-600">Member Since</p>
-              <p className="font-medium">{formatDate(profile.createdAt)}</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center p-4 bg-blue-50 rounded-lg">
+              <div className="text-2xl font-bold text-blue-600">{profile.productCount || 0}</div>
+              <div className="text-sm text-blue-700">Products Listed</div>
             </div>
-            <div>
-              <p className="text-sm text-gray-600">Products Listed</p>
-              <p className="font-medium">{profile.productCount || 0}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Total Orders</p>
-              <p className="font-medium">{profile.orderCount || 0}</p>
+                         <div className="text-center p-4 bg-green-50 rounded-lg">
+               <div className="text-2xl font-bold text-green-600">{profile.chatCount || 0}</div>
+               <div className="text-sm text-green-700">Total Chats</div>
+             </div>
+            <div className="text-center p-4 bg-purple-50 rounded-lg">
+              <div className="text-2xl font-bold text-purple-600">{profile.serviceCount || 0}</div>
+              <div className="text-sm text-purple-700">Services Offered</div>
             </div>
           </div>
         </CardContent>
@@ -215,133 +216,26 @@ export function SellerProfileForm({ profile, isUpdating, onUpdate, onRefresh }: 
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Shop Details */}
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Shop Name *
-                </label>
-                {isEditing ? (
-                  <Input
-                    value={formData.shopName}
-                    onChange={(e) => handleInputChange('shopName', e.target.value)}
-                    placeholder="Enter your shop name"
-                  />
-                ) : (
-                  <p className="text-gray-900">{profile.shopName || 'Not provided'}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Shop Description
-                </label>
-                {isEditing ? (
-                  <textarea
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-wrench-orange-500 focus:border-transparent"
-                    rows={3}
-                    value={formData.shopDescription}
-                    onChange={(e) => handleInputChange('shopDescription', e.target.value)}
-                    placeholder="Describe your business and services"
-                  />
-                ) : (
-                  <p className="text-gray-900">{profile.shopDescription || 'Not provided'}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Shop Address
-                </label>
-                {isEditing ? (
-                  <Input
-                    value={formData.shopAddress}
-                    onChange={(e) => handleInputChange('shopAddress', e.target.value)}
-                    placeholder="Enter shop address"
-                  />
-                ) : (
-                  <p className="text-gray-900">{profile.shopAddress || 'Not provided'}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Area
-                </label>
-                {isEditing ? (
-                  <Input
-                    value={formData.area}
-                    onChange={(e) => handleInputChange('area', e.target.value)}
-                    placeholder="Enter area"
-                  />
-                ) : (
-                  <p className="text-gray-900">{profile.area || 'Not provided'}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Contact & Location */}
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Phone Number
-                </label>
-                {isEditing ? (
-                  <Input
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    placeholder="Enter phone number"
-                  />
-                ) : (
-                  <p className="text-gray-900">{profile.phone || 'Not provided'}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email
-                </label>
-                {isEditing ? (
-                  <Input
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    placeholder="Enter email address"
-                    type="email"
-                  />
-                ) : (
-                  <p className="text-gray-900">{profile.email || 'Not provided'}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  First Name
-                </label>
-                {isEditing ? (
-                  <Input
-                    value={formData.firstName}
-                    onChange={(e) => handleInputChange('firstName', e.target.value)}
-                    placeholder="Enter first name"
-                  />
-                ) : (
-                  <p className="text-gray-900">{profile.firstName || 'Not provided'}</p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-8">
+            {/* Personal Information Section */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <User className="h-5 w-5 text-blue-600" />
+                Personal Information
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    City
+                    First Name
                   </label>
                   {isEditing ? (
                     <Input
-                      value={formData.city}
-                      onChange={(e) => handleInputChange('city', e.target.value)}
-                      placeholder="City"
+                      value={formData.firstName}
+                      onChange={(e) => handleInputChange('firstName', e.target.value)}
+                      placeholder="Enter first name"
                     />
                   ) : (
-                    <p className="text-gray-900">{profile.city || 'Not provided'}</p>
+                    <p className="text-gray-900">{profile.firstName || 'Not provided'}</p>
                   )}
                 </div>
 
@@ -357,6 +251,132 @@ export function SellerProfileForm({ profile, isUpdating, onUpdate, onRefresh }: 
                     />
                   ) : (
                     <p className="text-gray-900">{profile.lastName || 'Not provided'}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email Address
+                  </label>
+                  {isEditing ? (
+                    <Input
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      placeholder="Enter email address"
+                      type="email"
+                    />
+                  ) : (
+                    <p className="text-gray-900">{profile.email || 'Not provided'}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Phone Number
+                  </label>
+                  {isEditing ? (
+                    <Input
+                      value={formData.phone}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      placeholder="Enter phone number"
+                    />
+                  ) : (
+                    <p className="text-gray-900">{profile.phone || 'Not provided'}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Shop Information Section */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Store className="h-5 w-5 text-green-600" />
+                Shop Information
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Shop Name *
+                  </label>
+                  {isEditing ? (
+                    <Input
+                      value={formData.shopName}
+                      onChange={(e) => handleInputChange('shopName', e.target.value)}
+                      placeholder="Enter your shop name"
+                    />
+                  ) : (
+                    <p className="text-gray-900">{profile.shopName || 'Not provided'}</p>
+                  )}
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Shop Description
+                  </label>
+                  {isEditing ? (
+                    <textarea
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-wrench-orange-500 focus:border-transparent"
+                      rows={3}
+                      value={formData.shopDescription}
+                      onChange={(e) => handleInputChange('shopDescription', e.target.value)}
+                      placeholder="Describe your business and services"
+                    />
+                  ) : (
+                    <p className="text-gray-900">{profile.shopDescription || 'Not provided'}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Location Information Section */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-purple-600" />
+                Location Information
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Shop Address
+                  </label>
+                  {isEditing ? (
+                    <Input
+                      value={formData.shopAddress}
+                      onChange={(e) => handleInputChange('shopAddress', e.target.value)}
+                      placeholder="Enter shop address"
+                    />
+                  ) : (
+                    <p className="text-gray-900">{profile.shopAddress || 'Not provided'}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Area
+                  </label>
+                  {isEditing ? (
+                    <Input
+                      value={formData.area}
+                      onChange={(e) => handleInputChange('area', e.target.value)}
+                      placeholder="Enter area"
+                    />
+                  ) : (
+                    <p className="text-gray-900">{profile.area || 'Not provided'}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    City
+                  </label>
+                  {isEditing ? (
+                    <Input
+                      value={formData.city}
+                      onChange={(e) => handleInputChange('city', e.target.value)}
+                      placeholder="Enter city"
+                    />
+                  ) : (
+                    <p className="text-gray-900">{profile.city || 'Not provided'}</p>
                   )}
                 </div>
               </div>

@@ -5,14 +5,14 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  MoreVertical, 
-  Edit, 
-  Trash2, 
-  Eye, 
+import {
+  Plus,
+  Search,
+  Filter,
+  MoreVertical,
+  Edit,
+  Trash2,
+  Eye,
   EyeOff,
   Calendar,
   Clock,
@@ -26,6 +26,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,6 +42,7 @@ interface SellerServiceDashboardProps {
   services: ServiceSearchResult | null;
   categories: Category[];
   currentFilters: Record<string, string | undefined>;
+  onServicesUpdate: (data: any) => void;
 }
 
 interface ServiceStatsCardProps {
@@ -89,9 +91,9 @@ const ServiceTableRow = ({ service, onEdit, onDelete, onToggleStatus }: ServiceT
   const primaryImage = service.images?.[0];
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-PK', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'PKR',
+      currency: 'AED',
       minimumFractionDigits: 0,
     }).format(amount);
   };
@@ -146,8 +148,8 @@ const ServiceTableRow = ({ service, onEdit, onDelete, onToggleStatus }: ServiceT
           )}
           <span className={cn(
             "inline-flex items-center px-2 py-1 text-xs font-medium rounded-full",
-            service.isActive 
-              ? "bg-green-100 text-green-800" 
+            service.isActive
+              ? "bg-green-100 text-green-800"
               : "bg-gray-100 text-gray-800"
           )}>
             {service.isActive ? 'Active' : 'Inactive'}
@@ -173,64 +175,64 @@ const ServiceTableRow = ({ service, onEdit, onDelete, onToggleStatus }: ServiceT
         </p>
       </td>
 
-             <td className="px-6 py-4">
-         <DropdownMenu>
-           <DropdownMenuTrigger asChild>
-             <Button variant="ghost" size="sm">
-               <MoreVertical className="h-4 w-4" />
-             </Button>
-           </DropdownMenuTrigger>
-           <DropdownMenuContent align="end">
-             <DropdownMenuItem onClick={() => window.open(`/services/${service.id}`, '_blank')}>
-               <Eye className="h-4 w-4 mr-2" />
-               View Service
-             </DropdownMenuItem>
-             <DropdownMenuItem onClick={() => onEdit(service)}>
-               <Edit className="h-4 w-4 mr-2" />
-               Edit Service
-             </DropdownMenuItem>
-             <DropdownMenuItem onClick={() => onToggleStatus(service)}>
-               {service.isActive ? (
-                 <>
-                   <EyeOff className="h-4 w-4 mr-2" />
-                   Deactivate
-                 </>
-               ) : (
-                 <>
-                   <Eye className="h-4 w-4 mr-2" />
-                   Activate
-                 </>
-               )}
-             </DropdownMenuItem>
-             <DropdownMenuSeparator />
-             <DropdownMenuItem 
-               onClick={() => onDelete(service)}
-               className="text-red-600 focus:text-red-600"
-             >
-               <Trash2 className="h-4 w-4 mr-2" />
-               Delete Service
-             </DropdownMenuItem>
-           </DropdownMenuContent>
-         </DropdownMenu>
-       </td>
+      <td className="px-6 py-4">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm">
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => window.open(`/services/${service.id}`, '_blank')}>
+              <Eye className="h-4 w-4 mr-2" />
+              View Service
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onEdit(service)}>
+              <Edit className="h-4 w-4 mr-2" />
+              Edit Service
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onToggleStatus(service)}>
+              {service.isActive ? (
+                <>
+                  <EyeOff className="h-4 w-4 mr-2" />
+                  Deactivate
+                </>
+              ) : (
+                <>
+                  <Eye className="h-4 w-4 mr-2" />
+                  Activate
+                </>
+              )}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => onDelete(service)}
+              className="text-red-600 focus:text-red-600"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Service
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </td>
     </tr>
   );
 };
 
-const SellerServiceDashboard = ({ services, categories, currentFilters }: SellerServiceDashboardProps) => {
+const SellerServiceDashboard = ({ services, categories, currentFilters, onServicesUpdate }: SellerServiceDashboardProps) => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState(currentFilters.search || '');
   const [selectedCategory, setSelectedCategory] = useState(currentFilters.category || '');
   const [selectedServiceType, setSelectedServiceType] = useState(currentFilters.isMobileService || '');
 
   // Calculate stats from services data
-  // Handle both array and object with services property
-  const servicesList = Array.isArray(services) ? services : (services?.services || []);
+  // The API returns an array directly for seller services
+  const servicesList = Array.isArray(services) ? services : [];
   const stats = {
     totalServices: servicesList.length,
     activeServices: servicesList.filter(s => s.isActive !== false).length, // Default to active if not specified
     mobileServices: servicesList.filter(s => s.isMobileService).length,
-    averagePrice: servicesList.length > 0 
+    averagePrice: servicesList.length > 0
       ? Math.round(servicesList.reduce((sum, s) => sum + (s.price || 0), 0) / servicesList.length)
       : 0,
   };
@@ -241,7 +243,7 @@ const SellerServiceDashboard = ({ services, categories, currentFilters }: Seller
     if (searchQuery.trim()) params.set('search', searchQuery.trim());
     if (selectedCategory) params.set('category', selectedCategory);
     if (selectedServiceType) params.set('isMobileService', selectedServiceType);
-    
+
     console.log('Searching with params:', params.toString());
     router.push(`/seller/services?${params.toString()}`);
   };
@@ -258,47 +260,74 @@ const SellerServiceDashboard = ({ services, categories, currentFilters }: Seller
     router.push(`/seller/services/update/${service.id}`);
   };
 
+  const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
+
   const handleDeleteService = async (service: Service) => {
-    if (confirm(`Are you sure you want to delete "${service.title}"? This action cannot be undone.`)) {
-      try {
-        const response = await apiClient.deleteService(service.id);
-        if (response.success) {
-          toast.success('Service deleted successfully');
-          // Refresh the page to update the service list
-          window.location.reload();
-        } else {
-          toast.error(response.error?.message || 'Failed to delete service');
+    setServiceToDelete(service);
+  };
+
+  const confirmDeleteService = async () => {
+    if (!serviceToDelete) return;
+
+    try {
+      const response = await apiClient.deleteService(serviceToDelete.id);
+      if (response.success) {
+        // Update local state to mark the service as inactive (soft delete)
+        if (services && Array.isArray(services)) {
+          const updatedServices = services.map(s => 
+            s.id === serviceToDelete.id 
+              ? { ...s, isActive: false } 
+              : s
+          );
+          onServicesUpdate({ services: updatedServices, categories });
         }
-      } catch (error: any) {
-        console.error('Delete service error:', error);
-        toast.error('Failed to delete service');
+        
+        toast.success('Service Deleted', {
+          description: `"${serviceToDelete.title}" has been deactivated and hidden from customers`
+        });
+      } else {
+        toast.error('Failed to delete service', {
+          description: response.error?.message || 'Unknown error occurred'
+        });
       }
+    } catch (error: any) {
+      console.error('Delete service error:', error);
+      toast.error('Failed to delete service', {
+        description: error.message || 'An unexpected error occurred'
+      });
+    } finally {
+      setServiceToDelete(null);
     }
   };
 
   const handleToggleStatus = async (service: Service) => {
     try {
-      const response = await apiClient.updateService({
-        id: service.id,
-        title: service.title,
-        description: service.description,
-        categoryId: service.categoryId,
-        price: service.price,
-        durationMinutes: service.durationMinutes,
-        isMobileService: service.isMobileService,
-        images: service.images || [],
-        isActive: !service.isActive
-      });
+      const response = await apiClient.toggleServiceStatus(service.id);
+      
       if (response.success) {
-        toast.success('Service status updated successfully');
-        // Refresh the page to update the service list
-        window.location.reload();
+        // Update local state to reflect the status change
+        if (services && Array.isArray(services)) {
+          const updatedServices = services.map(s => 
+            s.id === service.id 
+              ? { ...s, isActive: !s.isActive } 
+              : s
+          );
+          onServicesUpdate({ services: updatedServices, categories });
+        }
+
+        toast.success('Service Status Updated', {
+          description: response.data?.message || `"${service.title}" is now ${!service.isActive ? 'active' : 'inactive'}`
+        });
       } else {
-        toast.error(response.error?.message || 'Failed to update service status');
+        toast.error('Failed to Update Service Status', {
+          description: response.error?.message || 'Unknown error occurred'
+        });
       }
     } catch (error: any) {
       console.error('Toggle status error:', error);
-      toast.error('Failed to update service status');
+      toast.error('Update Failed', {
+        description: error.message || 'An unexpected error occurred'
+      });
     }
   };
 
@@ -325,39 +354,9 @@ const SellerServiceDashboard = ({ services, categories, currentFilters }: Seller
         />
         <ServiceStatsCard
           title="Average Price"
-          value={`PKR ${stats.averagePrice.toLocaleString()}`}
+          value={`AED ${stats.averagePrice.toLocaleString()}`}
           icon={<TrendingUp className="h-6 w-6 text-purple-600" />}
         />
-      </div>
-
-      {/* Actions Bar */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
-        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-          <Link href="/seller/services/add">
-            <Button className="whitespace-nowrap">
-              <Plus className="h-4 w-4 mr-2" />
-              Add New Service
-            </Button>
-          </Link>
-          
-          <div className="flex space-x-2">
-            <Button variant="outline" size="sm">
-              <Upload className="h-4 w-4 mr-2" />
-              Import Services
-            </Button>
-            <Button variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Export Data
-            </Button>
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm">
-            <Settings className="h-4 w-4 mr-2" />
-            Bulk Actions
-          </Button>
-        </div>
       </div>
 
       {/* Filters */}
@@ -414,10 +413,20 @@ const SellerServiceDashboard = ({ services, categories, currentFilters }: Seller
       {/* Services Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Services ({servicesList.length})</CardTitle>
-          <CardDescription>
-            Manage your automotive services and track their performance
-          </CardDescription>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>Services ({servicesList.length})</CardTitle>
+              <CardDescription>
+                Manage your automotive services and track their performance
+              </CardDescription>
+            </div>
+            <Link href="/seller/services/add">
+              <Button className="whitespace-nowrap">
+                <Plus className="h-4 w-4 mr-2" />
+                Add New Service
+              </Button>
+            </Link>
+          </div>
         </CardHeader>
         <CardContent>
           {services && servicesList.length > 0 ? (
@@ -477,6 +486,30 @@ const SellerServiceDashboard = ({ services, categories, currentFilters }: Seller
           )}
         </CardContent>
       </Card>
+
+      {/* Service Deletion Confirmation Dialog */}
+      <Dialog open={!!serviceToDelete} onOpenChange={() => setServiceToDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>⚠️ Deactivate Service</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to deactivate "{serviceToDelete?.title}"?
+              <br /><br />
+              <strong>This will hide the service from customers</strong> but preserve all data and appointments.
+              <br /><br />
+              You can reactivate it later using the "Activate" button if needed.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setServiceToDelete(null)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDeleteService}>
+              Deactivate Service
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

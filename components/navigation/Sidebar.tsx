@@ -44,9 +44,10 @@ interface SidebarProps {
   isCollapsed?: boolean;
   onToggle?: () => void;
   className?: string;
+  onLinkClick?: () => void;
 }
 
-export function Sidebar({ isCollapsed = false, onToggle, className }: SidebarProps) {
+export function Sidebar({ isCollapsed = false, onToggle, className, onLinkClick }: SidebarProps) {
   const role = useUserRole();
   const pathname = usePathname();
   const [expandedSections, setExpandedSections] = useState<string[]>(['main', 'management']);
@@ -78,8 +79,8 @@ export function Sidebar({ isCollapsed = false, onToggle, className }: SidebarPro
             label: 'Marketplace',
             icon: Search,
             children: [
-              { id: 'browse', label: 'Browse Products', href: '/products', icon: Search },
-              { id: 'categories', label: 'Categories', href: '/categories', icon: Package },
+              { id: 'browse-products', label: 'Browse Products', href: '/products', icon: Search },
+              { id: 'browse-services', label: 'Browse Services', href: '/services', icon: Search },
             ],
           },
           {
@@ -105,7 +106,6 @@ export function Sidebar({ isCollapsed = false, onToggle, className }: SidebarPro
             icon: User,
             children: [
               { id: 'profile', label: 'Profile', href: '/buyer/profile', icon: User },
-              { id: 'help', label: 'Help & Support', href: '/help', icon: HelpCircle },
             ],
           },
         ];
@@ -134,7 +134,7 @@ export function Sidebar({ isCollapsed = false, onToggle, className }: SidebarPro
           },
           {
             id: 'communication',
-            label: 'Customer Communication',
+            label: 'Products Chats',
             icon: MessageSquare,
             children: [
               { id: 'chats', label: 'Product Chats', href: '/seller/chats', icon: MessageSquare },
@@ -142,10 +142,9 @@ export function Sidebar({ isCollapsed = false, onToggle, className }: SidebarPro
           },
           {
             id: 'business',
-            label: 'Business',
+            label: 'Shop Profile',
             icon: TrendingUp,
             children: [
-              { id: 'earnings', label: 'Earnings', href: '/seller/earnings', icon: TrendingUp },
               { id: 'profile', label: 'Shop Profile', href: '/seller/profile', icon: User },
             ],
           },
@@ -160,8 +159,6 @@ export function Sidebar({ isCollapsed = false, onToggle, className }: SidebarPro
             icon: BarChart3,
             children: [
               { id: 'analytics', label: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
-              { id: 'reports', label: 'Reports', href: '/admin/reports', icon: FileText },
-              { id: 'health', label: 'System Health', href: '/admin/health', icon: Shield },
             ],
           },
           {
@@ -169,10 +166,8 @@ export function Sidebar({ isCollapsed = false, onToggle, className }: SidebarPro
             label: 'User Management',
             icon: Users,
             children: [
-              { id: 'users', label: 'All Users', href: '/admin/users', icon: Users, badge: '1.2k' },
-              { id: 'sellers', label: 'Sellers', href: '/admin/sellers', icon: Users, badge: '145' },
-              { id: 'buyers', label: 'Buyers', href: '/admin/buyers', icon: Users, badge: '1.1k' },
-              { id: 'pending', label: 'Pending Approval', href: '/admin/pending', icon: Users, badge: '23' },
+              { id: 'users', label: 'All Users', href: '/admin/users', icon: Users },
+              { id: 'sellers', label: 'Sellers', href: '/admin/sellers', icon: Users},
             ],
           },
           {
@@ -272,6 +267,7 @@ export function Sidebar({ isCollapsed = false, onToggle, className }: SidebarPro
         <Link
           key={item.id}
           href={item.href}
+          onClick={onLinkClick}
           className={cn(
             "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
             level === 0 && "text-gray-700 hover:bg-gray-100",
@@ -335,6 +331,7 @@ export function Sidebar({ isCollapsed = false, onToggle, className }: SidebarPro
       <div className="p-4 border-t border-gray-200">
         <Link
           href="/help"
+          onClick={onLinkClick}
           className="flex items-center px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
         >
           <HelpCircle className={cn(

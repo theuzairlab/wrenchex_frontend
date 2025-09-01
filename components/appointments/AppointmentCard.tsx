@@ -8,7 +8,7 @@ import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
 import { 
   Calendar, Clock, MapPin, User, Phone, MessageCircle, 
-  CheckCircle, XCircle, AlertCircle, Star, DollarSign,
+  CheckCircle, XCircle, AlertCircle, Star,
   Navigation, Edit, MoreVertical
 } from 'lucide-react';
 import { Appointment } from '@/types';
@@ -53,9 +53,9 @@ export default function AppointmentCard({
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-PK', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'PKR',
+      currency: 'AED',
       minimumFractionDigits: 0,
     }).format(price);
   };
@@ -224,9 +224,8 @@ export default function AppointmentCard({
           )}
           
           <div className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5 text-green-600" />
             <div>
-              <div className="font-medium">{formatPrice(appointment.totalAmount)}</div>
+              <div className="font-medium">AED {formatPrice(appointment.totalAmount)}</div>
               <div className="text-sm text-gray-600">Total amount</div>
             </div>
           </div>

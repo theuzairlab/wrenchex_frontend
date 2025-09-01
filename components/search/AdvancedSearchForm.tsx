@@ -8,13 +8,9 @@ import {
   Search, 
   Filter, 
   Car, 
-  Calendar,
-  DollarSign,
   Package,
   Star,
-  ArrowRight,
   RotateCcw,
-  Tag,
   TrendingUp
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -325,7 +321,6 @@ const AdvancedSearchForm = ({ categories, featuredProducts }: AdvancedSearchForm
             {/* Price Range */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                <DollarSign className="h-5 w-5 mr-2 text-gray-600" />
                 Price Range
               </h3>
               

@@ -16,7 +16,7 @@ function SellerChatPage() {
     <ProtectedRoute>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-4">
+        <div className="">
           <Button
             variant="outline"
             size="sm"
