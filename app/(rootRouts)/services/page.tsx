@@ -86,6 +86,17 @@ export default function ServicesPage() {
       }
       
       if (response.success && response.data) {
+        console.log('Services API response:', response.data);
+        
+        // Log services to check if inactive ones are being returned
+        if (response.data.services) {
+          console.log('Services received:', response.data.services.length);
+          const inactiveServices = response.data.services.filter((s: any) => !s.isActive);
+          if (inactiveServices.length > 0) {
+            console.warn('Found inactive services in response:', inactiveServices);
+          }
+        }
+        
         setData(response.data);
       } else {
         toast.error('Failed to load services');

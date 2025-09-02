@@ -63,10 +63,22 @@ async function getProductsData(searchParams: any) {
     const productsData = productsResponse.ok ? await productsResponse.json() : { success: false };
     const categoriesData = categoriesResponse.ok ? await categoriesResponse.json() : { success: false };
 
+    console.log('Products API response:', productsData);
+    console.log('Categories API response:', categoriesData);
+
     const products = productsData.success ? productsData.data : null;
     const categories = categoriesData.success 
       ? (Array.isArray(categoriesData.data) ? categoriesData.data : (categoriesData.data.categories || []))
       : [];
+
+    // Log products to check if inactive ones are being returned
+    if (products && products.products) {
+      console.log('Products received:', products.products.length);
+      const inactiveProducts = products.products.filter((p: any) => !p.isActive);
+      if (inactiveProducts.length > 0) {
+        console.warn('Found inactive products in response:', inactiveProducts);
+      }
+    }
 
     return { products, categories: categories || [] };
   } catch (error) {
