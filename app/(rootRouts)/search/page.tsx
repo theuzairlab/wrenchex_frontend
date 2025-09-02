@@ -82,14 +82,14 @@ export default function SearchPage() {
           
           <div className="flex items-center gap-2">
             <Button
-              variant={viewMode === 'grid' ? 'default' : 'outline'}
+              variant={viewMode === 'grid' ? 'primary' : 'outline'}
               size="sm"
               onClick={() => setViewMode('grid')}
             >
               <Grid size={16} />
             </Button>
             <Button
-              variant={viewMode === 'list' ? 'default' : 'outline'}
+              variant={viewMode === 'list' ? 'primary' : 'outline'}
               size="sm"
               onClick={() => setViewMode('list')}
             >
@@ -170,9 +170,9 @@ export default function SearchPage() {
                 <div className="mt-4">
                   <ChatWithSellerButton
                     productId={product.id}
-                    sellerId={product.seller?.userId || ''}
+                    sellerId={product.seller?.id || ''}
                     sellerPhone={product.seller?.user?.phone}
-                    showPhone={product.seller?.chatSettings?.showPhone}
+                    showPhone={false}
                     className="w-full"
                   />
                 </div>

@@ -33,21 +33,21 @@ export default function UpdateProductPage() {
                     apiClient.getCategories()
                 ]);
 
-                if (productResponse.success) {
-                    console.log('Product data loaded:', productResponse.data);
-                    // The API returns {product: {...}} structure
-                    setProduct(productResponse.data?.product || productResponse.data || null);
+                if (productResponse.success && productResponse.data) {
+                    // Handle both direct product and wrapped response formats
+                    const productData = (productResponse.data as any).product || productResponse.data;
+                    console.log('Product data loaded:', productData);
+                    setProduct(productData);
                 } else {
                     toast.error('Failed to load product', {
                         description: productResponse.error?.message || 'Product not found'
                     });
                 }
 
-                if (categoriesResponse.success) {
-                    const categoriesData = Array.isArray(categoriesResponse.data) 
-                        ? categoriesResponse.data 
-                        : (categoriesResponse.data.categories || []);
-                    setCategories(categoriesData);
+                if (categoriesResponse.success && categoriesResponse.data) {
+                    // Handle both direct array and wrapped response formats
+                    const categoriesData = Array.isArray(categoriesResponse.data) ? categoriesResponse.data : (categoriesResponse.data as any).categories;
+                    setCategories(categoriesData || []);
                 }
             } catch (error) {
                 toast.error('Failed to load product data', {
@@ -264,7 +264,7 @@ export default function UpdateProductPage() {
                                 <SelectValue placeholder="Select a category" />
                             </SelectTrigger>
                             <SelectContent>
-                                {categories.map((category) => (
+                                {categories && Array.isArray(categories) && categories.map((category) => (
                                     <SelectItem
                                         key={category.id}
                                         value={category.id}

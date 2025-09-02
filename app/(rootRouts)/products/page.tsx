@@ -1,5 +1,7 @@
+'use client';
+
 import { Metadata } from 'next';
-import { Suspense } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { apiClient } from '@/lib/api/client';
 import { ProductSearchResult, Category } from '@/types';
 import ProductCatalog from '@/components/products/ProductCatalog';
@@ -76,42 +78,40 @@ async function getProductsData(searchParams: any) {
   }
 }
 
-// SEO Metadata generation
-export async function generateMetadata({ searchParams }: ProductsPageProps): Promise<Metadata> {
-  const params = await searchParams;
-  const category = params.category;
-  const search = params.search;
 
-  let title = 'Auto Parts & Accessories | WrenchEX Marketplace';
-  let description = 'Browse thousands of genuine auto parts and accessories from verified sellers. Find OEM and aftermarket parts for all car makes and models with fast delivery.';
 
-  if (search) {
-    title = `"${search}" - Auto Parts Search | WrenchEX`;
-    description = `Search results for "${search}". Find the best auto parts and accessories from verified sellers.`;
-  } else if (category) {
-    title = `Auto Parts in ${category} | WrenchEX Marketplace`;
-    description = `Browse ${category} auto parts and accessories from verified sellers with fast delivery.`;
+export default function ProductsPage({ searchParams }: ProductsPageProps) {
+  const [products, setProducts] = useState<ProductSearchResult | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [params, setParams] = useState<any>(null);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        const resolvedParams = await searchParams;
+        setParams(resolvedParams);
+        const data = await getProductsData(searchParams);
+        setProducts(data.products);
+        setCategories(data.categories);
+      } catch (error) {
+        console.error('Failed to load products data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadData();
+  }, [searchParams]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
   }
-
-  return {
-    title,
-    description,
-    keywords: 'auto parts, car parts, automotive accessories, brake pads, oil filters, spark plugs, genuine parts, aftermarket parts',
-    openGraph: {
-      title,
-      description,
-      type: 'website',
-      url: 'https://wrenchex.com/products',
-    },
-  };
-}
-
-// ISR Configuration for product catalog
-export const revalidate = 300; // Revalidate every 5 minutes
-
-export default async function ProductsPage({ searchParams }: ProductsPageProps) {
-  const { products, categories } = await getProductsData(searchParams);
-  const params = await searchParams;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -144,7 +144,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z" />
                 </svg>
                 <span className="font-medium text-gray-900">Show Filters</span>
-                <span className="text-sm text-gray-500">({Object.keys(params).filter(key => params[key]).length} active)</span>
+                <span className="text-sm text-gray-500">({Object.keys(params).filter(key => params[key as keyof typeof params]).length} active)</span>
               </div>
               <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -160,7 +160,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                 currentFilters={params}
                 totalProducts={products?.pagination?.total || 0}
                 availableFilters={{
-                  categories: (categories || []).map(cat => ({ id: cat.id, name: cat.name, count: 0 })),
+                  categories: (categories || []).map((cat: any) => ({ id: cat.id, name: cat.name, count: 0 })),
                   brands: [],
                   priceRange: { min: 0, max: 10000 },
                   conditions: []

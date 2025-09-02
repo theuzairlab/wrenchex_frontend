@@ -64,6 +64,7 @@ export default function DashboardPage() {
   const [dashboardData, setDashboardData] = useState<SellerDashboardData | null>(null);
   const [Loading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sellerProfile, setSellerProfile] = useState<any>(null);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -72,12 +73,46 @@ export default function DashboardPage() {
         
         // Only fetch seller dashboard data for seller role
         if (role === 'SELLER') {
-          const response = await apiClient.getSellerDashboard();
-          
-          if (response.success && response.data) {
-            setDashboardData(response.data);
-          } else {
-            setError(response.error?.message || 'Failed to load dashboard data');
+          try {
+            const response = await apiClient.getSellerDashboard();
+            
+            if (response.success && response.data) {
+              setDashboardData(response.data);
+            } else {
+              setError(response.error?.message || 'Failed to load dashboard data');
+              
+              // If dashboard fails, try to get seller profile for pending approval case
+              if (response.error?.message?.toLowerCase().includes('pending approval') || 
+                  response.error?.message?.toLowerCase().includes('not approved')) {
+                try {
+                  const profileResponse = await apiClient.getSellerProfile();
+                  if (profileResponse.success && profileResponse.data) {
+                    setSellerProfile(profileResponse.data);
+                  }
+                } catch (profileErr) {
+                  console.log('Could not fetch seller profile:', profileErr);
+                  // If profile also fails, we'll show the pending approval with just user data
+                  setSellerProfile(null);
+                }
+              }
+            }
+          } catch (err: any) {
+            setError(err.message || 'Failed to load dashboard data');
+            
+                          // Try to get seller profile for pending approval case
+              if (err.message?.toLowerCase().includes('pending approval') || 
+                  err.message?.toLowerCase().includes('not approved')) {
+                try {
+                  const profileResponse = await apiClient.getSellerProfile();
+                  if (profileResponse.success && profileResponse.data) {
+                    setSellerProfile(profileResponse.data);
+                  }
+                } catch (profileErr) {
+                  console.log('Could not fetch seller profile:', profileErr);
+                  // If profile also fails, we'll show the pending approval with just user data
+                  setSellerProfile(null);
+                }
+              }
           }
         } else {
           // For other roles, we don't need seller dashboard data
@@ -162,6 +197,7 @@ export default function DashboardPage() {
                   error={error} 
                   formatDateTime={formatDateTime} 
                   formatCurrency={formatCurrency}
+                  sellerProfile={sellerProfile}
                 />;
       case 'ADMIN':
         console.log('Rendering Admin Dashboard');

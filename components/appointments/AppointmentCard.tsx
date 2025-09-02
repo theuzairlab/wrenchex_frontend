@@ -67,7 +67,7 @@ export default function AppointmentCard({
   const canCancel = appointment.status === 'PENDING' || appointment.status === 'CONFIRMED';
   const canConfirm = appointment.status === 'PENDING' && userRole === 'seller';
   const canStartService = appointment.status === 'CONFIRMED' && userRole === 'seller' && isUpcoming;
-  const canComplete = appointment.status === 'IN_PROGRESS' && userRole === 'seller';
+  const canComplete = appointment.status === 'CONFIRMED' && userRole === 'seller';
 
   const handleStatusUpdate = async (newStatus: string, notes?: string) => {
     try {
@@ -112,20 +112,20 @@ export default function AppointmentCard({
               </div>
               
               <div>
-                <h3 className="font-semibold text-gray-900">{appointment.service.title}</h3>
+                <h3 className="font-semibold text-gray-900">{appointment.service?.title || 'Service Title Not Available'}</h3>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Clock className="h-3 w-3" />
                   <span>{format(appointmentDate, 'HH:mm')}</span>
                   {userRole === 'buyer' && (
                     <>
                       <span>•</span>
-                      <span>{appointment.seller.shopName}</span>
+                      <span>{appointment.seller?.shopName || 'Shop Name Not Available'}</span>
                     </>
                   )}
                   {userRole === 'seller' && (
                     <>
                       <span>•</span>
-                      <span>{appointment.buyer.firstName} {appointment.buyer.lastName}</span>
+                      <span>{appointment.buyer?.firstName} {appointment.buyer?.lastName}</span>
                     </>
                   )}
                 </div>
@@ -150,7 +150,7 @@ export default function AppointmentCard({
         <div className="flex justify-between items-start mb-4">
           <div>
             <h3 className="text-xl font-semibold text-gray-900 mb-1">
-              {appointment.service.title}
+              {appointment.service?.title || 'Service Title Not Available'}
             </h3>
             <p className="text-gray-600 text-sm">
               Appointment #{appointment.appointmentNumber}
@@ -192,7 +192,7 @@ export default function AppointmentCard({
                 {format(appointmentDate, 'HH:mm')} - {format(new Date(appointment.scheduledTimeEnd), 'HH:mm')}
               </div>
               <div className="text-sm text-gray-600">
-                {appointment.service.durationMinutes} minutes
+                {appointment.service?.durationMinutes || 0} minutes
               </div>
             </div>
           </div>
@@ -204,10 +204,10 @@ export default function AppointmentCard({
             <div className="flex items-center gap-2">
               <User className="h-5 w-5 text-green-600" />
               <div>
-                <div className="font-medium">{appointment.seller.shopName}</div>
+                <div className="font-medium">{appointment.seller?.shopName || 'Shop Name Not Available'}</div>
                 <div className="text-sm text-gray-600 flex items-center gap-1">
                   <MapPin className="h-3 w-3" />
-                  {appointment.seller.city}, {appointment.seller.area}
+                  Location not available
                 </div>
               </div>
             </div>
@@ -216,9 +216,9 @@ export default function AppointmentCard({
               <User className="h-5 w-5 text-green-600" />
               <div>
                 <div className="font-medium">
-                  {appointment.buyer.firstName} {appointment.buyer.lastName}
+                  {appointment.buyer?.firstName} {appointment.buyer?.lastName}
                 </div>
-                <div className="text-sm text-gray-600">{appointment.buyer.email}</div>
+                <div className="text-sm text-gray-600">{appointment.buyer?.email}</div>
               </div>
             </div>
           )}
@@ -232,7 +232,7 @@ export default function AppointmentCard({
         </div>
 
         {/* Location (for mobile services) */}
-        {appointment.service.isMobileService && appointment.serviceLocation && (
+        {appointment.serviceLocation && (
           <div className="flex items-start gap-2 mb-4 p-3 bg-blue-50 rounded-lg">
             <Navigation className="h-5 w-5 text-blue-600 mt-0.5" />
             <div>
@@ -295,12 +295,12 @@ export default function AppointmentCard({
             Message
           </Button>
           
-          {userRole === 'buyer' && appointment.buyer.phone && (
+          {userRole === 'buyer' && appointment.buyer?.phone && (
             <Button
               variant="outline"
               size="sm"
               leftIcon={<Phone className="h-4 w-4" />}
-              onClick={() => window.open(`tel:${appointment.buyer.phone}`)}
+              onClick={() => window.open(`tel:${appointment.buyer?.phone}`)}
             >
               Call
             </Button>

@@ -17,8 +17,7 @@ import {
   Store, 
   ChevronLeft,
   ChevronRight,
-  RefreshCw,
-  Filter
+  RefreshCw
 } from 'lucide-react';
 
 interface Appointment {
@@ -47,19 +46,9 @@ interface Appointment {
   };
 }
 
-interface AppointmentsResponse {
-  appointments: Appointment[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    pages: number;
-  };
-}
-
 export default function AdminAppointmentsPage() {
   const role = useUserRole();
-  const user = useUser();
+  // const user = useUser();
   const { isLoading, isAuthenticated } = useAuthStore();
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -76,12 +65,6 @@ export default function AdminAppointmentsPage() {
     total: 0,
     pages: 0
   });
-
-  useEffect(() => {
-    if (isAuthenticated && role === 'ADMIN') {
-      fetchAppointments();
-    }
-  }, [isAuthenticated, role, currentPage, statusFilter, startDate, endDate]);
 
   const fetchAppointments = async () => {
     try {
@@ -109,6 +92,12 @@ export default function AdminAppointmentsPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isAuthenticated && role === 'ADMIN') {
+      fetchAppointments();
+    }
+  }, [isAuthenticated, role, currentPage, statusFilter, startDate, endDate, fetchAppointments]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

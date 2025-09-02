@@ -17,8 +17,7 @@ import {
   Activity,
   RefreshCw,
   BarChart3,
-  PieChart,
-  LineChart
+  PieChart
 } from 'lucide-react';
 
 interface PlatformStats {
@@ -35,7 +34,7 @@ interface PlatformStats {
 
 export default function AdminAnalyticsPage() {
   const role = useUserRole();
-  const user = useUser();
+  // const user = useUser();
   const { isLoading, isAuthenticated } = useAuthStore();
 
   const [stats, setStats] = useState<PlatformStats | null>(null);
@@ -68,10 +67,10 @@ export default function AdminAnalyticsPage() {
     }
   };
 
-  const getGrowthPercentage = (current: number, previous: number) => {
-    if (previous === 0) return current > 0 ? 100 : 0;
-    return ((current - previous) / previous) * 100;
-  };
+  // const getGrowthPercentage = (current: number, previous: number) => {
+  //   if (previous === 0) return current > 0 ? 100 : 0;
+  //   return ((current - previous) / previous) * 100;
+  // };
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) {

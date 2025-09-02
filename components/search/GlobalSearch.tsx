@@ -110,7 +110,7 @@ const GlobalSearch = ({
 
         // Add service suggestions
         if (servicesResponse.success && servicesResponse.data?.services) {
-          servicesResponse.data.services.forEach(service => {
+          servicesResponse.data.services.forEach((service: any) => {
             suggestions.push({
               type: 'service',
               id: service.id,
@@ -125,9 +125,9 @@ const GlobalSearch = ({
         // Add service category suggestions
         if (categoriesResponse.success && categoriesResponse.data) {
           categoriesResponse.data
-            .filter(cat => cat.name.toLowerCase().includes(searchQuery.toLowerCase()))
+            .filter((cat: any) => cat.name.toLowerCase().includes(searchQuery.toLowerCase()))
             .slice(0, 2)
-            .forEach(category => {
+            .forEach((category: any) => {
               suggestions.push({
                 type: 'category',
                 id: category.id,
@@ -139,25 +139,31 @@ const GlobalSearch = ({
         }
       }
 
-      // Add category suggestions
-      if (categoriesResponse.success && categoriesResponse.data) {
-        const categories = Array.isArray(categoriesResponse.data) 
-          ? categoriesResponse.data 
-          : (categoriesResponse.data.categories || []);
-        
-        const matchingCategories = categories.filter(category =>
-          category.name.toLowerCase().includes(searchQuery.toLowerCase())
-        ).slice(0, 2);
+      // Add category suggestions for products
+      if (searchType === 'products') {
+        const [categoriesResponse] = await Promise.all([
+          apiClient.getCategories()
+        ]);
 
-        matchingCategories.forEach(category => {
-          suggestions.push({
-            type: 'category',
-            id: category.id,
-            title: category.name,
-            subtitle: `${category.productCount || 0} products`,
-            url: `/products?category=${category.id}`
+        if (categoriesResponse.success && categoriesResponse.data) {
+          const categories = Array.isArray(categoriesResponse.data) 
+            ? categoriesResponse.data 
+            : (categoriesResponse.data as any)?.categories || [];
+          
+          const matchingCategories = categories.filter((category: any) =>
+            category.name.toLowerCase().includes(searchQuery.toLowerCase())
+          ).slice(0, 2);
+
+          matchingCategories.forEach((category: any) => {
+            suggestions.push({
+              type: 'category',
+              id: category.id,
+              title: category.name,
+              subtitle: `${category.productCount || 0} products`,
+              url: `/products?category=${category.id}`
+            });
           });
-        });
+        }
       }
 
       setSuggestions(suggestions);

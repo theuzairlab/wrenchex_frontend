@@ -122,8 +122,8 @@ export default function ServiceDetailPage() {
         scheduledDate: appointmentDate.toISOString(),
         scheduledTimeStart: scheduledTimeStart.toISOString(),
         scheduledTimeEnd: scheduledTimeEnd.toISOString(),
-        serviceLocation: service?.isMobileService && serviceLocation ? 
-          { address: serviceLocation } : undefined,
+        serviceLocation: service?.isMobileService && serviceLocation && serviceLocation.trim().length >= 10 ? 
+          { address: serviceLocation.trim(), type: 'CUSTOMER_LOCATION' as const } : undefined,
         notes: notes || undefined,
       };
 

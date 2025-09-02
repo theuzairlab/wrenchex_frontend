@@ -36,10 +36,10 @@ interface Service {
   seller: {
     id: string;
     shopName: string;
-    user: {
-      firstName: string;
-      lastName: string;
-    };
+    city: string;
+    area: string;
+    ratingAverage?: number;
+    ratingCount: number;
   };
   category: {
     id: string;
@@ -84,7 +84,12 @@ export default function AdminServicesPage() {
 
       if (response.success && response.data) {
         setServices(response.data.services);
-        setPagination(response.data.pagination);
+        setPagination({
+          page: response.data.currentPage,
+          limit: 10,
+          total: response.data.totalCount,
+          pages: response.data.totalPages
+        });
       } else {
         setError(response.error?.message || 'Failed to fetch services');
       }
@@ -245,7 +250,7 @@ export default function AdminServicesPage() {
                             <p className="font-medium text-gray-700">Provider</p>
                             <p className="text-gray-600">{service.seller.shopName}</p>
                             <p className="text-xs text-gray-500">
-                              {service.seller?.user?.firstName} {service.seller?.user?.lastName}
+                              {service.seller.city}, {service.seller.area}
                             </p>
                           </div>
                         </div>

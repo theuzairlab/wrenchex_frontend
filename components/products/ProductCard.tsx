@@ -110,9 +110,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
         <div className="flex items-center space-x-1 mb-3 text-sm text-gray-600">
           <MapPin className="h-3 w-3 text-gray-400" />
           <span className="line-clamp-1">{product.seller.shopName}</span>
-          {product.seller.isApproved && (
-            <span className="text-xs bg-blue-100 text-blue-700 px-1 rounded">✓</span>
-          )}
+
         </div>
 
         {/* Price */}

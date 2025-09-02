@@ -140,10 +140,10 @@ export function SellerAppointmentsList({
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     return (
-      appointment.buyer.firstName.toLowerCase().includes(query) ||
-      appointment.buyer.lastName.toLowerCase().includes(query) ||
-      appointment.buyer.email.toLowerCase().includes(query) ||
-      appointment.service.title.toLowerCase().includes(query) ||
+      appointment.buyer?.firstName?.toLowerCase().includes(query) ||
+      appointment.buyer?.lastName?.toLowerCase().includes(query) ||
+      appointment.buyer?.email?.toLowerCase().includes(query) ||
+      appointment.service?.title?.toLowerCase().includes(query) ||
       appointment.appointmentNumber.toLowerCase().includes(query)
     );
   });
@@ -180,17 +180,18 @@ export function SellerAppointmentsList({
             />
           </div>
           <div className="flex gap-2">
-            <Select
+            <select
               value={statusFilter}
-              onValueChange={onStatusFilterChange}
-              placeholder="Filter by status"
+              onChange={(e) => onStatusFilterChange(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-wrench-orange-500"
             >
+              <option value="">All Statuses</option>
               {statusOptions.map(option => (
-                <Select.Option key={option.value} value={option.value}>
+                <option key={option.value} value={option.value}>
                   {option.label}
-                </Select.Option>
+                </option>
               ))}
-            </Select>
+            </select>
           </div>
         </div>
       </CardHeader>
@@ -223,7 +224,7 @@ export function SellerAppointmentsList({
                       <div className="flex items-center gap-4 text-sm text-gray-600">
                         <div className="flex items-center gap-1">
                           <User className="h-3 w-3" />
-                          {appointment.buyer.firstName} {appointment.buyer.lastName}
+                          {appointment.buyer?.firstName} {appointment.buyer?.lastName}
                         </div>
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
@@ -240,7 +241,7 @@ export function SellerAppointmentsList({
                         {formatCurrency(appointment.totalAmount)}
                       </p>
                       <p className="text-sm text-gray-500">
-                        {formatDuration(appointment.service.durationMinutes)}
+                        {formatDuration(appointment.service?.durationMinutes || 0)}
                       </p>
                     </div>
                     <Link href={`/seller/appointments/${appointment.id}`}>
@@ -256,9 +257,9 @@ export function SellerAppointmentsList({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   {/* Service Info */}
                   <div className="space-y-2">
-                    <h4 className="font-medium text-gray-900">{appointment.service.title}</h4>
-                    <p className="text-sm text-gray-600">{appointment.service.description}</p>
-                    {appointment.service.isMobileService && (
+                    <h4 className="font-medium text-gray-900">{appointment.service?.title || 'Service Title Not Available'}</h4>
+                    <p className="text-sm text-gray-600">Service description not available</p>
+                    {false && (
                       <div className="flex items-center gap-1 text-sm text-blue-600">
                         <MapPin className="h-3 w-3" />
                         Mobile Service
@@ -270,9 +271,9 @@ export function SellerAppointmentsList({
                   <div className="space-y-2">
                     <div className="flex items-center gap-1 text-sm text-gray-600">
                       <Mail className="h-3 w-3" />
-                      {appointment.buyer.email}
+                      {appointment.buyer?.email || 'Email not available'}
                     </div>
-                    {appointment.buyer.phone && (
+                                          {appointment.buyer?.phone && (
                       <div className="flex items-center gap-1 text-sm text-gray-600">
                         <Phone className="h-3 w-3" />
                         {appointment.buyer.phone}
@@ -298,17 +299,17 @@ export function SellerAppointmentsList({
                   <div className="flex items-center gap-2">
                     {appointment.status !== 'CANCELLED' && appointment.status !== 'COMPLETED' && (
                       <>
-                        <Select
+                        <select
                           value={appointment.status}
-                          onValueChange={(newStatus) => handleStatusChange(appointment.id, newStatus)}
-                          placeholder="Update status"
+                          onChange={(e) => handleStatusChange(appointment.id, e.target.value)}
+                          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-wrench-orange-500"
                         >
                           {appointmentStatusOptions.map(option => (
-                            <Select.Option key={option.value} value={option.value}>
+                            <option key={option.value} value={option.value}>
                               {option.label}
-                            </Select.Option>
+                            </option>
                           ))}
-                        </Select>
+                        </select>
                         
                         <Button
                           variant="outline"

@@ -14,9 +14,7 @@ export const loginSchema = z.object({
 
 // Role selection schema
 export const roleSelectionSchema = z.object({
-  role: z.enum(['BUYER', 'SELLER'], {
-    required_error: 'Please select a role',
-  }),
+  role: z.enum(['BUYER', 'SELLER']),
 });
 
 // Base user registration schema

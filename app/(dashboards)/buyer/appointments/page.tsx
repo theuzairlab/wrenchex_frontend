@@ -25,21 +25,26 @@ export default function BuyerAppointmentsPage() {
     try {
       setIsLoading(true);
       
-      const filters: any = { buyerId: user?.id };
+      const filters: any = {
+        limit: 100 // Increase limit to get more appointments
+      };
       
       if (filter === 'upcoming') {
         // Don't use status filter - let frontend filter upcoming appointments
-        filters.fromDate = new Date().toISOString();
+        filters.startDate = new Date().toISOString();
       } else if (filter === 'past') {
-        filters.toDate = new Date().toISOString();
+        filters.endDate = new Date().toISOString();
       }
       
+      console.log('Loading appointments with filters:', filters);
       const response = await apiClient.getAppointments(filters);
+      console.log('Appointments response:', response);
       
       if (response.success && response.data) {
-        // Handle both array response and paginated response
-        const appointmentsData = Array.isArray(response.data) ? response.data : response.data.appointments || [];
-        setAppointments(appointmentsData);
+        // Handle both direct array and wrapped response formats
+        const appointmentsData = Array.isArray(response.data) ? response.data : (response.data as any).appointments;
+        console.log('Appointments data:', appointmentsData);
+        setAppointments(appointmentsData || []);
       }
     } catch (error: any) {
       console.error('Failed to load appointments:', error);
@@ -59,7 +64,7 @@ export default function BuyerAppointmentsPage() {
     }
   };
 
-  const filteredAppointments = appointments.filter(appointment => {
+  const filteredAppointments = appointments && Array.isArray(appointments) ? appointments.filter(appointment => {
     const appointmentDate = new Date(appointment.scheduledDate);
     const now = new Date();
     
@@ -69,7 +74,7 @@ export default function BuyerAppointmentsPage() {
       return appointmentDate < now || ['CANCELLED', 'COMPLETED'].includes(appointment.status);
     }
     return true;
-  });
+  }) : [];
 
   return (
     <ProtectedRoute>

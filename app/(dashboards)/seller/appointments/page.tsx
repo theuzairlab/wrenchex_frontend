@@ -170,7 +170,7 @@ export default function SellerAppointmentsPage() {
               <div className="flex justify-between items-center mb-4 pb-4 border-b">
                 <div>
                   <h3 className="text-xl font-bold text-gray-900">
-                    {appointment.service.title}
+                    {appointment.service?.title || 'Service Title Not Available'}
                   </h3>
                   <p className="text-sm text-gray-600">
                     Appointment #{appointment.appointmentNumber}
@@ -190,7 +190,7 @@ export default function SellerAppointmentsPage() {
                     onClick={() => {
                       setSelectedAppointment({
                         id: appointment.id,
-                        status: appointment.status
+                        status: appointment.status as any
                       });
                       setSelectedStatus('');
                       setUpdateNote('');
@@ -258,10 +258,10 @@ export default function SellerAppointmentsPage() {
                     <div>
                       <p className="text-sm font-medium text-gray-700">Customer</p>
                       <p className="text-gray-900">
-                        {appointment.buyer.firstName} {appointment.buyer.lastName}
+                        {appointment.buyer?.firstName} {appointment.buyer?.lastName}
                       </p>
                       <p className="text-sm text-gray-600">
-                        {appointment.buyer.email}
+                        {appointment.buyer?.email}
                       </p>
                     </div>
                   </div>

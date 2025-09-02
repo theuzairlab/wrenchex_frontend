@@ -104,7 +104,7 @@ export const AutoComplete = forwardRef<HTMLDivElement, AutoCompleteProps>(({
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<NodeJS.Timeout>();
+  const debounceRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // Use controlled or uncontrolled value
   const currentValue = value !== undefined ? value : inputValue;
@@ -112,7 +112,7 @@ export const AutoComplete = forwardRef<HTMLDivElement, AutoCompleteProps>(({
   // Default filter function
   const defaultFilter = (option: AutoCompleteOption, query: string): boolean => {
     const searchText = query.toLowerCase();
-    return (
+    return !!(
       option.label.toLowerCase().includes(searchText) ||
       option.value.toLowerCase().includes(searchText) ||
       (option.description && option.description.toLowerCase().includes(searchText))

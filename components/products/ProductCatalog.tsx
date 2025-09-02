@@ -109,11 +109,7 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
                 <div className="flex items-center space-x-2 mt-2">
                   <MapPin className="h-4 w-4 text-gray-400" />
                   <span className="text-sm text-gray-600">{product.seller.shopName}</span>
-                  {product.seller.isApproved && (
-                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                      Verified
-                    </span>
-                  )}
+
                 </div>
 
                 {/* Rating */}
@@ -307,11 +303,7 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
           <span className="text-sm text-gray-700 font-medium truncate flex-1">
             {product.seller.shopName}
           </span>
-          {product.seller.isApproved && (
-            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-semibold flex-shrink-0">
-              ✓ Verified
-            </span>
-          )}
+
         </div>
 
         {/* Price Section */}

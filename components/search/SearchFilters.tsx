@@ -22,7 +22,7 @@ interface SearchFiltersProps {
   categories: Category[];
   currentFilters: Record<string, string | undefined>;
   totalProducts: number;
-  availableFilters?: ProductSearchResult['filters'];
+  availableFilters?: any;
   searchQuery: string;
 }
 
@@ -147,9 +147,9 @@ const SearchFilters = ({
   const availableBrands = availableFilters?.brands || [];
 
   const conditions = [
-    { value: 'NEW', label: 'New', count: availableFilters?.conditions?.find(c => c.value === 'NEW')?.count || 0 },
-    { value: 'USED', label: 'Used', count: availableFilters?.conditions?.find(c => c.value === 'USED')?.count || 0 },
-    { value: 'REFURBISHED', label: 'Refurbished', count: availableFilters?.conditions?.find(c => c.value === 'REFURBISHED')?.count || 0 },
+    { value: 'NEW', label: 'New', count: availableFilters?.conditions?.find((c: any) => c.value === 'NEW')?.count || 0 },
+    { value: 'USED', label: 'Used', count: availableFilters?.conditions?.find((c: any) => c.value === 'USED')?.count || 0 },
+    { value: 'REFURBISHED', label: 'Refurbished', count: availableFilters?.conditions?.find((c: any) => c.value === 'REFURBISHED')?.count || 0 },
   ].filter(condition => condition.count > 0);
 
   return (
@@ -235,7 +235,7 @@ const SearchFilters = ({
           count={relevantCategories.length}
         >
           <div className="space-y-2 max-h-48 overflow-y-auto">
-            {relevantCategories.map((category) => (
+            {relevantCategories.map((category: any) => (
               <label key={category.id} className="flex items-center space-x-2 cursor-pointer">
                 <input
                   type="radio"
@@ -308,7 +308,7 @@ const SearchFilters = ({
           count={availableBrands.length}
         >
           <div className="space-y-2 max-h-48 overflow-y-auto">
-            {availableBrands.map((brand) => (
+            {availableBrands.map((brand: any) => (
               <label key={brand.name} className="flex items-center space-x-2 cursor-pointer">
                 <input
                   type="radio"

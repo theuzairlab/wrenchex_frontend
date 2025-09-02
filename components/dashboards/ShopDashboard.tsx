@@ -3,11 +3,12 @@ import { Button } from "../ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/Card";
 import { useState } from "react";
 import Link from "next/link";
+import { PendingApproval } from "../seller/PendingApproval";
 
 
 
 // Seller Dashboard Content  
-export function ShopDashboard({ User, Loading, dashboardData, error, formatDateTime, formatCurrency }: { User: any, Loading: any, dashboardData: any, error: any, formatDateTime: any, formatCurrency: any }) {
+export function ShopDashboard({ User, Loading, dashboardData, error, formatDateTime, formatCurrency, sellerProfile }: { User: any, Loading: any, dashboardData: any, error: any, formatDateTime: any, formatCurrency: any, sellerProfile?: any }) {
     const user = User();
     
   
@@ -21,13 +22,25 @@ export function ShopDashboard({ User, Loading, dashboardData, error, formatDateT
         </div>
       );
     }
+    
+    // Show pending approval if we have an error and it's related to approval
+    if (error && (error.toLowerCase().includes('pending approval') || 
+                   error.toLowerCase().includes('not approved') ||
+                   error.toLowerCase().includes('seller account') ||
+                   error.toLowerCase().includes('approval'))) {
+      return <PendingApproval 
+        email={user?.email} 
+        shopName={sellerProfile?.shopName}
+      />;
+    }
   
     if (error) {
+      // For other errors, show the generic error message
       return (
         <div className="text-center py-12">
           <div className="text-red-600 mb-4">
             <svg className="w-12 h-12 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              <path fillRule="evenodd" d="M18 10a8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
             </svg>
             <p className="text-lg font-medium">Error loading dashboard</p>
             <p className="text-sm text-gray-600">{error}</p>

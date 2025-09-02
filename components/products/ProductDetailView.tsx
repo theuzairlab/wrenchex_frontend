@@ -267,9 +267,9 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
               <div className="flex space-x-4">
                 <ChatWithSellerButton 
                   productId={product.id}
-                  sellerId={product.seller?.userId || product.seller?.user?.id || ''}
+                  sellerId={product.seller?.user?.id || product.seller?.id || ''}
                   sellerPhone={product.seller?.user?.phone}
-                  showPhone={product.seller?.chatSettings?.showPhone}
+                  showPhone={false}
                   className="flex-1"
                 />
                 
@@ -304,12 +304,7 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-semibold text-lg">{product.seller.shopName}</h4>
-                  {product.seller.isApproved && (
-                    <div className="flex items-center space-x-1 mt-1">
-                      <CheckCircle className="h-4 w-4 text-blue-500" />
-                      <span className="text-sm text-blue-600">Verified Seller</span>
-                    </div>
-                  )}
+
                 </div>
                 
                 <div className="text-right">

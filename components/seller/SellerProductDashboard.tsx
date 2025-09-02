@@ -386,7 +386,7 @@ const handleToggleStatus = async (product: Product) => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-wrench-accent focus:border-wrench-accent"
               >
                 <option value="">All Categories</option>
-                {categories.map(category => (
+                {categories && Array.isArray(categories) && categories.map(category => (
                   <option key={category.id} value={category.id}>
                     {category.name}
                   </option>
@@ -468,7 +468,7 @@ const handleToggleStatus = async (product: Product) => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {products.products?.map((product) => (
+                  {products.products && Array.isArray(products.products) && products.products.map((product) => (
                     <ProductTableRow
                       key={product.id}
                       product={product}

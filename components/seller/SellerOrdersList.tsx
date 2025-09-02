@@ -137,17 +137,18 @@ export function SellerOrdersList({
             />
           </div>
           <div className="flex gap-2">
-            <Select
+            <select
               value={statusFilter}
-              onValueChange={onStatusFilterChange}
-              placeholder="Filter by status"
+              onChange={(e) => onStatusFilterChange(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-wrench-orange-500"
             >
+              <option value="">All Statuses</option>
               {statusOptions.map(option => (
-                <Select.Option key={option.value} value={option.value}>
+                <option key={option.value} value={option.value}>
                   {option.label}
-                </Select.Option>
+                </option>
               ))}
-            </Select>
+            </select>
           </div>
         </div>
       </CardHeader>
@@ -246,17 +247,17 @@ export function SellerOrdersList({
 
                   {/* Status Update */}
                   <div className="flex items-center gap-2">
-                    <Select
+                    <select
                       value={order.status}
-                      onValueChange={(newStatus) => handleStatusChange(order.id, newStatus)}
-                      placeholder="Update status"
+                      onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                      className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-wrench-orange-500"
                     >
                       {orderStatusOptions.map(option => (
-                        <Select.Option key={option.value} value={option.value}>
+                        <option key={option.value} value={option.value}>
                           {option.label}
-                        </Select.Option>
+                        </option>
                       ))}
-                    </Select>
+                    </select>
                   </div>
                 </div>
               </div>

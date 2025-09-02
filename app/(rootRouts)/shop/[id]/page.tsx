@@ -85,7 +85,7 @@ export default async function SellerPage({ params }: SellerPageProps) {
         {/* Seller Profile Header */}
         <div className="mb-8">
           <Suspense fallback={<LoadingSpinner />}>
-            <SellerProfileCard seller={seller} showActions={false} />
+            <SellerProfileCard seller={seller} />
           </Suspense>
         </div>
 

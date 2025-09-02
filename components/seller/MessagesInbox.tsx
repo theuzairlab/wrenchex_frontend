@@ -32,11 +32,11 @@ export function MessagesInbox({ conversations, unreadCount, onRefresh }: Message
   const loadOrderMessages = async (orderId: string) => {
     try {
       setIsLoadingMessages(true);
-      const response = await apiClient.getOrderMessages(orderId);
+      const response = await apiClient.getChatMessages(orderId);
       if (response.success) {
-        setMessages(response.data || []);
-        // Mark as read
-        await apiClient.markOrderMessagesAsRead(orderId);
+        setMessages(response.data?.messages || []);
+        // Mark as read - TODO: implement when API is available
+        // await apiClient.markOrderMessagesAsRead(orderId);
         onRefresh(); // Refresh to update unread count
       }
     } catch (error) {
@@ -53,8 +53,7 @@ export function MessagesInbox({ conversations, unreadCount, onRefresh }: Message
       setIsSending(true);
       const response = await apiClient.sendMessage(
         selectedConversation.orderId,
-        selectedConversation.buyerId,
-        newMessage.trim()
+        { chatId: selectedConversation.orderId, message: newMessage.trim() }
       );
       
       if (response.success) {

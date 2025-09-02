@@ -39,10 +39,10 @@ interface Product {
   seller: {
     id: string;
     shopName: string;
-    user: {
-      firstName: string;
-      lastName: string;
-    };
+    city: string;
+    area: string;
+    ratingAverage?: number;
+    ratingCount: number;
   };
   category: {
     id: string;
@@ -303,7 +303,7 @@ export default function AdminProductsPage() {
                             <p className="font-medium text-gray-700">Seller</p>
                             <p className="text-gray-600">{product.seller.shopName}</p>
                             <p className="text-xs text-gray-500">
-                              {product.seller?.user?.firstName} {product.seller?.user?.lastName}
+                              {product.seller.city}, {product.seller.area}
                             </p>
                           </div>
                         </div>

@@ -13,9 +13,9 @@ export default function SellerProductsPage() {
   const searchParams = useSearchParams();
   const { user, isAuthenticated } = useAuthStore();
   
-  const [products, setProducts] = useState(null);
-  const [categories, setCategories] = useState([]);
-  const [error, setError] = useState(null);
+  const [products, setProducts] = useState<any>(null);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [error, setError] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Extract search parameters
@@ -62,17 +62,16 @@ export default function SellerProductsPage() {
           apiClient.getCategories(),
         ]);
 
-        if (productsResponse.success) {
+        if (productsResponse.success && productsResponse.data) {
           setProducts(productsResponse.data);
         } else {
           setError(productsResponse.error);
         }
 
-        if (categoriesResponse.success) {
-          const categoriesData = Array.isArray(categoriesResponse.data) 
-            ? categoriesResponse.data 
-            : (categoriesResponse.data.categories || []);
-          setCategories(categoriesData);
+        if (categoriesResponse.success && categoriesResponse.data) {
+          // Handle both direct array and wrapped response formats
+          const categoriesData = Array.isArray(categoriesResponse.data) ? categoriesResponse.data : (categoriesResponse.data as any).categories;
+          setCategories(categoriesData || []);
         }
 
       } catch (error: any) {

@@ -38,11 +38,9 @@ export default function AddProductPage() {
       try {
         const response = await apiClient.getCategories();
         if (response.success && response.data) {
-          // Handle both direct array and wrapped in categories property
-          const categoriesData = Array.isArray(response.data) 
-            ? response.data 
-            : (response.data.categories || []);
-          setCategories(categoriesData);
+          // Handle both direct array and wrapped response formats
+          const categoriesData = Array.isArray(response.data) ? response.data : (response.data as any).categories;
+          setCategories(categoriesData || []);
         }
       } catch (error) {
         console.error('Failed to fetch categories:', error);
@@ -168,7 +166,8 @@ export default function AddProductPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create product');
+        console.error('Product creation error:', errorData);
+        throw new Error(errorData.error?.message || errorData.message || 'Failed to create product');
       }
 
       // Success
@@ -222,7 +221,7 @@ export default function AddProductPage() {
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
               <SelectContent>
-                {categories.map((category) => (
+                {categories && Array.isArray(categories) && categories.map((category) => (
                   <SelectItem key={category.id} value={category.id} className="py-2 px-3 rounded-lg">
                     {category.name}
                   </SelectItem>

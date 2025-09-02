@@ -97,7 +97,7 @@ const SearchStats = ({
   searchResult: ProductSearchResult; 
   searchQuery: string;
 }) => {
-  const { totalCount, currentPage, totalPages } = searchResult;
+  const { total: totalCount, page: currentPage, pages: totalPages } = searchResult.pagination || {};
   
   return (
     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
@@ -113,13 +113,13 @@ const SearchStats = ({
         </div>
         <div>
           <div className="font-semibold text-blue-900">
-            {searchResult.filters?.categories?.length || 0}
+            0
           </div>
           <div className="text-blue-700">Categories</div>
         </div>
         <div>
           <div className="font-semibold text-blue-900">
-            {searchResult.filters?.brands?.length || 0}
+            0
           </div>
           <div className="text-blue-700">Brands</div>
         </div>
@@ -172,7 +172,8 @@ const NoResultsMessage = ({ searchQuery }: { searchQuery: string }) => {
 };
 
 const SearchResults = ({ searchResult, currentFilters, searchQuery }: SearchResultsProps) => {
-  const { products: rawProducts, totalCount } = searchResult;
+  const { products: rawProducts } = searchResult;
+  const totalCount = searchResult.pagination?.total || 0;
   const products = Array.isArray(rawProducts) ? rawProducts : [];
 
   // Show suggestions and stats for searches with results

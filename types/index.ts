@@ -216,15 +216,20 @@ export interface SellerEarnings {
 // Appointment Types
 export interface Appointment {
   id: string;
+  appointmentNumber: string;
   buyerId: string;
   sellerId: string;
   serviceId: string;
   scheduledDate: string;
   scheduledTimeStart: string;
   scheduledTimeEnd: string;
-  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
+  status: AppointmentStatus;
   totalAmount: number;
   notes?: string;
+  serviceLocation?: {
+    type: 'CUSTOMER_LOCATION' | 'SHOP_LOCATION';
+    address?: string;
+  };
   createdAt: string;
   updatedAt: string;
   
@@ -265,13 +270,7 @@ export interface AppointmentFilters {
   page?: number;
 }
 
-export interface CreateAppointmentData {
-  serviceId: string;
-  scheduledDate: string;
-  scheduledTimeStart: string;
-  scheduledTimeEnd: string;
-  notes?: string;
-}
+
 
 
 
@@ -348,7 +347,20 @@ export interface Product {
   viewCount?: number;
   createdAt: string;
   updatedAt: string;
-  seller: Seller;
+  seller: {
+    id: string;
+    shopName: string;
+    city: string;
+    area: string;
+    ratingAverage?: number;
+    ratingCount: number;
+    user?: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      phone?: string;
+    };
+  };
   category: Category;
 }
 
@@ -585,32 +597,12 @@ export enum AppointmentStatus {
 }
 
 export interface AppointmentFilters {
-  status?: AppointmentStatus;
+  status?: string;
   page?: number;
   limit?: number;
 }
 
-export interface Appointment {
-  id: string;
-  appointmentNumber: string;
-  buyerId: string;
-  sellerId: string;
-  serviceId: string;
-  status: AppointmentStatus;
-  scheduledDate: string;
-  scheduledTimeStart: string;
-  scheduledTimeEnd: string;
-  totalAmount: number;
-  serviceLocation?: Record<string, any>;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-  buyer: User;
-  seller: Seller;
-  service: Service;
-  statusHistory?: AppointmentStatusHistory[];
-  messages?: AppointmentMessage[];
-}
+
 
 export interface AppointmentStatusHistory {
   id: string;
@@ -648,14 +640,7 @@ export interface CreateAppointmentData {
   notes?: string;
 }
 
-export interface AppointmentFilters {
-  status?: AppointmentStatus;
-  serviceId?: string;
-  startDate?: string;
-  endDate?: string;
-  page?: number;
-  limit?: number;
-}
+
 
 export interface AppointmentSearchResult {
   appointments: Appointment[];

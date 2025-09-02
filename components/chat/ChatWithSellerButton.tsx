@@ -49,7 +49,14 @@ export function ChatWithSellerButton({
       
       if (response.success && response.data) {
         toast.success('Chat started successfully!');
-        router.push(`/buyer/chats/${response.data.chat.id}`);
+        // Ensure we have a valid chat ID
+        const chatId = (response.data as any).chat?.id || response.data.id;
+        if (chatId) {
+          router.push(`/buyer/chats/${chatId}`);
+        } else {
+          console.error('No chat ID received from API:', response.data);
+          toast.error('Chat started but could not navigate to chat');
+        }
       }
     } catch (error: any) {
       console.error('Failed to start chat:', error);

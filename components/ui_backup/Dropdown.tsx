@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, forwardRef } from 'react';
-import { ChevronDown, Check, Separator } from 'lucide-react';
+import { ChevronDown, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 

@@ -349,9 +349,13 @@ export async function generateStaticParams() {
     const featuredResponse = await apiClient.getFeaturedProducts(20);
     
     if (featuredResponse.success && featuredResponse.data) {
-      return featuredResponse.data.map((product) => ({
-        id: product.id,
-      }));
+      // Handle both direct array and wrapped response formats
+      const productsData = Array.isArray(featuredResponse.data) ? featuredResponse.data : (featuredResponse.data as any).products;
+      if (productsData && Array.isArray(productsData)) {
+        return productsData.map((product) => ({
+          id: product.id,
+        }));
+      }
     }
     
     return [];
