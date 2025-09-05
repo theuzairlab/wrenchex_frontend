@@ -5,9 +5,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { UserPlus, Store, ShoppingCart, ArrowRight, CheckCircle } from 'lucide-react';
+import { Store, ShoppingCart, ArrowRight, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
 import { roleSelectionSchema, type RoleSelectionFormData } from '@/lib/validations/auth';
 import { cn } from '@/lib/utils';
 

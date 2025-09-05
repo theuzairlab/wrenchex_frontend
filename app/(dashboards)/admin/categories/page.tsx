@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useUser, useUserRole } from '@/lib/stores/auth';
+import { useUserRole } from '@/lib/stores/auth';
 import { useAuthStore } from '@/lib/stores/auth';
 import { apiClient } from '@/lib/api/client';
 import { Button } from '@/components/ui/Button';
@@ -35,13 +35,8 @@ interface Category {
   children?: Category[];
 }
 
-interface CategoriesResponse {
-  categories: Category[];
-}
-
 export default function AdminCategoriesPage() {
   const role = useUserRole();
-  const user = useUser();
   const { isLoading, isAuthenticated } = useAuthStore();
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -108,15 +103,12 @@ export default function AdminCategoriesPage() {
   const handleCreateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // This would call the actual API when implemented
-      console.log('Creating category:', formData);
       
       // For now, just close the modal and refresh
       setShowCreateModal(false);
       setFormData({ name: '', description: '', parentId: '', imageUrl: '', isActive: true });
       fetchCategories();
     } catch (err: any) {
-      console.error('Error creating category:', err);
       setError(err.message || 'Failed to create category');
     }
   };
@@ -135,7 +127,6 @@ export default function AdminCategoriesPage() {
       setFormData({ name: '', description: '', parentId: '', imageUrl: '', isActive: true });
       fetchCategories();
     } catch (err: any) {
-      console.error('Error updating category:', err);
       setError(err.message || 'Failed to update category');
     }
   };
@@ -148,13 +139,9 @@ export default function AdminCategoriesPage() {
     try {
       setDeletingCategory(categoryId);
       
-      // This would call the actual API when implemented
-      console.log('Deleting category:', categoryId);
-      
       // For now, just refresh
       fetchCategories();
     } catch (err: any) {
-      console.error('Error deleting category:', err);
       setError(err.message || 'Failed to delete category');
     } finally {
       setDeletingCategory(null);

@@ -11,7 +11,6 @@ import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card';
 import { useAuthStore } from '@/lib/stores/auth';
 import { loginSchema, type LoginFormData } from '@/lib/validations/auth';
-import { cn } from '@/lib/utils';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);

@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import ServiceCategories from '@/components/services/ServiceCategories';
@@ -21,7 +20,7 @@ export default function ServiceCategoriesPage() {
     <div className="min-h-screen bg-wrench-bg-primary">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
-        <div className="container-responsive py-6">
+        <div className="container-responsive py-6 pt-20">
           <Button
             variant="ghost"
             onClick={() => router.back()}

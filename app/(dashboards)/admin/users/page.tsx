@@ -12,7 +12,6 @@ import { Badge } from '@/components/ui/Badge';
 import { 
   Users, 
   Search, 
-  Filter, 
   Eye, 
   Shield, 
   UserCheck, 
@@ -49,7 +48,6 @@ interface UsersResponse {
 
 export default function AdminUsersPage() {
   const role = useUserRole();
-  const user = useUser();
   const { isLoading, isAuthenticated } = useAuthStore();
 
   const [users, setUsers] = useState<User[]>([]);

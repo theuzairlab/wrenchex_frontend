@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useUser, useUserRole } from '@/lib/stores/auth';
+import { useUserRole } from '@/lib/stores/auth';
 import { useAuthStore } from '@/lib/stores/auth';
 import { apiClient } from '@/lib/api/client';
 import { Button } from '@/components/ui/Button';
@@ -14,8 +14,6 @@ import {
   Eye, 
   Edit, 
   Trash2,
-  ChevronLeft,
-  ChevronRight,
   RefreshCw,
   MapPin,
   Clock,
@@ -50,7 +48,6 @@ interface Service {
 
 export default function AdminServicesPage() {
   const role = useUserRole();
-  const user = useUser();
   const { isLoading, isAuthenticated } = useAuthStore();
 
   const [services, setServices] = useState<Service[]>([]);

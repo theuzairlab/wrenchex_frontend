@@ -1,12 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useUser, useUserRole } from '@/lib/stores/auth';
 import { useAuthStore } from '@/lib/stores/auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Badge } from '@/components/ui/Badge';
 import { 
   Settings, 
   Save, 
@@ -14,17 +12,9 @@ import {
   Shield, 
   Bell, 
   CreditCard,
-  Database,
-  Server,
-  Mail,
-  Lock,
-  Users,
-  FileText
 } from 'lucide-react';
 
 export default function AdminSettingsPage() {
-  const role = useUserRole();
-  const user = useUser();
   const { isLoading, isAuthenticated } = useAuthStore();
 
   const [settings, setSettings] = useState({

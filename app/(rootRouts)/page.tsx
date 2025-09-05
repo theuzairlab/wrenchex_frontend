@@ -4,17 +4,21 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import TopCategories from '@/components/categories/TopCategories';
+import FeaturedProducts from '@/components/products/FeaturedProducts';
+import TopServices from '@/components/services/TopServices';
+import WhyChooseUs from '@/components/landing/WhyChooseUs';
+import { useAuthStore } from '@/lib/stores/auth';
+import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/Card';
 import {
-  Search, ShoppingCart, Wrench, Users, Star, LogIn, UserPlus,
-  ArrowRight, CheckCircle, Truck, Shield, Clock, Phone, Mail,
-  MapPin, Facebook, Twitter, Instagram, Linkedin, Quote
+  Search, ShoppingCart, Wrench, Star,
+  ArrowRight, Quote
 } from 'lucide-react';
 
 export default function Home() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
-
+  const { isAuthenticated } = useAuthStore();
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -27,36 +31,47 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-wrench-bg-primary">
+    <div className="min-h-screen">
       {/* Enhanced Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-wrench-bg-primary to-wrench-bg-secondary">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-5">
-          <svg className="w-full h-full" viewBox="0 0 100 100">
-            <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
-              <path d="M 10 0 L 0 0 0 10" fill="none" stroke="currentColor" strokeWidth="1" />
-            </pattern>
-            <rect width="100" height="100" fill="url(#grid)" />
-          </svg>
+      <div className="relative overflow-hidden min-h-[80vh] flex items-center">
+        {/* Video Background */}
+        <div className="absolute inset-0 w-full h-full">
+          <video
+            autoPlay
+            loop
+            playsInline
+            muted
+            className="w-full h-full object-cover"
+            poster="/carservice.png"
+          >
+            <source src="/heroVid.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+          
+          {/* Dark overlay for better text readability */}
+          <div className="absolute inset-0 bg-black/40"></div>
+          
+          {/* Gradient overlay for better visual effect */}
+          <div className="absolute inset-0 bg-gradient-to-br from-wrench-bg-primary/20 via-transparent to-wrench-accent/10"></div>
         </div>
 
-        <div className="container-responsive py-10 relative">
+        <div className="container mx-auto px-4 py-20 relative z-10 mt-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div className="space-y-8 text-center lg:text-left">
               <div className="space-y-6">
-                <div className="inline-flex items-center px-4 py-2 bg-wrench-accent/10 rounded-full text-sm font-medium text-wrench-accent-dark">
+                <div className="inline-flex items-center px-4 py-2 bg-wrench-accent/20 backdrop-blur-sm rounded-full text-sm font-medium text-white border border-wrench-accent/30">
                   <Wrench className="h-4 w-4 mr-2" />
                   #1 Auto Parts Marketplace
                 </div>
 
-                <h1 className="text-4xl lg:text-6xl font-bold leading-tight">
+                <h1 className="text-4xl lg:text-6xl font-bold leading-tight text-white">
                   Your Trusted{' '}
                   <span className="text-wrench-accent">Auto Parts</span>{' '}
                   & Services Marketplace
                 </h1>
 
-                <p className="text-xl text-text-secondary max-w-xl">
+                <p className="text-xl text-white/90 max-w-xl">
                   Connect with verified sellers, find quality parts, and book professional services.
                   Everything your vehicle needs, all in one place.
                 </p>
@@ -72,7 +87,7 @@ export default function Home() {
                   </Button>
                 </Link>
                 <Link href="/services">
-                  <Button variant="outline" size="lg" className="group">
+                  <Button variant="link" size="lg" className="group text-white">
                     <Wrench className="h-5 w-5 mr-2" />
                     Find Services
                     <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -82,16 +97,16 @@ export default function Home() {
 
               {/* Quick Action Links */}
               <div className="flex flex-wrap gap-3 justify-center lg:justify-start mt-4">
-                <Link href="/search?q=brake+pads" className="text-sm text-gray-600 hover:text-wrench-accent transition-colors">
+                <Link href="/search?q=brake+pads" className="text-sm text-white/80 hover:text-wrench-accent transition-colors">
                   🔧 Brake Parts
                 </Link>
-                <Link href="/search?q=oil+filter" className="text-sm text-gray-600 hover:text-wrench-accent transition-colors">
+                <Link href="/search?q=oil+filter" className="text-sm text-white/80 hover:text-wrench-accent transition-colors">
                   🛢️ Filters & Fluids
                 </Link>
-                <Link href="/search?q=spark+plugs" className="text-sm text-gray-600 hover:text-wrench-accent transition-colors">
+                <Link href="/search?q=spark+plugs" className="text-sm text-white/80 hover:text-wrench-accent transition-colors">
                   ⚡ Engine Parts
                 </Link>
-                <Link href="/search?q=tires" className="text-sm text-gray-600 hover:text-wrench-accent transition-colors">
+                <Link href="/search?q=tires" className="text-sm text-white/80 hover:text-wrench-accent transition-colors">
                   🚗 Tires & Wheels
                 </Link>
               </div>
@@ -100,30 +115,30 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row gap-8 text-center lg:text-left">
                 <div>
                   <div className="text-2xl font-bold text-wrench-accent">10,000+</div>
-                  <div className="text-sm text-text-secondary">Verified Sellers</div>
+                  <div className="text-sm text-white/80">Verified Sellers</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-wrench-accent">50,000+</div>
-                  <div className="text-sm text-text-secondary">Auto Parts</div>
+                  <div className="text-sm text-white/80">Auto Parts</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-wrench-accent">25,000+</div>
-                  <div className="text-sm text-text-secondary">Happy Customers</div>
+                  <div className="text-sm text-white/80">Happy Customers</div>
                 </div>
               </div>
             </div>
 
             {/* Right Visual */}
             <div className="relative">
-              <div className="relative z-10 bg-white rounded-2xl shadow-2xl p-8">
+              <div className="relative z-10 bg-white/40 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-white/20">
                 <div className="space-y-6">
                   <div className="flex items-center space-x-3">
                     <div className="w-12 h-12 bg-wrench-accent rounded-xl flex items-center justify-center">
                       <Search className="h-6 w-6 text-black" />
                     </div>
                     <div>
-                      <h3 className="font-semibold">Quick Search</h3>
-                      <p className="text-sm text-text-secondary">Find parts instantly</p>
+                      <h3 className="font-semibold text-gray-900">Quick Search</h3>
+                      <p className="text-sm text-gray-600">Find parts instantly</p>
                     </div>
                   </div>
 
@@ -134,7 +149,7 @@ export default function Home() {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search for brake pads, oil filters..."
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-wrench-accent focus:border-wrench-accent"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-wrench-accent focus:border-wrench-accent bg-white/40"
                       />
                       <Button
                         type="submit"
@@ -151,7 +166,7 @@ export default function Home() {
                           key={tag}
                           type="button"
                           onClick={() => handleQuickSearch(tag)}
-                          className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-xs text-gray-600 hover:text-gray-800 transition-colors cursor-pointer"
+                          className="px-3 py-1 bg-wrench-accent/20 hover:bg-wrench-accent/30 rounded-full text-xs text-gray-600 hover:text-gray-800 transition-colors cursor-pointer"
                         >
                           {tag}
                         </button>
@@ -169,190 +184,19 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Enhanced Features Section */}
-      <div className="py-20 bg-white">
-        <div className="container-responsive">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-              Why Choose <span className="text-wrench-accent">WrenchEX</span>?
-            </h2>
-            <p className="text-xl text-text-secondary max-w-3xl mx-auto">
-              We've built the most comprehensive platform for all your automotive needs,
-              connecting you with trusted sellers and expert service providers.
-            </p>
-          </div>
+      {/* Why Choose Us Section */}
+      <WhyChooseUs />
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="group hover:shadow-lg transition-all duration-300 border-0 shadow-md">
-              <CardHeader>
-                <div className="w-16 h-16 bg-wrench-accent/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-wrench-accent group-hover:text-black transition-all duration-300">
-                  <ShoppingCart className="h-8 w-8" />
-                </div>
-                <CardTitle className="text-xl">Massive Inventory</CardTitle>
-                <CardDescription className="text-base">
-                  Browse over 50,000 genuine auto parts from verified sellers worldwide
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  <li className="flex items-center text-sm text-text-secondary">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                    OEM & Aftermarket Parts
-                  </li>
-                  <li className="flex items-center text-sm text-text-secondary">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                    Competitive Pricing
-                  </li>
-                  <li className="flex items-center text-sm text-text-secondary">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                    Real-time Availability
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
+      {/* Top Categories Section */}
+      <TopCategories />
 
-            <Card className="group hover:shadow-lg transition-all duration-300 border-0 shadow-md">
-              <CardHeader>
-                <div className="w-16 h-16 bg-wrench-accent/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-wrench-accent group-hover:text-black transition-all duration-300">
-                  <Shield className="h-8 w-8" />
-                </div>
-                <CardTitle className="text-xl">Verified Sellers</CardTitle>
-                <CardDescription className="text-base">
-                  All sellers are thoroughly vetted and verified for authenticity and quality
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  <li className="flex items-center text-sm text-text-secondary">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                    Background Checks
-                  </li>
-                  <li className="flex items-center text-sm text-text-secondary">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                    Quality Guarantees
-                  </li>
-                  <li className="flex items-center text-sm text-text-secondary">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                    Secure Transactions
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
+      {/* Featured Products Section */}
+      <FeaturedProducts />
 
-            <Card className="group hover:shadow-lg transition-all duration-300 border-0 shadow-md">
-              <CardHeader>
-                <div className="w-16 h-16 bg-wrench-accent/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-wrench-accent group-hover:text-black transition-all duration-300">
-                  <Truck className="h-8 w-8" />
-                </div>
-                <CardTitle className="text-xl">Fast Delivery</CardTitle>
-                <CardDescription className="text-base">
-                  Get your parts delivered quickly with multiple shipping options
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  <li className="flex items-center text-sm text-text-secondary">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                    Same-day Pickup
-                  </li>
-                  <li className="flex items-center text-sm text-text-secondary">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                    Express Shipping
-                  </li>
-                  <li className="flex items-center text-sm text-text-secondary">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                    Order Tracking
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
+      {/* Top Services Section */}
+      <TopServices />
 
-            <Card className="group hover:shadow-lg transition-all duration-300 border-0 shadow-md">
-              <CardHeader>
-                <div className="w-16 h-16 bg-wrench-accent/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-wrench-accent group-hover:text-black transition-all duration-300">
-                  <Wrench className="h-8 w-8" />
-                </div>
-                <CardTitle className="text-xl">Expert Services</CardTitle>
-                <CardDescription className="text-base">
-                  Book appointments with certified mechanics and service professionals
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  <li className="flex items-center text-sm text-text-secondary">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                    Certified Mechanics
-                  </li>
-                  <li className="flex items-center text-sm text-text-secondary">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                    Service Guarantees
-                  </li>
-                  <li className="flex items-center text-sm text-text-secondary">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                    Flexible Scheduling
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card className="group hover:shadow-lg transition-all duration-300 border-0 shadow-md">
-              <CardHeader>
-                <div className="w-16 h-16 bg-wrench-accent/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-wrench-accent group-hover:text-black transition-all duration-300">
-                  <Users className="h-8 w-8" />
-                </div>
-                <CardTitle className="text-xl">Community Driven</CardTitle>
-                <CardDescription className="text-base">
-                  Join a community of auto enthusiasts, mechanics, and car owners
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  <li className="flex items-center text-sm text-text-secondary">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                    Expert Advice
-                  </li>
-                  <li className="flex items-center text-sm text-text-secondary">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                    Community Reviews
-                  </li>
-                  <li className="flex items-center text-sm text-text-secondary">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                    Knowledge Sharing
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card className="group hover:shadow-lg transition-all duration-300 border-0 shadow-md">
-              <CardHeader>
-                <div className="w-16 h-16 bg-wrench-accent/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-wrench-accent group-hover:text-black transition-all duration-300">
-                  <Clock className="h-8 w-8" />
-                </div>
-                <CardTitle className="text-xl">24/7 Support</CardTitle>
-                <CardDescription className="text-base">
-                  Get help whenever you need it with our round-the-clock customer support
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  <li className="flex items-center text-sm text-text-secondary">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                    Live Chat
-                  </li>
-                  <li className="flex items-center text-sm text-text-secondary">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                    Phone Support
-                  </li>
-                  <li className="flex items-center text-sm text-text-secondary">
-                    <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                    Expert Assistance
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
+      
 
       {/* Testimonials Section */}
       <div className="py-20 bg-gray-50">
@@ -517,6 +361,7 @@ export default function Home() {
       </div>
 
       {/* Role Selection CTA */}
+      {!isAuthenticated && (
       <div className="container-responsive py-16">
         <div className="text-center space-y-8">
           <h2 className="text-heading-2">Get Started Today</h2>
@@ -572,6 +417,7 @@ export default function Home() {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }

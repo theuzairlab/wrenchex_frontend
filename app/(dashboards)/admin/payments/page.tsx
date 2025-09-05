@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useUser, useUserRole } from '@/lib/stores/auth';
 import { useAuthStore } from '@/lib/stores/auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -14,8 +13,6 @@ import {
   Clock,
   XCircle,
   Download,
-  Filter,
-  Search,
   RefreshCw
 } from 'lucide-react';
 
@@ -106,8 +103,6 @@ const demoTransactions: PaymentTransaction[] = [
 ];
 
 export default function AdminPaymentsPage() {
-  const role = useUserRole();
-  const user = useUser();
   const { isLoading, isAuthenticated } = useAuthStore();
 
   const [transactions, setTransactions] = useState<PaymentTransaction[]>(demoTransactions);

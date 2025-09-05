@@ -12,9 +12,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui_backup/Select';
-import { cn } from '@/lib/utils';
-import { Category, ProductSearchResult } from '@/types';
+import { Category } from '@/types';
 
 interface ProductFiltersProps {
   categories: Category[];

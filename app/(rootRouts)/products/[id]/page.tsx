@@ -2,9 +2,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { apiClient } from '@/lib/api/client';
-import { Product } from '@/types';
 import ProductDetailView from '@/components/products/ProductDetailView';
-import RelatedProducts from '@/components/products/RelatedProducts';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 interface ProductPageProps {
@@ -160,7 +158,7 @@ async function getProductData(productId: string) {
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { id } = await params;
-  const { product, relatedProducts, error } = await getProductData(id);
+  const { product } = await getProductData(id);
 
   // Show 404 if product not found
   if (!product) {

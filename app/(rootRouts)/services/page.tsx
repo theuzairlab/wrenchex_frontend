@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card, CardContent, } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -10,8 +10,8 @@ import { apiClient } from '@/lib/api/client';
 import { Service, ServiceFilters } from '@/types';
 import { toast } from 'sonner';
 import { 
-  Search, MapPin, Clock, Star, Wrench, Filter, 
-  Grid, List, SortAsc, SortDesc, Phone, MessageCircle 
+  Search, MapPin, Clock, Star, Wrench, 
+  Grid, List,
 } from 'lucide-react';
 import { WishlistIcon } from '@/components/ui/WishlistIcon';
 import Link from 'next/link';
@@ -167,7 +167,7 @@ export default function ServicesPage() {
       {/* Hero Section */}
       <div className="bg-gradient-to-br from-wrench-accent to-wrench-accent-light text-black">
         <div className="container-responsive py-16">
-          <div className="text-center max-w-3xl mx-auto">
+          <div className="text-center max-w-3xl mx-auto mt-20">
             <h1 className="text-4xl lg:text-5xl font-bold mb-4">
               Professional Auto Services
             </h1>

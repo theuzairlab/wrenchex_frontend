@@ -80,7 +80,7 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
   };
 
   return (
-    <div className="container-responsive py-8">
+    <div className="container-responsive py-8 mt-20">
       {/* Breadcrumb */}
       <nav className="flex text-sm text-gray-600 mb-8" aria-label="Breadcrumb">
         <Link href="/" className="hover:text-wrench-accent">Home</Link>

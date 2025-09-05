@@ -11,7 +11,7 @@ import { useAuthStore } from '@/lib/stores/auth';
 import { Service, CreateAppointmentData } from '@/types';
 import { toast } from 'sonner';
 import { 
-  ArrowLeft, Star, Clock, MapPin, Phone, MessageCircle,
+  ArrowLeft, Star, Clock, MapPin, 
   Calendar, CheckCircle, Shield, Wrench, User,
   Store
 } from 'lucide-react';
@@ -28,7 +28,7 @@ interface TimeSlot {
 export default function ServiceDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { user, isAuthenticated } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const serviceId = params.id as string;
 
   const [service, setService] = useState<Service | null>(null);
@@ -180,22 +180,22 @@ export default function ServiceDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-wrench-bg-primary">
+    <div className="min-h-screen bg-wrench-bg-primary pb-10">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="pt-20">
         <div className="container-responsive py-4">
           <Button
             variant="ghost"
             onClick={() => router.back()}
             leftIcon={<ArrowLeft className="h-4 w-4" />}
-            className="mb-4"
+            className=""
           >
             Back to Services
           </Button>
         </div>
       </div>
 
-      <div className="container-responsive py-8">
+      <div className="container-responsive">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Service Details */}
           <div className="lg:col-span-2">

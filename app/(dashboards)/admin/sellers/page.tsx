@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useUser, useUserRole } from '@/lib/stores/auth';
+import { useUserRole } from '@/lib/stores/auth';
 import { useAuthStore } from '@/lib/stores/auth';
 import { apiClient } from '@/lib/api/client';
 import { Button } from '@/components/ui/Button';
@@ -59,7 +59,6 @@ interface SellersResponse {
 
 export default function AdminSellersPage() {
   const role = useUserRole();
-  const user = useUser();
   const { isLoading, isAuthenticated } = useAuthStore();
 
   const [sellers, setSellers] = useState<Seller[]>([]);

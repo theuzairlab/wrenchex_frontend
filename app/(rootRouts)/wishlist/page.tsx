@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { useWishlistStore } from '@/lib/stores/wishlist';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { Heart, Trash2, ShoppingCart, Calendar, MessageCircle } from 'lucide-react';
+import { Heart, Trash2, MessageCircle } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -35,7 +35,7 @@ export default function WishlistPage() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
+      <div className="min-h-screen bg-gray-50 py-12 pt-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <Heart className="mx-auto h-16 w-16 text-gray-300 mb-4" />
@@ -62,7 +62,7 @@ export default function WishlistPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-8 pt-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
@@ -118,7 +118,7 @@ export default function WishlistPage() {
         {/* Items Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {displayItems.map((item) => (
-            <Card key={`${item.type}-${item.id}`} className="group hover:shadow-lg transition-shadow">
+            <Card key={`${item.type}-${item.id}`} className="group hover:shadow-lg transition-shadow p-3">
               <CardHeader className="p-0 relative">
                 <div className="relative aspect-square overflow-hidden rounded-t-lg">
                   <Image
@@ -161,10 +161,12 @@ export default function WishlistPage() {
                 </div>
               </CardHeader>
 
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
-                  {item.title}
-                </h3>
+              <CardContent className="pt-2">
+                <Link href={item.type === 'product' ? `/products/${item.id}` : `/services/${item.id}`}>
+                <Button variant="link" className="font-semibold p-0 text-gray-900 mb-2 line-clamp-2">
+                    {item.title}
+                  </Button>
+                </Link>
 
                 {item.sellerName && (
                   <p className="text-sm text-gray-600 mb-2">
@@ -174,7 +176,7 @@ export default function WishlistPage() {
 
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-bold text-wrench-orange-600">
-                    ${item.price}
+                    AED {item.price}
                   </span>
 
                   <div className="flex space-x-2">

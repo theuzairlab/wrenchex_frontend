@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import {
   Search,
-  ShoppingCart,
   User,
   Menu,
   X,
@@ -16,16 +15,9 @@ import {
   Heart,
   MessageCircle,
   Bell,
-  ChevronDown,
-  Store,
-  Home,
-  BookOpen,
-  HelpCircle,
   BarChart3,
-  MessageSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { Dropdown } from '@/components/ui_backup/Dropdown';
 import GlobalSearch from '@/components/search/GlobalSearch';
 import { useAuthStore, useUserRole } from '@/lib/stores/auth';
 import { useWishlistStore } from '@/lib/stores/wishlist';
@@ -48,6 +40,7 @@ const Navbar = ({ className }: NavbarProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
   const searchDropdownRef = useRef<HTMLDivElement>(null);
+  const mobileSearchDropdownRef = useRef<HTMLDivElement>(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isChatDropdownOpen, setIsChatDropdownOpen] = useState(false);
   const [unreadChatCount, setUnreadChatCount] = useState(0);
@@ -59,13 +52,16 @@ const Navbar = ({ className }: NavbarProps) => {
   // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 0);
+      setIsScrolled(window.scrollY > 10);
     };
 
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        searchDropdownRef.current &&
-        !searchDropdownRef.current.contains(event.target as Node)
+        isSearchDropdownOpen &&
+        (
+          (searchDropdownRef.current && !searchDropdownRef.current.contains(event.target as Node)) &&
+          (mobileSearchDropdownRef.current && !mobileSearchDropdownRef.current.contains(event.target as Node))
+        )
       ) {
         setIsSearchDropdownOpen(false);
       }
@@ -145,6 +141,10 @@ const Navbar = ({ className }: NavbarProps) => {
   // Navigation links for different user roles
   const navigationLinks = [
     {
+      href: '/',
+      label: 'Home',
+    },
+    {
       href: '/products',
       label: 'Products',
       icon: <Package className="h-4 w-4" />
@@ -153,7 +153,7 @@ const Navbar = ({ className }: NavbarProps) => {
       href: '/services',
       label: 'Services',
       icon: <Wrench className="h-4 w-4" />
-    }
+    },
   ];
 
   const getRoleBasedLinks = () => {
@@ -218,18 +218,18 @@ const Navbar = ({ className }: NavbarProps) => {
 
   return (
     <nav className={cn(
-      "sticky top-0 z-50 bg-white border-b border-gray-200 transition-all duration-200",
-      isScrolled && "shadow-sm",
+      "sticky top-4 z-50 bg-white/40 w-auto md:w-[60%] lg:w-auto backdrop-blur-md border border-gray-200/50 rounded-full shadow-lg transition-all duration-200 mx-auto mt-4",
+      isScrolled && "bg-white/45 shadow-md",
       className
     )}>
-      <div className="container-responsive">
-        <div className="flex items-center justify-between h-16 lg:h-20">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 flex-shrink-0">
-            <div className="w-8 h-8 lg:w-10 lg:h-10 bg-wrench-accent rounded-lg flex items-center justify-center">
-              <Wrench className="h-5 w-5 lg:h-6 lg:w-6 text-black" />
+            <div className="w-8 h-8 bg-wrench-accent rounded-lg flex items-center justify-center">
+              <Wrench className="h-5 w-5 text-black" />
             </div>
-            <span className="text-lg lg:text-xl font-bold text-black">WrenchEX</span>
+            <span className="text-lg font-bold text-black">WrenchEX</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -239,57 +239,49 @@ const Navbar = ({ className }: NavbarProps) => {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                  "flex items-center px-4 py-2 rounded-full text-sm font-medium transition-colors",
                   pathname === link.href
                     ? "bg-wrench-accent/10 text-wrench-accent-dark"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-100/50"
                 )}
               >
-                {link.icon}
-                <span className="ml-2">{link.label}</span>
+                {link.icon && <span className="mr-2">{link.icon}</span>}
+                <span>{link.label}</span>
               </Link>
             ))}
           </div>
 
-                     {/* Global Search */}
-           <div className="relative flex justify-center lg:justify-start w-full lg:w-auto max-w-full" ref={searchDropdownRef}>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleSearchDropdown}
-              className="flex items-center justify-center lg:justify-start w-full lg:w-auto max-w-xs lg:max-w-none"
-            >
-              <Search className="h-5 w-5 mr-2" />
-              <span className="hidden sm:inline">Search</span>
-            </Button>
-
-                           {/* Search Dropdown */}
-               {isSearchDropdownOpen && (
-                 <div 
-                   className="fixed lg:absolute top-20 lg:top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50
-                     w-[calc(100vw-2rem)] max-w-[400px] min-w-[280px]
-                     lg:w-[400px]
-                     p-3 sm:p-4
-                     left-4 right-4 lg:left-0 lg:right-auto lg:w-[400px]
-                     mx-auto lg:mx-0"
-                 >
-                   <GlobalSearch
-                     placeholder="Search products, services, or brands..."
-                     className="w-full"
-                     showFilters={true}
-                     onSearch={() => setIsSearchDropdownOpen(false)}
-                   />
-                 </div>
-               )}
-          </div>
-
           {/* Desktop Actions */}
-          <div className="hidden lg:flex items-center space-x-4">
+          <div className="hidden lg:flex items-center space-x-2">
+            {/* Search Button */}
+            <div className="relative" ref={searchDropdownRef}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleSearchDropdown}
+                className="rounded-full"
+              >
+                <Search className="h-4 w-4" />
+              </Button>
+
+              {/* Search Dropdown */}
+              {isSearchDropdownOpen && (
+                <div className="absolute top-full right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-50 w-96 p-4" onMouseDown={(e) => e.stopPropagation()}>
+                  <GlobalSearch
+                    placeholder="Search products, services, or brands..."
+                    className="w-full"
+                    showFilters={true}
+                    onSearch={() => setIsSearchDropdownOpen(false)}
+                  />
+                </div>
+              )}
+            </div>
+
             {isAuthenticated ? (
               <>
                 {/* Notifications */}
-                <Button variant="ghost" size="sm" className="relative">
-                  <Bell className="h-5 w-5" />
+                <Button variant="ghost" size="sm" className="rounded-full relative">
+                  <Bell className="h-4 w-4" />
                   <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
                     2
                   </span>
@@ -301,9 +293,9 @@ const Navbar = ({ className }: NavbarProps) => {
                     <button
                       ref={chatButtonRef}
                       onClick={toggleChatDropdown}
-                      className="relative p-2 rounded-md hover:bg-gray-100"
+                      className="relative p-2 rounded-full hover:bg-gray-100/50"
                     >
-                      <MessageCircle className="h-5 w-5" />
+                      <MessageCircle className="h-4 w-4" />
                       {/* Unread count badge */}
                       {unreadChatCount > 0 && (
                         <span
@@ -325,10 +317,10 @@ const Navbar = ({ className }: NavbarProps) => {
                 )}
 
                 <Link href="/wishlist">
-                  <Button variant="ghost" size="sm" className="relative">
-                    <Heart className="h-5 w-5" />
+                  <Button variant="ghost" size="sm" className="rounded-full relative">
+                    <Heart className="h-4 w-4" />
                     {wishlistCount > 0 && (
-                      <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
+                      <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
                         {wishlistCount}
                       </span>
                     )}
@@ -336,25 +328,21 @@ const Navbar = ({ className }: NavbarProps) => {
                 </Link>
 
                 {/* User Menu */}
-                {/* User Menu */}
                 <div className="relative">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="flex items-center space-x-2"
+                    className="flex items-center space-x-2 rounded-full"
                   >
                     <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
                       <User className="h-4 w-4" />
                     </div>
-                    <span className="hidden lg:block">
-                      {isLoading ? 'Loading...' : (user?.firstName && user?.lastName) ? `${user.firstName} ${user.lastName}` : 'User'}
-                    </span>
                   </Button>
 
                   {/* User Dropdown */}
                   {isUserMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
+                    <div className="absolute right-0 mt-2 w-56 bg-white/95 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 py-1 z-50">
                       <div className="px-4 py-2 border-b border-gray-100">
                         <p className="text-sm font-medium text-gray-900">
                           {isLoading ? 'Loading...' : (user?.firstName && user?.lastName) ? `${user.firstName} ${user.lastName}` : 'User'}
@@ -375,7 +363,7 @@ const Navbar = ({ className }: NavbarProps) => {
                         <Link
                           key={link.href}
                           href={link.href}
-                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50/50"
                           onClick={() => setIsUserMenuOpen(false)}
                         >
                           <link.icon className="h-4 w-4 mr-3" />
@@ -383,11 +371,11 @@ const Navbar = ({ className }: NavbarProps) => {
                         </Link>
                       ))}
 
-                      <hr className="my-1" />
+                      <hr className="my-1 border-gray-200/50" />
 
                       <button
                         onClick={handleLogout}
-                        className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                        className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50/50"
                       >
                         <LogOut className="h-4 w-4 mr-3" />
                         Sign Out
@@ -397,12 +385,12 @@ const Navbar = ({ className }: NavbarProps) => {
                 </div>
               </>
             ) : (
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
                 <Link href="/wishlist">
-                  <Button variant="ghost" size="sm" className="relative">
-                    <Heart className="h-5 w-5" />
+                  <Button variant="ghost" size="sm" className="rounded-full relative">
+                    <Heart className="h-4 w-4" />
                     {wishlistCount > 0 && (
-                      <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
+                      <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
                         {wishlistCount}
                       </span>
                     )}
@@ -410,12 +398,12 @@ const Navbar = ({ className }: NavbarProps) => {
                 </Link>
 
                 <Link href="/auth/login">
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" className="rounded-full">
                     Sign In
                   </Button>
                 </Link>
                 <Link href="/auth/register">
-                  <Button size="sm">
+                  <Button size="sm" className="rounded-full">
                     Get Started
                   </Button>
                 </Link>
@@ -425,27 +413,63 @@ const Navbar = ({ className }: NavbarProps) => {
 
           {/* Mobile Menu Button */}
           <div className="lg:hidden flex items-center space-x-2">
+            {/* Mobile Search Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleSearchDropdown}
+              // onClick={() => {
+              //   setIsSearchDropdownOpen((prev) => {
+              //     const next = !prev;
+              //     if (next) setIsMobileMenuOpen(false);
+              //     return next;
+              //   });
+              // }}
+              className="rounded-full"
+            >
+              <Search className="h-4 w-4" />
+            </Button>
 
             {/* Mobile Menu Toggle */}
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              onClick={() => {
+                setIsMobileMenuOpen((prev) => {
+                  const next = !prev;
+                  if (next) setIsSearchDropdownOpen(false);
+                  return next;
+                });
+              }}
               data-mobile-menu
+              className="rounded-full"
             >
               {isMobileMenuOpen ? (
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               ) : (
-                <Menu className="h-5 w-5" />
+                <Menu className="h-4 w-4" />
               )}
             </Button>
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Search Dropdown (overlay) */}
+        {isSearchDropdownOpen && (
+          <div ref={mobileSearchDropdownRef} className="lg:hidden absolute left-1/2 -translate-x-1/2 top-full mt-3 p-4 bg-white/95 backdrop-blur-md rounded-xl border border-gray-200/50 shadow-lg w-[92vw] max-w-[640px] z-[60]">
+            <GlobalSearch
+              placeholder="Search products..."
+              className="w-full"
+              autoFocus={true}
+              showFilters={false}
+              onSearch={() => setIsSearchDropdownOpen(false)}
+            />
+          </div>
+        )}
+
+        {/* Mobile Menu (overlay) */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden border-t border-gray-200 py-4" data-mobile-menu>
-            <div className="space-y-1">
+          <div className="lg:hidden absolute left-1/2 -translate-x-1/2 top-full mt-3 bg-white backdrop-blur-md rounded-xl border border-gray-200/50 shadow-lg py-4 w-[92vw] max-w-[640px] z-[60]" data-mobile-menu>
+            <div className="space-y-1 px-4">
               {/* Mobile Navigation Links */}
               {navigationLinks.map((link: any) => (
                 <Link
@@ -455,111 +479,100 @@ const Navbar = ({ className }: NavbarProps) => {
                     "flex items-center px-4 py-3 rounded-lg text-base font-medium transition-colors",
                     pathname === link.href
                       ? "bg-wrench-accent/10 text-wrench-accent-dark"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100/50"
                   )}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  {link.icon}
-                  <span className="ml-3">{link.label}</span>
+                  {link.icon && <span className="mr-3">{link.icon}</span>}
+                  <span>{link.label}</span>
                 </Link>
               ))}
+            </div>
 
-              {/* Mobile Search */}
-              <div className="px-4 py-3">
-                <GlobalSearch
-                  placeholder="Search products..."
-                  className="w-full"
-                  autoFocus={false}
-                  showFilters={false}
-                  onSearch={() => setIsMobileMenuOpen(false)}
-                />
-              </div>
-
-              {/* Mobile Auth Section */}
-              <div className="px-4 py-3 border-t border-gray-200 mt-4">
-                {isAuthenticated ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center space-x-3 py-2">
-                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                        <User className="h-5 w-5 text-gray-600" />
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-900">
-                          {user?.firstName} {user?.lastName}
-                        </div>
-                        <div className="text-sm text-gray-500">{user?.email}</div>
-                      </div>
+            {/* Mobile Auth Section */}
+            <div className="px-4 py-3 border-t border-gray-200/50 mt-4">
+              {isAuthenticated ? (
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3 py-2">
+                    <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                      <User className="h-5 w-5 text-gray-600" />
                     </div>
+                    <div>
+                      <div className="font-medium text-gray-900">
+                        {user?.firstName} {user?.lastName}
+                      </div>
+                      <div className="text-sm text-gray-500">{user?.email}</div>
+                    </div>
+                  </div>
 
-                    <div className="space-y-1">
-                      {/* Mobile Chat Icon */}
-                      {(role === 'BUYER' || role === 'SELLER') && (
-                        <div className="px-4 py-2 border-b border-gray-100">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-700">Chats</span>
-                            {unreadChatCount > 0 && (
-                              <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center font-bold">
-                                {unreadChatCount > 99 ? '99+' : unreadChatCount}
-                              </span>
-                            )}
-                          </div>
-                          <Link
-                            href={role === 'SELLER' ? '/seller/chats' : '/buyer/chats'}
-                            className="flex items-center mt-2 text-sm text-wrench-orange-600 hover:text-wrench-orange-700"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                          >
-                            <MessageCircle className="h-4 w-4 mr-2" />
-                            View All Conversations
-                          </Link>
+                  <div className="space-y-1">
+                    {/* Mobile Chat Icon */}
+                    {(role === 'BUYER' || role === 'SELLER') && (
+                      <div className="px-4 py-2 border-b border-gray-100/50">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-700">Chats</span>
+                          {unreadChatCount > 0 && (
+                            <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center font-bold">
+                              {unreadChatCount > 99 ? '99+' : unreadChatCount}
+                            </span>
+                          )}
                         </div>
-                      )}
-
-                      {roleLinks.map((link) => (
                         <Link
-                          key={link.href}
-                          href={link.href}
-                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          href={role === 'SELLER' ? '/seller/chats' : '/buyer/chats'}
+                          className="flex items-center mt-2 text-sm text-wrench-orange-600 hover:text-wrench-orange-700"
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
-                          <link.icon className="h-4 w-4 mr-3" />
-                          {link.label}
+                          <MessageCircle className="h-4 w-4 mr-2" />
+                          View All Conversations
                         </Link>
-                      ))}
-                      <button
-                        onClick={() => {
-                          logout();
-                          setIsMobileMenuOpen(false);
-                          router.push('/');
-                        }}
-                        className="flex items-center w-full px-3 py-2 rounded-lg text-red-600 hover:bg-red-50"
-                      >
-                        <LogOut className="h-4 w-4 mr-3" />
-                        Sign Out
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <Link href="/auth/login" className="block w-full">
-                      <Button
-                        variant="outline"
-                        className="w-full justify-center"
+                      </div>
+                    )}
+
+                    {roleLinks.map((link) => (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50/50"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        Sign In
-                      </Button>
-                    </Link>
-                    <Link href="/auth/register" className="block w-full">
-                      <Button
-                        className="w-full justify-center"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Get Started
-                      </Button>
-                    </Link>
+                        <link.icon className="h-4 w-4 mr-3" />
+                        {link.label}
+                      </Link>
+                    ))}
+                    <button
+                      onClick={() => {
+                        logout();
+                        setIsMobileMenuOpen(false);
+                        router.push('/');
+                      }}
+                      className="flex items-center w-full px-3 py-2 rounded-lg text-red-600 hover:bg-red-50/50"
+                    >
+                      <LogOut className="h-4 w-4 mr-3" />
+                      Sign Out
+                    </button>
                   </div>
-                )}
-              </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <Link href="/auth/login" className="block w-full">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-center rounded-full"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link href="/auth/register" className="block w-full">
+                    <Button
+                      className="w-full justify-center rounded-full"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Get Started
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         )}

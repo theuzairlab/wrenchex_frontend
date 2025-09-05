@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
-import { Seller, Product, Service } from '@/types';
+import { Product, Service } from '@/types';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { SellerProfileCard } from '@/components/seller/SellerProfileCard';
 import ProductCard from '@/components/products/ProductCard';

@@ -381,6 +381,7 @@ export interface ProductFilters {
   sortOrder?: 'asc' | 'desc';
   page?: number;
   limit?: number;
+  isActive?: boolean;
 }
 
 export interface ProductSearchResult {
@@ -462,6 +463,7 @@ export interface ServiceFilters {
   limit?: number;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
+  isActive?: boolean;
 }
 
 export interface CreateServiceData {

@@ -1,10 +1,8 @@
 'use client';
 
 import React from 'react';
-import { useUser, useUserRole } from '@/lib/stores/auth';
 import { useAuthStore } from '@/lib/stores/auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
 import { 
   Star, 
   MessageSquare, 
@@ -15,8 +13,6 @@ import {
 } from 'lucide-react';
 
 export default function AdminReviewsPage() {
-  const role = useUserRole();
-  const user = useUser();
   const { isLoading, isAuthenticated } = useAuthStore();
 
   if (isLoading || !isAuthenticated) {

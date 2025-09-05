@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useUser, useUserRole } from '@/lib/stores/auth';
 import { useAuthStore } from '@/lib/stores/auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -14,8 +13,6 @@ import {
   CheckCircle, 
   Info,
   Trash2,
-  Eye,
-  Send,
   Settings,
   Users,
   Package,
@@ -121,8 +118,6 @@ const demoNotifications: Notification[] = [
 ];
 
 export default function AdminNotificationsPage() {
-  const role = useUserRole();
-  const user = useUser();
   const { isLoading, isAuthenticated } = useAuthStore();
 
   const [notifications, setNotifications] = useState<Notification[]>(demoNotifications);

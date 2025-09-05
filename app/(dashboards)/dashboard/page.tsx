@@ -134,16 +134,6 @@ export default function DashboardPage() {
     }
   }, [role, isAuthenticated]);
 
-  // Debug logging
-  console.log('Dashboard Debug:', { 
-    user, 
-    role, 
-    isLoading, 
-    isAuthenticated,
-    userRole: user?.role,
-    userName: user?.firstName 
-  });
-
   // Show loading state while user data is being fetched
   if (isLoading || !isAuthenticated) {
     return (
@@ -178,8 +168,6 @@ export default function DashboardPage() {
   }
 
   const getDashboardContent = () => {
-    
-    console.log('Switching dashboard for role:', role, 'from user:', user?.role);
     
     // Use user.role directly as fallback if role hook is undefined
     const currentRole = role || user?.role;

@@ -52,7 +52,7 @@ export default function SearchPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Search Header */}
-      <div className="mb-8">
+      <div className="mb-8 pt-20">
         <h1 className="text-2xl font-bold text-gray-900 mb-4">Search Products</h1>
         
         <div className="flex gap-4 mb-4">

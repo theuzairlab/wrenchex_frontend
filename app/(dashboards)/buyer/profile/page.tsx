@@ -12,7 +12,6 @@ import { User, Mail, Phone, Save } from 'lucide-react';
 
 export default function BuyerProfilePage() {
   const { user } = useAuthStore();
-  const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [profile, setProfile] = useState({
     firstName: user?.firstName || '',

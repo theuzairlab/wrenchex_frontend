@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useUser, useUserRole } from '@/lib/stores/auth';
+import { useUserRole } from '@/lib/stores/auth';
 import { useAuthStore } from '@/lib/stores/auth';
 import { apiClient } from '@/lib/api/client';
 import { Button } from '@/components/ui/Button';
@@ -10,8 +10,7 @@ import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import { 
   Package, 
-  Search, 
-  Filter, 
+  Search,  
   Eye, 
   Edit, 
   Trash2,
@@ -63,7 +62,6 @@ interface ProductsResponse {
 
 export default function AdminProductsPage() {
   const role = useUserRole();
-  const user = useUser();
   const { isLoading, isAuthenticated } = useAuthStore();
 
   const [products, setProducts] = useState<Product[]>([]);

@@ -158,7 +158,7 @@ const ProductCard = ({ product, viewMode }: ProductCardProps) => {
                     category={product.category?.name}
                     sellerName={product.seller.shopName}
                     size="sm"
-                    className="relative static"
+                    className="static"
                   />
                 </div>
 

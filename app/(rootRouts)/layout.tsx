@@ -14,7 +14,9 @@ export default function RootRoutesLayout({
       <Navbar />
 
       {/* Main Content Area */}
+      <div className="mt-[-85px]">
         {children}
+      </div>
 
       {/* Global Footer */}
       <Footer />

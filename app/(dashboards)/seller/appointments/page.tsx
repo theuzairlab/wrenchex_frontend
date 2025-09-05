@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useAuthStore, useUser } from '@/lib/stores/auth';
 import { apiClient } from '@/lib/api/client';
-import { Appointment, AppointmentFilters, AppointmentSearchResult, AppointmentStatus } from '@/types';
-import { Calendar, CheckCircle, Clock, Edit, MapPin, MessageCircle, User, XCircle } from 'lucide-react';
+import { AppointmentFilters, AppointmentSearchResult, AppointmentStatus } from '@/types';
+import { Calendar, Clock, Edit, MapPin, MessageCircle, User } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -27,11 +27,6 @@ export default function SellerAppointmentsPage() {
     hasPreviousPage: false
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState<AppointmentFilters>({
-    page: 1,
-    limit: 10
-  });
 
   // State for status update modal
   const [selectedAppointment, setSelectedAppointment] = useState<{
@@ -63,7 +58,6 @@ export default function SellerAppointmentsPage() {
   const fetchAppointments = async () => {
     try {
       setIsLoading(true);
-      setError(null);
 
       // Prepare filters
       const safeFilters: AppointmentFilters = {
@@ -81,7 +75,6 @@ export default function SellerAppointmentsPage() {
         setAppointmentsData(response.data);
       } else {
         // Handle error scenario
-        setError(response.error?.message || 'Failed to load appointments');
         toast.error('Appointments Load Failed', {
           description: response.error?.message || 'Could not fetch appointments'
         });
@@ -92,8 +85,6 @@ export default function SellerAppointmentsPage() {
         ? err.message
         : 'An unexpected error occurred';
 
-      console.error('Appointments error:', err);
-      setError(errorMessage);
       toast.error('Fetch Failed', { description: errorMessage });
     } finally {
       setIsLoading(false);
@@ -126,7 +117,6 @@ export default function SellerAppointmentsPage() {
         toast.error('Failed to update appointment status');
       }
     } catch (err) {
-      console.error('Status update error:', err);
       toast.error('Failed to update appointment status');
     }
   };

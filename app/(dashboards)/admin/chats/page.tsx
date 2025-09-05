@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useUser, useUserRole } from '@/lib/stores/auth';
+import { useUserRole } from '@/lib/stores/auth';
 import { useAuthStore } from '@/lib/stores/auth';
 import { apiClient } from '@/lib/api/client';
 import { Button } from '@/components/ui/Button';
@@ -11,13 +11,11 @@ import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import { 
   MessageSquare, 
-  Search, 
   Trash2, 
   Eye, 
   Calendar, 
   User, 
   Store, 
-  Package,
   ChevronLeft,
   ChevronRight,
   RefreshCw,
@@ -61,7 +59,6 @@ interface ChatsResponse {
 
 export default function AdminChatsPage() {
   const role = useUserRole();
-  const user = useUser();
   const { isLoading, isAuthenticated } = useAuthStore();
 
   const [chats, setChats] = useState<Chat[]>([]);
