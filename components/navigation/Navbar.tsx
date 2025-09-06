@@ -16,6 +16,7 @@ import {
   MessageCircle,
   Bell,
   BarChart3,
+  Plus,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import GlobalSearch from '@/components/search/GlobalSearch';
@@ -25,6 +26,8 @@ import { useWebSocket } from '@/hooks/useWebSocket';
 import { apiClient } from '@/lib/api/client';
 import { cn } from '@/lib/utils';
 import { ChatDropdown } from './ChatDropdown';
+import { useAuthModal } from '@/components/auth';
+import { HoverBorderGradient } from '../ui/hover-border-gradient';
 
 interface NavbarProps {
   className?: string;
@@ -45,6 +48,7 @@ const Navbar = ({ className }: NavbarProps) => {
   const [isChatDropdownOpen, setIsChatDropdownOpen] = useState(false);
   const [unreadChatCount, setUnreadChatCount] = useState(0);
   const chatButtonRef = useRef<HTMLButtonElement | null>(null);
+  const { openAuthModal } = useAuthModal();
 
   const role = useUserRole();
   const wishlistCount = getWishlistCount();
@@ -138,6 +142,12 @@ const Navbar = ({ className }: NavbarProps) => {
     setIsSearchDropdownOpen(!isSearchDropdownOpen);
   };
 
+  // Auth modal functions
+  const handleOpenAuthModal = (type: 'login' | 'buyer-register' | 'seller-register') => {
+    openAuthModal(type);
+    setIsMobileMenuOpen(false);
+  };
+
   // Navigation links for different user roles
   const navigationLinks = [
     {
@@ -191,7 +201,6 @@ const Navbar = ({ className }: NavbarProps) => {
   const handleLogout = () => {
     logout();
     setIsUserMenuOpen(false);
-    router.push('/');
   };
 
   // Toggle chat dropdown
@@ -397,16 +406,28 @@ const Navbar = ({ className }: NavbarProps) => {
                   </Button>
                 </Link>
 
-                <Link href="/auth/login">
-                  <Button variant="ghost" size="sm" className="rounded-full">
-                    Sign In
-                  </Button>
-                </Link>
-                <Link href="/auth/register">
-                  <Button size="sm" className="rounded-full">
-                    Get Started
-                  </Button>
-                </Link>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="!rounded-full"
+                  onClick={() => handleOpenAuthModal('login')}
+                >
+                  Login
+                </Button>
+                <HoverBorderGradient
+                  containerClassName="rounded-full"
+                  as="button"
+                  className="dark:bg-black bg-white text-black dark:text-white flex items-center"
+                >
+                <Button
+                  size="sm"
+                  className="!rounded-full"
+                  onClick={() => handleOpenAuthModal('seller-register')}
+                >
+                  <Plus className="h-4 w-4 mr-3" />
+                  Sell
+                </Button>
+                </HoverBorderGradient>
               </div>
             )}
           </div>
@@ -543,7 +564,6 @@ const Navbar = ({ className }: NavbarProps) => {
                       onClick={() => {
                         logout();
                         setIsMobileMenuOpen(false);
-                        router.push('/');
                       }}
                       className="flex items-center w-full px-3 py-2 rounded-lg text-red-600 hover:bg-red-50/50"
                     >
@@ -554,23 +574,26 @@ const Navbar = ({ className }: NavbarProps) => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <Link href="/auth/login" className="block w-full">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-center rounded-full"
+                    onClick={() => handleOpenAuthModal('login')}
+                  >
+                    Login
+                  </Button>
+                  <HoverBorderGradient
+                    containerClassName="rounded-full"
+                    as="button"
+                    className="dark:bg-black bg-white text-black dark:text-white flex items-center space-x-2"
+                  >
                     <Button
-                      variant="outline"
                       className="w-full justify-center rounded-full"
-                      onClick={() => setIsMobileMenuOpen(false)}
+                      onClick={() => handleOpenAuthModal('seller-register')}
                     >
-                      Sign In
+                      <Plus className="h-4 w-4 mr-3" />
+                      Sell
                     </Button>
-                  </Link>
-                  <Link href="/auth/register" className="block w-full">
-                    <Button
-                      className="w-full justify-center rounded-full"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      Get Started
-                    </Button>
-                  </Link>
+                  </HoverBorderGradient>
                 </div>
               )}
             </div>

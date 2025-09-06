@@ -47,7 +47,7 @@ export default function SellerAppointmentsPage() {
       toast.error('Unauthorized', {
         description: 'You must be a seller to view appointments'
       });
-      router.push('/auth/login');
+      router.push('/');
       return;
     }
 

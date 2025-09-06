@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/lib/stores/auth';
 import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
+import { useAuthModal } from '@/components/auth';
 
 interface ChatWithSellerButtonProps {
   productId: string;
@@ -26,11 +27,12 @@ export function ChatWithSellerButton({
   const [isStartingChat, setIsStartingChat] = useState(false);
   const { user, isAuthenticated } = useAuthStore();
   const router = useRouter();
+  const { openAuthModal } = useAuthModal();
 
   const handleStartChat = async () => {
     if (!isAuthenticated) {
-      toast.error('Please login to start chatting');
-      router.push('/auth/login');
+      // Open auth modal instead of redirecting
+      openAuthModal('login');
       return;
     }
 

@@ -10,6 +10,7 @@ import { apiClient } from '@/lib/api/client';
 import { useAuthStore } from '@/lib/stores/auth';
 import { Service, CreateAppointmentData } from '@/types';
 import { toast } from 'sonner';
+import { useAuthModal } from '@/components/auth';
 import { 
   ArrowLeft, Star, Clock, MapPin, 
   Calendar, CheckCircle, Shield, Wrench, User,
@@ -29,6 +30,7 @@ export default function ServiceDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
+  const { openAuthModal } = useAuthModal();
   const serviceId = params.id as string;
 
   const [service, setService] = useState<Service | null>(null);
@@ -94,8 +96,8 @@ export default function ServiceDetailPage() {
 
   const handleBookAppointment = async () => {
     if (!isAuthenticated) {
-      toast.error('Please login to book appointments');
-      router.push('/auth/login');
+      // Open auth modal instead of redirecting
+      openAuthModal('login');
       return;
     }
 
@@ -363,11 +365,17 @@ export default function ServiceDetailPage() {
                       </Button>
                       {!isAuthenticated && (
                         <p className="text-sm text-gray-500 mt-2">
-                          <Link href="/auth/login" className="text-blue-600 hover:underline">
+                          <button 
+                            onClick={() => openAuthModal('login')}
+                            className="text-blue-600 hover:underline"
+                          >
                             Login
-                          </Link> or <Link href="/auth/register" className="text-blue-600 hover:underline">
+                          </button> or                           <button 
+                            onClick={() => openAuthModal('buyer-register')}
+                            className="text-blue-600 hover:underline"
+                          >
                             register
-                          </Link> to book this service
+                          </button> to book this service
                         </p>
                       )}
                     </div>

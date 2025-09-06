@@ -64,7 +64,6 @@ export function Header({ className }: HeaderProps) {
   const handleLogout = () => {
     logout();
     setIsUserMenuOpen(false);
-    router.push('/auth/login');
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -353,11 +352,16 @@ export function Header({ className }: HeaderProps) {
               </>
             ) : (
               <>
-                <Link href="/auth/login">
-                  <Button variant="ghost" size="sm">
-                    Sign In
-                  </Button>
-                </Link>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => {
+                    // Trigger auth modal instead of redirecting to login page
+                    window.location.href = '/';
+                  }}
+                >
+                  Sign In
+                </Button>
                 <Link href="/auth/register">
                   <Button variant="primary" size="sm">
                     Get Started
@@ -483,15 +487,17 @@ export function Header({ className }: HeaderProps) {
               </>
             ) : (
               <>
-                <Link href="/auth/login">
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Sign In
-                  </Button>
-                </Link>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start"
+                  onClick={() => {
+                    // Trigger auth modal instead of redirecting to login page
+                    window.location.href = '/';
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  Sign In
+                </Button>
                 <Link href="/auth/register">
                   <Button
                     variant="primary"

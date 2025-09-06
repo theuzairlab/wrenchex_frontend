@@ -17,6 +17,7 @@ import {
   Filter,
   Boxes,
 } from 'lucide-react';
+import { HoverBorderGradient } from '../ui/hover-border-gradient';
 
 type IconType = React.ComponentType<{ className?: string }>;
 
@@ -102,7 +103,7 @@ export function TopCategories() {
               type="button"
               aria-label="Scroll left"
               onClick={() => scrollByAmount('left')}
-              className="hidden md:flex absolute -left-16 top-1/2 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-white border border-gray-200 shadow-wrench-card hover:shadow-wrench-hover"
+              className="hidden md:flex absolute left-0 -top-6 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-white border border-gray-200 shadow-wrench-card hover:shadow-wrench-hover"
             >
               ‹
             </button>
@@ -110,7 +111,7 @@ export function TopCategories() {
               type="button"
               aria-label="Scroll right"
               onClick={() => scrollByAmount('right')}
-              className="hidden md:flex absolute -right-16 top-1/2 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-white border border-gray-200 shadow-wrench-card hover:shadow-wrench-hover"
+              className="hidden md:flex absolute right-0 -top-6 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-white border border-gray-200 shadow-wrench-card hover:shadow-wrench-hover"
             >
               ›
             </button>
@@ -123,19 +124,23 @@ export function TopCategories() {
                   const Icon = getIconFor(cat.name || '');
                   return (
                     <Link key={cat.id} href={`/products?category=${encodeURIComponent(cat.id)}`} className="snap-start">
-                      <Card className="group hover:shadow-wrench-hover transition-all duration-200 border-0 shadow-wrench-card bg-white cursor-pointer min-w-[200px] sm:min-w-[240px] min-h-[200px] sm:min-h-[240px]">
-                        <CardContent className="p-4 sm:p-5 flex items-center flex-col justify-center gap-4">
-                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-wrench-accent/20 flex items-center justify-center mr-3 sm:mr-4 group-hover:scale-105 transition-transform">
-                            <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-wrench-text-primary" />
+                      <HoverBorderGradient
+                        containerClassName="rounded-full p-[1px]"
+                        className="bg-white text-black"
+                        as="div"
+                      >
+                        <div className="group hover:shadow-wrench-hover transition-all duration-200 bg-white cursor-pointer w-[160px] h-[160px] sm:w-[180px] sm:h-[180px] rounded-full flex items-center flex-col justify-center gap-3 p-4">
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-wrench-accent/20 flex items-center justify-center group-hover:scale-105 transition-transform">
+                            <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-wrench-text-primary" />
                           </div>
                           <div className="text-center">
-                            <div className="font-semibold text-wrench-text-primary group-hover:text-wrench-accent line-clamp-1 text-sm sm:text-base">{cat.name}</div>
+                            <div className="font-semibold text-wrench-text-primary group-hover:text-wrench-accent line-clamp-1 text-xs sm:text-sm">{cat.name}</div>
                             {cat.description && (
-                              <div className="text-xs sm:text-sm text-wrench-text-secondary line-clamp-2">{cat.description}</div>
+                              <div className="text-xs text-wrench-text-secondary line-clamp-2 mt-1">{cat.description}</div>
                             )}
                           </div>
-                        </CardContent>
-                      </Card>
+                        </div>
+                      </HoverBorderGradient>
                     </Link>
                   );
                 })}

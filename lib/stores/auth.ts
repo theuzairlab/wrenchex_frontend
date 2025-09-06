@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { apiClient } from '@/lib/api/client';
+import { toast } from 'sonner';
 import type { User, RegisterData, ApiResponse } from '@/types';
 
 interface AuthState {
@@ -154,20 +155,28 @@ const useAuthStoreBase = create<AuthState & AuthActions>()(
         }
       },
 
-              logout: () => {
-          console.log('AuthStore: Logging out');
-          
-          // Remove token from both places
-          apiClient.removeAuthToken();
-          
-          set({
-            user: null,
-            token: null,
-            isAuthenticated: false,
-            isLoading: false,
-            error: null,
-          });
-        },
+      logout: () => {
+        console.log('AuthStore: Logging out');
+        
+        // Remove token from both places
+        apiClient.removeAuthToken();
+        
+        set({
+          user: null,
+          token: null,
+          isAuthenticated: false,
+          isLoading: false,
+          error: null,
+        });
+
+        // Show logout success message
+        toast.success('Logged out successfully!');
+
+        // Redirect to home page after logout
+        if (typeof window !== 'undefined') {
+          window.location.href = '/';
+        }
+      },
 
         clearError: () => {
           set({ error: null });

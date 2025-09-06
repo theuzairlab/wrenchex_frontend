@@ -28,8 +28,8 @@ export function ProtectedRoute({
 
     // Check if authentication is required
     if (requireAuth && !isAuthenticated) {
-      const loginUrl = `/auth/login?redirect=${encodeURIComponent(pathname)}`;
-      router.push(redirectTo || loginUrl);
+      // Redirect to home page since auth is now handled via popups
+      router.push(redirectTo || '/');
       return;
     }
 

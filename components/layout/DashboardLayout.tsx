@@ -44,7 +44,7 @@ export function DashboardLayout({ children, title, description }: DashboardLayou
     <AuthenticatedRoute>
       <div className="h-screen bg-gray-50 flex flex-col">
         {/* Header */}
-        <Header className="flex-shrink-0" />
+        {/* <Header className="flex-shrink-0" /> */}
         
         <div className="flex flex-1 overflow-hidden">
           {/* Desktop Sidebar */}

@@ -10,15 +10,18 @@ import TopServices from '@/components/services/TopServices';
 import WhyChooseUs from '@/components/landing/WhyChooseUs';
 import { useAuthStore } from '@/lib/stores/auth';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/Card';
+import { useAuthModal } from '@/components/auth';
 import {
-  Search, ShoppingCart, Wrench, Star,
-  ArrowRight, Quote
+  Search, ShoppingCart, Wrench, 
+  ArrowRight
 } from 'lucide-react';
+import { AnimatedTestimonialsDemo } from '@/components/testimonials/Testimonial';
 
 export default function Home() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const { isAuthenticated } = useAuthStore();
+  const { openAuthModal } = useAuthModal();
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -210,148 +213,28 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="bg-white border-0 shadow-md hover:shadow-lg transition-shadow duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-wrench-accent rounded-full flex items-center justify-center text-black font-semibold mr-3">
-                    AH
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Ahmed Hassan</h4>
-                    <p className="text-sm text-text-secondary">Auto Mechanic</p>
-                    <p className="text-xs text-text-muted">Dubai, UAE</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center mb-3">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-
-                <Quote className="h-6 w-6 text-gray-300 mb-2" />
-                <p className="text-sm text-text-secondary mb-4 leading-relaxed">
-                  WrenchEX has transformed my business. I can now reach more customers and offer my services to a wider audience. The platform is easy to use!
-                </p>
-
-                <div className="text-xs text-wrench-accent font-medium">
-                  Brake Repair Service
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white border-0 shadow-md hover:shadow-lg transition-shadow duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-wrench-accent rounded-full flex items-center justify-center text-black font-semibold mr-3">
-                    SJ
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Sarah Johnson</h4>
-                    <p className="text-sm text-text-secondary">Car Owner</p>
-                    <p className="text-xs text-text-muted">Abu Dhabi, UAE</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center mb-3">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-
-                <Quote className="h-6 w-6 text-gray-300 mb-2" />
-                <p className="text-sm text-text-secondary mb-4 leading-relaxed">
-                  I found the exact brake pads for my 2019 Honda Civic at an amazing price. The delivery was fast and the quality is exactly as described. Highly recommended!
-                </p>
-
-                <div className="text-xs text-wrench-accent font-medium">
-                  Brake Pads Purchase
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white border-0 shadow-md hover:shadow-lg transition-shadow duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-wrench-accent rounded-full flex items-center justify-center text-black font-semibold mr-3">
-                    MA
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Mohammad Ali</h4>
-                    <p className="text-sm text-text-secondary">Parts Dealer</p>
-                    <p className="text-xs text-text-muted">Sharjah, UAE</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center mb-3">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-
-                <Quote className="h-6 w-6 text-gray-300 mb-2" />
-                <p className="text-sm text-text-secondary mb-4 leading-relaxed">
-                  As a parts seller, WrenchEX has given me access to customers I never could have reached before. Sales have increased by 300%!
-                </p>
-
-                <div className="text-xs text-wrench-accent font-medium">
-                  Auto Parts Sales
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white border-0 shadow-md hover:shadow-lg transition-shadow duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-wrench-accent rounded-full flex items-center justify-center text-black font-semibold mr-3">
-                    LC
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Lisa Chen</h4>
-                    <p className="text-sm text-text-secondary">Fleet Manager</p>
-                    <p className="text-xs text-text-muted">Ajman, UAE</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center mb-3">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-
-                <Quote className="h-6 w-6 text-gray-300 mb-2" />
-                <p className="text-sm text-text-secondary mb-4 leading-relaxed">
-                  Managing parts for our 50+ vehicle fleet is now so much easier. The bulk ordering system has saved us both time and money.
-                </p>
-
-                <div className="text-xs text-wrench-accent font-medium">
-                  Fleet Management
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <AnimatedTestimonialsDemo />
 
           <div className="text-center mt-12">
-            <div className="flex flex-col sm:flex-row w-1/2 mx-auto justify-center items-center sm:space-x-8 bg-white rounded-xl px-6 py-4 shadow-md space-y-4 sm:space-y-0">
+            <div className="flex flex-row w-full max-w-4xl mx-auto justify-center items-center space-x-2 sm:space-x-4 md:space-x-8 bg-white rounded-xl px-3 sm:px-6 py-3 sm:py-4 shadow-md">
 
-              <div className="text-center">
-                <div className="text-2xl font-bold text-wrench-accent">4.9/5</div>
-                <div className="text-sm text-text-secondary">Average Rating</div>
+              <div className="text-center flex-1">
+                <div className="text-lg sm:text-xl md:text-2xl font-bold text-wrench-accent">4.9/5</div>
+                <div className="text-xs sm:text-sm text-text-secondary">Average Rating</div>
               </div>
 
-              <div className="hidden sm:block w-px h-8 bg-gray-200"></div>
+              <div className="w-px h-6 sm:h-8 bg-gray-200"></div>
 
-              <div className="text-center">
-                <div className="text-2xl font-bold text-wrench-accent">25,000+</div>
-                <div className="text-sm text-text-secondary">Happy Customers</div>
+              <div className="text-center flex-1">
+                <div className="text-lg sm:text-xl md:text-2xl font-bold text-wrench-accent">25,000+</div>
+                <div className="text-xs sm:text-sm text-text-secondary">Happy Customers</div>
               </div>
 
-              <div className="hidden sm:block w-px h-8 bg-gray-200"></div>
+              <div className="w-px h-6 sm:h-8 bg-gray-200"></div>
 
-              <div className="text-center">
-                <div className="text-2xl font-bold text-wrench-accent">98%</div>
-                <div className="text-sm text-text-secondary">Satisfaction Rate</div>
+              <div className="text-center flex-1">
+                <div className="text-lg sm:text-xl md:text-2xl font-bold text-wrench-accent">98%</div>
+                <div className="text-xs sm:text-sm text-text-secondary">Satisfaction Rate</div>
               </div>
 
             </div>
@@ -379,11 +262,13 @@ export default function Home() {
                 <CardDescription>
                   Browse products, book services, manage orders
                 </CardDescription>
-                <Link href="/auth/register/buyer">
-                  <Button variant="outline" className="w-full">
-                    Register as Buyer
-                  </Button>
-                </Link>
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => openAuthModal('buyer-register')}
+                >
+                  Register as Buyer
+                </Button>
               </CardContent>
             </Card>
 
@@ -396,11 +281,13 @@ export default function Home() {
                 <CardDescription>
                   List products, offer services, manage business
                 </CardDescription>
-                <Link href="/auth/register/seller">
-                  <Button variant="primary" className="w-full">
-                    Register as Seller
-                  </Button>
-                </Link>
+                <Button 
+                  variant="primary" 
+                  className="w-full"
+                  onClick={() => openAuthModal('seller-register')}
+                >
+                  Register as Seller
+                </Button>
               </CardContent>
             </Card>
           </div>
@@ -408,11 +295,13 @@ export default function Home() {
           <div className="pt-8">
             <p className="text-body-sm text-text-muted">
               Already have an account?{' '}
-              <Link href="/auth/login">
-                <Button variant="link" className="p-0 h-auto">
-                  Sign in here
-                </Button>
-              </Link>
+              <Button 
+                variant="link" 
+                className="p-0 h-auto"
+                onClick={() => openAuthModal('login')}
+              >
+                Sign in here
+              </Button>
             </p>
           </div>
         </div>

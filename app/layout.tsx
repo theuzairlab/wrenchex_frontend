@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/components/auth/AuthProvider';
+import { AuthModalProvider } from '@/components/auth/AuthModalProvider';
 import { CriticalErrorBoundary } from '@/components/error/ErrorBoundary';
-import { ToastProvider } from '@/components/ui/Notification';
 import { Toaster } from 'sonner';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -46,14 +46,14 @@ export default function RootLayout({
     <html lang="en" className="scroll-smooth" data-scroll-behavior="smooth">
       <body className={inter.className}>
         <CriticalErrorBoundary>
-          <ToastProvider>
-            <AuthProvider>
+          <AuthProvider>
+            <AuthModalProvider>
               <main>
                 {children}
               </main>
               <Toaster />
-            </AuthProvider>
-          </ToastProvider>
+            </AuthModalProvider>
+          </AuthProvider>
         </CriticalErrorBoundary>
       </body>
     </html>

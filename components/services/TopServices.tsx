@@ -7,6 +7,8 @@ import type { Service } from '@/types';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Star, MapPin, Store, Tag, Clock, ChevronLeft, ChevronRight, Wrench } from 'lucide-react';
+import { GlowingEffect } from '../ui/glowing-effect';
+import { WishlistIcon } from '../ui/WishlistIcon';
 
 export function TopServices() {
   const [services, setServices] = useState<Service[]>([]);
@@ -25,7 +27,7 @@ export function TopServices() {
           limit: 12,
           isActive: true
         });
-        
+
         const items = response?.data?.services || response?.data || [];
         if (mounted) setServices(Array.isArray(items) ? items : []);
       } catch (err: any) {
@@ -98,7 +100,7 @@ export function TopServices() {
               type="button"
               aria-label="Scroll left"
               onClick={() => scrollByAmount('left')}
-              className="hidden md:flex absolute -left-16 top-1/2 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-white border border-gray-200 shadow-wrench-card hover:shadow-wrench-hover"
+              className="hidden md:flex absolute left-0 -top-6 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-white border border-gray-200 shadow-wrench-card hover:shadow-wrench-hover"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
@@ -106,7 +108,7 @@ export function TopServices() {
               type="button"
               aria-label="Scroll right"
               onClick={() => scrollByAmount('right')}
-              className="hidden md:flex absolute -right-16 top-1/2 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-white border border-gray-200 shadow-wrench-card hover:shadow-wrench-hover"
+              className="hidden md:flex absolute right-0 -top-6 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-white border border-gray-200 shadow-wrench-card hover:shadow-wrench-hover"
             >
               <ChevronRight className="h-5 w-5" />
             </button>
@@ -116,98 +118,126 @@ export function TopServices() {
               ref={scrollerRef}
               className="overflow-x-auto -mx-4 px-4 scroll-smooth snap-x snap-mandatory scrollbar-none"
             >
-              <div className="flex gap-4 sm:gap-6 py-2">
+              <div className="flex gap-2 sm:gap-3 py-2">
                 {topServices.map((service) => (
                   <Link key={service.id} href={`/services/${service.id}`} className="snap-start">
-                    <Card className="group p-0 hover:shadow-wrench-hover transition-all duration-300 border-0 shadow-wrench-card bg-white cursor-pointer min-w-[280px] sm:min-w-[320px] min-h-[600px]">
-                      <CardContent className="p-0 h-full flex flex-col">
-                        {/* Service Image */}
-                        <div className="relative object-cover aspect-square overflow-hidden rounded-t-xl">
-                          <img
-                            src={getImageUrl(service)}
-                            alt={service.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                          {/* Mobile Service Badge */}
-                          {service.isMobileService && (
-                            <div className="absolute top-2 right-2 bg-wrench-accent text-wrench-text-primary text-xs px-2 py-1 rounded-full flex items-center">
-                              <Wrench className="h-3 w-3 mr-1" />
-                              Mobile
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Service Details */}
-                        <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
-                          <div className="space-y-2">
-                            {/* Price */}
-                            <div className="flex items-center space-x-2">
-                              <span className="text-lg sm:text-xl font-bold text-wrench-accent">
-                                {formatPrice(service.price)}
-                              </span>
-                              <span className="text-xs sm:text-sm text-wrench-text-secondary">
-                                per service
-                              </span>
-                            </div>
-
-                            {/* Title */}
-                            <h3 className="font-semibold text-wrench-text-primary group-hover:text-wrench-accent line-clamp-2 text-sm sm:text-base">
-                              {service.title}
-                            </h3>
-
-                            {/* Duration */}
-                            <div className="flex items-center text-xs sm:text-sm text-wrench-text-secondary">
-                              <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                              <span>{formatDuration(service.durationMinutes)}</span>
-                            </div>
-
-                            {/* Location */}
-                            <div className="flex items-center text-xs sm:text-sm text-wrench-text-secondary">
-                              <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                              <span className="line-clamp-1">
-                                {service.seller.city}, {service.seller.area}
-                              </span>
-                            </div>
-
-                            {/* Shop Name */}
-                            <div className="flex items-center text-xs sm:text-sm text-wrench-text-secondary">
-                              <Store className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                              <span className="line-clamp-1">{service.seller.shopName}</span>
-                            </div>
-
-                            {/* Category */}
-                            <div className="flex items-center text-xs sm:text-sm text-wrench-text-secondary">
-                              <Tag className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                              <span className="line-clamp-1">{service.category.name}</span>
-                            </div>
+                    <div className="relative group rounded-xl">
+                      <GlowingEffect
+                        blur={0}
+                        borderWidth={3}
+                        spread={80}
+                        glow={true}
+                        disabled={false}
+                        proximity={64}
+                        inactiveZone={0.01}
+                      />
+                      <Card className="group p-0 hover:shadow-wrench-hover transition-all duration-300 border-0 shadow-wrench-card bg-white cursor-pointer min-w-[280px] sm:min-w-[320px] min-h-[485px] sm:min-h-[553px]">
+                        <CardContent className="p-0 h-full flex flex-col">
+                          {/* Service Image */}
+                          <div className="relative object-cover aspect-square overflow-hidden rounded-t-xl">
+                            <img
+                              src={getImageUrl(service)}
+                              alt={service.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                            {/* Mobile Service Badge */}
+                            {service.isMobileService && (
+                              <div className="absolute top-2 left-2 bg-wrench-accent text-wrench-text-primary text-xs px-2 py-1 rounded-full flex items-center">
+                                <Wrench className="h-3 w-3 mr-1" />
+                                Mobile
+                              </div>
+                            )}
                           </div>
 
-                          {/* Rating */}
-                          <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-                            <div className="flex items-center">
+                          {/* Service Details */}
+                          <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+                            <div className="space-y-2">
+                              {/* Price */}
+                              <div className="flex items-center space-x-2">
+                                <span className="text-lg sm:text-xl font-bold text-wrench-accent">
+                                  {formatPrice(service.price)}
+                                </span>
+                                <span className="text-xs sm:text-sm text-wrench-text-secondary">
+                                  per service
+                                </span>
+                              </div>
+
+                              {/* Title */}
+                              <h3 className="font-semibold text-wrench-text-primary group-hover:text-wrench-accent line-clamp-2 text-sm sm:text-base">
+                                {service.title}
+                              </h3>
+
+                              {/* Duration */}
+                              <div className="flex items-center text-xs sm:text-sm text-wrench-text-secondary">
+
+                              </div>
+
+                              {/* Location */}
+                              <div className="flex items-center justify-between text-xs sm:text-sm text-wrench-text-secondary">
+                                <div className="flex items-center">
+                                  <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                                  <span className="line-clamp-1">
+                                    {service.seller.city}, {service.seller.area}
+                                  </span>
+                                </div>
+                                <div className="flex items-center">
+                                  <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                                  <span>{formatDuration(service.durationMinutes)}</span>
+                                </div>
+
+                              </div>
+
+                              {/* Shop Name */}
+                              <div className="flex items-center justify-between text-xs sm:text-sm text-wrench-text-secondary">
+                                <div className="flex items-center">
+                                  <Store className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                                  <span className="line-clamp-1">{service.seller.shopName}</span>
+                                </div>
+                                <div className="flex items-center">
+                                  <Tag className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                                  <span className="line-clamp-1">{service.category.name}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Rating */}
+                            <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
                               <div className="flex items-center">
-                                {[...Array(5)].map((_, i) => (
-                                  <Star
-                                    key={i}
-                                    className={`h-3 w-3 sm:h-4 sm:w-4 ${
-                                      i < Math.floor(service.ratingAverage || 0)
+                                <div className="flex items-center">
+                                  {[...Array(5)].map((_, i) => (
+                                    <Star
+                                      key={i}
+                                      className={`h-3 w-3 sm:h-4 sm:w-4 ${i < Math.floor(service.ratingAverage || 0)
                                         ? 'text-yellow-400 fill-current'
                                         : 'text-gray-300'
-                                    }`}
-                                  />
-                                ))}
+                                        }`}
+                                    />
+                                  ))}
+                                </div>
+                                <span className="text-xs sm:text-sm text-wrench-text-secondary ml-1">
+                                  ({service.ratingCount})
+                                </span>
                               </div>
-                              <span className="text-xs sm:text-sm text-wrench-text-secondary ml-1">
-                                ({service.ratingCount})
-                              </span>
-                            </div>
-                            <div className="text-xs sm:text-sm text-wrench-text-secondary">
-                              {service.isMobileService ? 'Mobile' : 'Shop'}
+                              <div className="text-xs sm:text-sm text-wrench-text-secondary">
+                                {service.isMobileService ? 'Mobile' : 'Shop'}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                          <div className="flex space-x-2">
+                            <WishlistIcon
+                              id={service.id}
+                              type="service"
+                              title={service.title}
+                              price={service.price}
+                              image={service.images?.[0] || ''}
+                              category={service.category?.name}
+                              sellerName={service.seller.shopName}
+                              size="sm"
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
                   </Link>
                 ))}
               </div>
