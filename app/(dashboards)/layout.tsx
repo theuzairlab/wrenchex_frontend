@@ -5,6 +5,7 @@ import Navbar from '@/components/navigation/Navbar';
 import { Sidebar } from '@/components/navigation/Sidebar';
 import { AuthenticatedRoute } from '@/components/auth/ProtectedRoute';
 import { cn } from '@/lib/utils';
+import { SidebarClose, SidebarOpen } from 'lucide-react';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -45,28 +46,24 @@ export default function DashboardLayout({ children, title, description }: Dashbo
     <AuthenticatedRoute>
       <div className="h-screen bg-gray-50 flex flex-col">
         {/* Header */}
-        <Navbar className="flex-shrink-0" />
+        <Navbar className="flex-shrink-0 z-40" />
         
         <div className="flex flex-1 overflow-hidden">
           {/* Mobile Sidebar Toggle Button */}
-          <div className="md:hidden fixed top-3 right-6 z-50">
+          <div className="md:hidden fixed top-7 left-1 z-50">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className={cn(
-                "bg-white border border-gray-200 rounded-lg p-2 shadow-lg hover:bg-gray-50 transition-all duration-200",
-                isMobileMenuOpen && "bg-gray-100 border-gray-300"
+                " p-2 hover:bg-gray-50 transition-all duration-200",
+                isMobileMenuOpen && "hidden"
               )}
               data-sidebar-toggle
               aria-label="Toggle sidebar menu"
             >
               {isMobileMenuOpen ? (
-                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <SidebarClose className="w-5 h-5 text-gray-600" />
               ) : (
-                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
+                <SidebarOpen className="w-5 h-5 text-gray-600" />
               )}
             </button>
           </div>
@@ -78,6 +75,7 @@ export default function DashboardLayout({ children, title, description }: Dashbo
                  isCollapsed={isSidebarCollapsed}
                  onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
                  onLinkClick={() => setIsMobileMenuOpen(false)}
+                 className="z-50"
                />
              </div>
            </div>
@@ -103,9 +101,9 @@ export default function DashboardLayout({ children, title, description }: Dashbo
                 </div>
                 
                                  {/* Sidebar Content */}
-                 <div className="h-full overflow-y-auto">
-                   <Sidebar onLinkClick={() => setIsMobileMenuOpen(false)} />
-                 </div>
+                  <div className="h-full overflow-y-auto">
+                    <Sidebar onLinkClick={() => setIsMobileMenuOpen(false)} className="z-50" />
+                  </div>
               </div>
             </div>
           )}

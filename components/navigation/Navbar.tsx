@@ -227,7 +227,7 @@ const Navbar = ({ className }: NavbarProps) => {
 
   return (
     <nav className={cn(
-      "sticky top-4 z-50 bg-white/40 w-auto md:w-[60%] lg:w-auto backdrop-blur-md border border-gray-200/50 rounded-full shadow-lg transition-all duration-200 mx-auto mt-4",
+      "sticky top-4 z-40 bg-white/40 w-auto md:w-[60%] lg:w-auto backdrop-blur-md border border-gray-200/50 rounded-full shadow-lg transition-all duration-200 mx-auto mt-4",
       isScrolled && "bg-white/45 shadow-md",
       className
     )}>

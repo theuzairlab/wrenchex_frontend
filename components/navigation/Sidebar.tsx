@@ -26,7 +26,8 @@ import {
   Search,
   FileText,
   Truck,
-  User
+  User,
+  SidebarClose
 } from 'lucide-react';
 import { useUserRole } from '@/lib/stores/auth';
 import { cn } from '@/lib/utils';
@@ -316,7 +317,7 @@ export function Sidebar({ isCollapsed = false, onToggle, className, onLinkClick 
               onClick={onToggle}
               className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
             >
-              <Package className="h-5 w-5" />
+              <SidebarClose className="h-5 w-5" />
             </button>
           )}
         </div>
