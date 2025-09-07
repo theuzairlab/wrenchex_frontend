@@ -318,7 +318,7 @@ const GlobalSearch = ({
           onKeyDown={handleKeyDown}
           placeholder={searchType === 'products' ? "Search for auto parts, brands, or categories..." : "Search for automotive services, mechanics, or repairs..."}
           autoFocus={autoFocus}
-          className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-wrench-accent focus:border-wrench-accent text-sm"
+          className="block w-full pl-10 pr-6 py-3 border border-gray-300 rounded-lg bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-wrench-accent focus:border-wrench-accent text-sm"
         />
 
         <div className="absolute inset-y-0 right-0 flex items-center">
@@ -333,17 +333,6 @@ const GlobalSearch = ({
             >
               <X className="h-4 w-4" />
             </button>
-          )}
-          
-          {showFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="mr-1"
-              onClick={() => router.push('/search/advanced')}
-            >
-              <Filter className="h-4 w-4" />
-            </Button>
           )}
         </div>
       </div>

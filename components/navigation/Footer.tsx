@@ -5,9 +5,9 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <div>
+    <div className="bg-white">
       {/* Comprehensive Footer */}
-      <footer className="bg-[#121212] text-white">
+      <footer className="bg-[#121212] text-white rounded-tl-[9rem] rounded-tr-[9rem]">
         <div className="container-responsive py-16">
           <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
             {/* Brand Section */}

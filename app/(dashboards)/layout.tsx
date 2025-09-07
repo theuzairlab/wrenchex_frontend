@@ -44,9 +44,9 @@ export default function DashboardLayout({ children, title, description }: Dashbo
 
   return (
     <AuthenticatedRoute>
-      <div className="h-screen bg-gray-50 flex flex-col">
+      <div className="flex flex-col min-h-screen">
         {/* Header */}
-        <Navbar className="flex-shrink-0 z-40" />
+        <Navbar className="flex-shrink-0" />
         
         <div className="flex flex-1 overflow-hidden">
           {/* Mobile Sidebar Toggle Button */}
@@ -68,17 +68,15 @@ export default function DashboardLayout({ children, title, description }: Dashbo
             </button>
           </div>
 
-                     {/* Desktop Sidebar */}
-           <div className="hidden md:block flex-shrink-0">
-             <div className="h-full">
-               <Sidebar 
-                 isCollapsed={isSidebarCollapsed}
-                 onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                 onLinkClick={() => setIsMobileMenuOpen(false)}
-                 className="z-50"
-               />
-             </div>
-           </div>
+          {/* Desktop Sidebar */}
+          <div className="hidden md:block fixed top-0 left-0 h-screen z-30">
+            <Sidebar 
+              isCollapsed={isSidebarCollapsed}
+              onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              onLinkClick={() => setIsMobileMenuOpen(false)}
+              className="h-full"
+            />
+          </div>
 
           {/* Mobile Sidebar Overlay */}
           {isMobileMenuOpen && (
@@ -109,7 +107,7 @@ export default function DashboardLayout({ children, title, description }: Dashbo
           )}
 
           {/* Main Content */}
-          <div className="flex-1 flex flex-col overflow-hidden">
+          <div className={`flex-1 flex flex-col overflow-hidden ${isSidebarCollapsed ? 'md:ml-16' : 'md:ml-64'}`}>
             <div className="flex-1 overflow-auto">
               <div className="p-6">
                 {children}

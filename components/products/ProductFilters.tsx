@@ -9,6 +9,7 @@ import {
   ChevronUp, 
   Star,
   Package,
+  Search,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -20,7 +21,6 @@ interface ProductFiltersProps {
   totalProducts: number;
   availableFilters?: {
     categories?: Array<{ id: string; name: string; count: number }>;
-    brands?: Array<{ name: string; count: number }>;
     priceRange?: { min: number; max: number };
     conditions?: Array<{ value: string; count: number }>;
   };
@@ -87,6 +87,8 @@ const ProductFilters = ({
     min: currentFilters.minPrice || '',
     max: currentFilters.maxPrice || '',
   });
+  
+  const [searchQuery, setSearchQuery] = useState(currentFilters.search || '');
 
   // Helper to update URL with new filters
   const updateFilter = (key: string, value: string | null) => {
@@ -130,18 +132,14 @@ const ProductFilters = ({
     router.replace(`/products?${params.toString()}`);
   };
 
+  // Handle search
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateFilter('search', searchQuery.trim() || null);
+  };
+
   // Count active filters
   const activeFiltersCount = Object.values(currentFilters).filter(Boolean).length;
-
-  // Popular brands (you can also get this from backend)
-  const popularBrands = availableFilters?.brands || [
-    { name: 'Toyota', count: 1250 },
-    { name: 'Honda', count: 980 },
-    { name: 'Nissan', count: 856 },
-    { name: 'BMW', count: 734 },
-    { name: 'Mercedes', count: 612 },
-    { name: 'Audi', count: 534 },
-  ];
 
   const conditions = [
     { value: 'NEW', label: 'New', count: availableFilters?.conditions?.find((c: any) => c.value === 'NEW')?.count || 0 },
@@ -150,185 +148,94 @@ const ProductFilters = ({
   ];
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-2">
-          <Filter className="h-5 w-5 text-gray-600" />
-          <h3 className="font-semibold text-gray-900 text-base sm:text-lg">Filters</h3>
-          {activeFiltersCount > 0 && (
-            <span className="px-2 py-1 bg-wrench-accent text-black text-xs rounded-full font-medium">
-              {activeFiltersCount}
-            </span>
-          )}
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+      {/* Single Line Filters */}
+      <div className="flex flex-wrap items-center gap-4">
+        {/* Search */}
+        <div className="flex-1 min-w-[200px]">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Search products..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch(e)}
+              className="pl-9 pr-3 py-2 text-sm"
+            />
+          </div>
         </div>
-        
-        {activeFiltersCount > 0 && (
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={clearAllFilters}
-            className="text-gray-500 hover:text-gray-700 text-sm"
+
+        {/* Category Dropdown */}
+        <div className="min-w-[150px]">
+          <select
+            value={currentFilters.category || ''}
+            onChange={(e) => updateFilter('category', e.target.value || null)}
+            className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-wrench-accent"
           >
-            <X className="h-4 w-4 mr-1" />
-            <span className="hidden sm:inline">Clear</span>
-            <span className="sm:hidden">×</span>
-          </Button>
-        )}
-      </div>
-
-      {/* Active Filters */}
-      {activeFiltersCount > 0 && (
-        <div className="mb-6">
-          <div className="flex flex-wrap gap-2">
-            {Object.entries(currentFilters).map(([key, value]) => {
-              if (!value) return null;
-              
-              let displayValue = value;
-              if (key === 'category') {
-                const category = safeCategories.find(c => c.id === value);
-                displayValue = category?.name || value;
-              }
-              
-              return (
-                <span
-                  key={key}
-                  className="inline-flex items-center px-3 py-1 bg-wrench-accent/10 text-wrench-accent-dark text-sm rounded-full"
-                >
-                  {displayValue}
-                  <button
-                    onClick={() => updateFilter(key, null)}
-                    className="ml-2 hover:text-red-600"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </span>
-              );
-            })}
-          </div>
+            <option value="">All Categories</option>
+            {safeCategories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
         </div>
-      )}
 
-      {/* Categories Filter */}
-      <FilterSection
-        title="Categories"
-        icon={<Package className="h-4 w-4 text-gray-600" />}
-        defaultOpen={!!currentFilters.category}
-      >
-        <div className="space-y-2 max-h-48 overflow-y-auto">
-          {safeCategories.map((category) => (
-            <label key={category.id} className="flex items-center space-x-2 cursor-pointer">
-              <input
-                type="radio"
-                name="category"
-                value={category.id}
-                checked={currentFilters.category === category.id}
-                onChange={(e) => updateFilter('category', e.target.checked ? e.target.value : null)}
-                className="text-wrench-accent focus:ring-wrench-accent border-gray-300"
-              />
-              <span className="text-sm text-gray-700 flex-1">{category.name}</span>
-              {category.productCount && (
-                <span className="text-xs text-gray-500">({category.productCount})</span>
-              )}
-            </label>
-          ))}
+        {/* Condition Dropdown */}
+        <div className="min-w-[120px]">
+          <select
+            value={currentFilters.condition || ''}
+            onChange={(e) => updateFilter('condition', e.target.value || null)}
+            className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-wrench-accent"
+          >
+            <option value="">All Conditions</option>
+            {conditions.map((condition) => (
+              <option key={condition.value} value={condition.value}>
+                {condition.label}
+              </option>
+            ))}
+          </select>
         </div>
-      </FilterSection>
 
-      {/* Price Range Filter */}
-      <FilterSection
-        title="Price Range"
-        icon={<div>AED</div>}
-        defaultOpen={!!(currentFilters.minPrice || currentFilters.maxPrice)}
-      >
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="block text-xs text-gray-600 mb-1">Min Price</label>
-              <Input
-                type="number"
-                placeholder="0"
-                value={priceRange.min}
-                onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
-                className="text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-600 mb-1">Max Price</label>
-              <Input
-                type="number"
-                placeholder="10000"
-                value={priceRange.max}
-                onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
-                className="text-sm"
-              />
-            </div>
-          </div>
+        {/* Price Range */}
+        <div className="flex items-center gap-2 min-w-[200px]">
+          <Input
+            type="number"
+            placeholder="Min"
+            value={priceRange.min}
+            onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
+            className="w-20 text-sm py-2"
+          />
+          <span className="text-gray-500">-</span>
+          <Input
+            type="number"
+            placeholder="Max"
+            value={priceRange.max}
+            onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
+            className="w-20 text-sm py-2"
+          />
           <Button 
             size="sm" 
-            className="w-full" 
             onClick={applyPriceFilter}
+            className="px-3 py-2"
           >
-            Apply Price Filter
+            Apply
           </Button>
         </div>
-      </FilterSection>
 
-      {/* Brand Filter */}
-      <FilterSection
-        title="Brand"
-        icon={<Star className="h-4 w-4 text-gray-600" />}
-        count={popularBrands.length}
-      >
-        <div className="space-y-2 max-h-48 overflow-y-auto">
-          {popularBrands.map((brand: { name: string; count: number }) => (
-            <label key={brand.name} className="flex items-center space-x-2 cursor-pointer">
-              <input
-                type="radio"
-                name="brand"
-                value={brand.name}
-                checked={currentFilters.brand === brand.name}
-                onChange={(e) => updateFilter('brand', e.target.checked ? e.target.value : null)}
-                className="text-wrench-accent focus:ring-wrench-accent border-gray-300"
-              />
-              <span className="text-sm text-gray-700 flex-1">{brand.name}</span>
-              <span className="text-xs text-gray-500">({brand.count})</span>
-            </label>
-          ))}
-        </div>
-      </FilterSection>
-
-      {/* Condition Filter */}
-      <FilterSection
-        title="Condition"
-        icon={<Package className="h-4 w-4 text-gray-600" />}
-      >
-        <div className="space-y-2">
-          {conditions.map((condition) => (
-            <label key={condition.value} className="flex items-center space-x-2 cursor-pointer">
-              <input
-                type="radio"
-                name="condition"
-                value={condition.value}
-                checked={currentFilters.condition === condition.value}
-                onChange={(e) => updateFilter('condition', e.target.checked ? e.target.value : null)}
-                className="text-wrench-accent focus:ring-wrench-accent border-gray-300"
-              />
-              <span className="text-sm text-gray-700 flex-1">{condition.label}</span>
-              {condition.count > 0 && (
-                <span className="text-xs text-gray-500">({condition.count})</span>
-              )}
-            </label>
-          ))}
-        </div>
-      </FilterSection>
-
-      {/* Results Summary */}
-      <div className="mt-6 pt-4 border-t border-gray-200">
-        <div className="text-center text-sm text-gray-600">
-          <Package className="h-4 w-4 inline mr-1" />
-          {totalProducts.toLocaleString()} products found
-        </div>
+        {/* Clear Filters */}
+        {activeFiltersCount > 0 && (
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={clearAllFilters}
+            className="text-gray-600 hover:text-gray-800"
+          >
+            <X className="h-4 w-4 mr-1" />
+            Clear
+          </Button>
+        )}
       </div>
     </div>
   );

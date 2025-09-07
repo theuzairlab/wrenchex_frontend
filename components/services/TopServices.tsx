@@ -4,11 +4,13 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api/client';
 import type { Service } from '@/types';
-import { Card, CardContent } from '@/components/ui/Card';
+import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Star, MapPin, Store, Tag, Clock, ChevronLeft, ChevronRight, Wrench } from 'lucide-react';
+import { Badge } from '@/components/ui/Badge';
+import { Star, MapPin, Store, Tag, Clock, ChevronLeft, ChevronRight, Wrench, MessageCircle } from 'lucide-react';
 import { GlowingEffect } from '../ui/glowing-effect';
 import { WishlistIcon } from '../ui/WishlistIcon';
+import Image from 'next/image';
 
 export function TopServices() {
   const [services, setServices] = useState<Service[]>([]);
@@ -118,112 +120,40 @@ export function TopServices() {
               ref={scrollerRef}
               className="overflow-x-auto -mx-4 px-4 scroll-smooth snap-x snap-mandatory scrollbar-none"
             >
-              <div className="flex gap-2 sm:gap-3 py-2">
+              <div className="flex gap-4 sm:gap-6 py-2">
                 {topServices.map((service) => (
-                  <Link key={service.id} href={`/services/${service.id}`} className="snap-start">
-                    <div className="relative group rounded-xl">
-                      <GlowingEffect
-                        blur={0}
-                        borderWidth={3}
-                        spread={80}
-                        glow={true}
-                        disabled={false}
-                        proximity={64}
-                        inactiveZone={0.01}
-                      />
-                      <Card className="group p-0 hover:shadow-wrench-hover transition-all duration-300 border-0 shadow-wrench-card bg-white cursor-pointer min-w-[280px] sm:min-w-[320px] min-h-[485px] sm:min-h-[553px]">
-                        <CardContent className="p-0 h-full flex flex-col">
-                          {/* Service Image */}
-                          <div className="relative object-cover aspect-square overflow-hidden rounded-t-xl">
-                            <img
-                              src={getImageUrl(service)}
-                              alt={service.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                            {/* Mobile Service Badge */}
-                            {service.isMobileService && (
-                              <div className="absolute top-2 left-2 bg-wrench-accent text-wrench-text-primary text-xs px-2 py-1 rounded-full flex items-center">
-                                <Wrench className="h-3 w-3 mr-1" />
-                                Mobile
-                              </div>
-                            )}
-                          </div>
+                  <div key={service.id} className="snap-start w-[260px] sm:w-[280px]">
+                    <Card className="group hover:shadow-lg transition-shadow p-3">
+                      <CardHeader className="p-0 relative">
+                        <div className="relative aspect-square overflow-hidden rounded-t-lg">
+                          <Image
+                            src={getImageUrl(service)}
+                            alt={service.title}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-200"
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
 
-                          {/* Service Details */}
-                          <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
-                            <div className="space-y-2">
-                              {/* Price */}
-                              <div className="flex items-center space-x-2">
-                                <span className="text-lg sm:text-xl font-bold text-wrench-accent">
-                                  {formatPrice(service.price)}
-                                </span>
-                                <span className="text-xs sm:text-sm text-wrench-text-secondary">
-                                  per service
-                                </span>
-                              </div>
+                          {/* Type Badge */}
+                          <Badge className="absolute top-2 left-2 bg-green-500 hover:bg-green-600">
+                            Service
+                          </Badge>
 
-                              {/* Title */}
-                              <h3 className="font-semibold text-wrench-text-primary group-hover:text-wrench-accent line-clamp-2 text-sm sm:text-base">
-                                {service.title}
-                              </h3>
+                          {/* Category Badge */}
+                          <Badge variant="secondary" className="absolute top-2 left-20">
+                            {service.category.name}
+                          </Badge>
 
-                              {/* Duration */}
-                              <div className="flex items-center text-xs sm:text-sm text-wrench-text-secondary">
+                          {/* Mobile Service Badge */}
+                          {service.isMobileService && (
+                            <Badge className="absolute top-2 right-2 bg-wrench-accent text-wrench-text-primary">
+                              <Wrench className="h-3 w-3 mr-1" />
+                              Mobile
+                            </Badge>
+                          )}
 
-                              </div>
-
-                              {/* Location */}
-                              <div className="flex items-center justify-between text-xs sm:text-sm text-wrench-text-secondary">
-                                <div className="flex items-center">
-                                  <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                                  <span className="line-clamp-1">
-                                    {service.seller.city}, {service.seller.area}
-                                  </span>
-                                </div>
-                                <div className="flex items-center">
-                                  <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                                  <span>{formatDuration(service.durationMinutes)}</span>
-                                </div>
-
-                              </div>
-
-                              {/* Shop Name */}
-                              <div className="flex items-center justify-between text-xs sm:text-sm text-wrench-text-secondary">
-                                <div className="flex items-center">
-                                  <Store className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                                  <span className="line-clamp-1">{service.seller.shopName}</span>
-                                </div>
-                                <div className="flex items-center">
-                                  <Tag className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                                  <span className="line-clamp-1">{service.category.name}</span>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Rating */}
-                            <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-                              <div className="flex items-center">
-                                <div className="flex items-center">
-                                  {[...Array(5)].map((_, i) => (
-                                    <Star
-                                      key={i}
-                                      className={`h-3 w-3 sm:h-4 sm:w-4 ${i < Math.floor(service.ratingAverage || 0)
-                                        ? 'text-yellow-400 fill-current'
-                                        : 'text-gray-300'
-                                        }`}
-                                    />
-                                  ))}
-                                </div>
-                                <span className="text-xs sm:text-sm text-wrench-text-secondary ml-1">
-                                  ({service.ratingCount})
-                                </span>
-                              </div>
-                              <div className="text-xs sm:text-sm text-wrench-text-secondary">
-                                {service.isMobileService ? 'Mobile' : 'Shop'}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex space-x-2">
+                          {/* Wishlist Heart Icon */}
+                          <div className="absolute top-2 right-2">
                             <WishlistIcon
                               id={service.id}
                               type="service"
@@ -235,10 +165,77 @@ export function TopServices() {
                               size="sm"
                             />
                           </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </Link>
+                        </div>
+                      </CardHeader>
+
+                      <CardContent className="pt-2">
+                        <Link href={`/services/${service.id}`}>
+                          <Button variant="link" className="font-semibold p-0 text-gray-900 mb-2 line-clamp-2">
+                            {service.title}
+                          </Button>
+                        </Link>
+
+                        <p className="text-sm text-gray-600 mb-2">
+                          by {service.seller.shopName}
+                        </p>
+
+                        <div className="flex items-center justify-between">
+                          <span className="text-lg font-bold text-wrench-orange-600">
+                            {formatPrice(service.price)}
+                          </span>
+
+                          <div className="flex space-x-2">
+                            <Link href={`/services/${service.id}`} className="w-full">
+                              <Button 
+                                size="sm" 
+                                className="w-full"
+                              >
+                                <MessageCircle className="h-4 w-4 mr-2" />
+                                Book Now
+                              </Button>
+                            </Link>
+                          </div>
+                        </div>
+
+                        {/* Duration and Location */}
+                        <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
+                          <div className="flex items-center">
+                            <Clock className="h-3 w-3 mr-1" />
+                            <span>{formatDuration(service.durationMinutes)}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <MapPin className="h-3 w-3 mr-1" />
+                            <span className="line-clamp-1">
+                              {service.seller.city}, {service.seller.area}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Rating */}
+                        <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
+                          <div className="flex items-center">
+                            <div className="flex items-center">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`h-3 w-3 ${i < Math.floor(service.ratingAverage || 0)
+                                    ? 'text-yellow-400 fill-current'
+                                    : 'text-gray-300'
+                                    }`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-xs text-gray-500 ml-1">
+                              ({service.ratingCount})
+                            </span>
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {service.isMobileService ? 'Mobile' : 'Shop'}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
                 ))}
               </div>
             </div>

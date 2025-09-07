@@ -14,7 +14,7 @@ import { useAuthModal } from '@/components/auth';
 import { 
   ArrowLeft, Star, Clock, MapPin, 
   Calendar, CheckCircle, Shield, Wrench, User,
-  Store
+  Store, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -36,6 +36,7 @@ export default function ServiceDetailPage() {
   const [service, setService] = useState<Service | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isBooking, setIsBooking] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   
   // Booking form state
   const [selectedDate, setSelectedDate] = useState('');
@@ -162,6 +163,33 @@ export default function ServiceDetailPage() {
     return `${mins}m`;
   };
 
+  // Image navigation functions
+  const images = service?.images || [];
+  const primaryImage = images[selectedImageIndex] || images[0] || '/placeholder-service.jpg';
+
+  const goToPreviousImage = () => {
+    setSelectedImageIndex((prev) => 
+      prev === 0 ? images.length - 1 : prev - 1
+    );
+  };
+
+  const goToNextImage = () => {
+    setSelectedImageIndex((prev) => 
+      prev === images.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  // Handle keyboard navigation
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (images.length <= 1) return;
+    
+    if (event.key === 'ArrowLeft') {
+      goToPreviousImage();
+    } else if (event.key === 'ArrowRight') {
+      goToNextImage();
+    }
+  };
+
   // Get minimum date (today)
   const today = new Date();
   const minDate = today.toISOString().split('T')[0];
@@ -202,43 +230,103 @@ export default function ServiceDetailPage() {
           {/* Service Details */}
           <div className="lg:col-span-2">
             {/* Image Gallery */}
-            <Card className="mb-6">
-              <CardContent className="p-0">
-                <div className="aspect-video relative">
-                  {service.images?.[0] ? (
-                    <Image
-                      src={service.images[0]}
-                      alt={service.title}
-                      fill
-                      className="object-cover rounded-t-lg"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gray-200 rounded-t-lg flex items-center justify-center">
-                      <Wrench className="h-16 w-16 text-gray-400" />
-                    </div>
-                  )}
-                  
-                  {/* Wishlist Icon */}
+            <div className="space-y-4 flex flex-row-reverse gap-2 mb-6">
+              {/* Main Image */}
+              <div 
+                className="aspect-video relative group focus:outline-none focus:ring-2 focus:ring-wrench-accent flex-1"
+                tabIndex={images.length > 1 ? 0 : -1}
+                onKeyDown={handleKeyDown}
+              >
+                {primaryImage ? (
+                  <Image
+                    src={primaryImage}
+                    alt={service.title}
+                    fill
+                    className="object-cover rounded-lg"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
+                    <Wrench className="h-16 w-16 text-gray-400" />
+                  </div>
+                )}
+                
+                {/* Image Counter */}
+                {images.length > 1 && (
+                  <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded-lg text-sm font-medium">
+                    {selectedImageIndex + 1} / {images.length}
+                  </div>
+                )}
+
+                {/* Mobile Service Badge */}
+                {service.isMobileService && (
+                  <div className="absolute top-4 left-4">
+                    <span className="bg-green-700 text-white px-3 py-1 rounded-full text-sm font-medium">
+                      Mobile Service Available
+                    </span>
+                  </div>
+                )}
+
+                {/* Navigation Arrows */}
+                {images.length > 1 && (
+                  <>
+                    <button
+                      onClick={goToPreviousImage}
+                      className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                      aria-label="Previous image"
+                    >
+                      <ChevronLeft className="h-6 w-6" />
+                    </button>
+                    
+                    <button
+                      onClick={goToNextImage}
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                      aria-label="Next image"
+                    >
+                      <ChevronRight className="h-6 w-6" />
+                    </button>
+                  </>
+                )}
+
+                {/* Wishlist Icon */}
+                <div className="absolute top-4 right-4">
                   <WishlistIcon
                     id={service.id}
                     type="service"
                     title={service.title}
                     price={service.price}
-                    image={service.images?.[0] || ''}
+                    image={primaryImage}
                     category={service.category?.name}
                     sellerName={service.seller.shopName}
+                    size="sm"
                   />
-                  
-                  {service.isMobileService && (
-                    <div className="absolute top-4 left-4">
-                      <span className="bg-green-700 text-white px-3 py-1 rounded-full text-sm font-medium">
-                        Mobile Service Available
-                      </span>
-                    </div>
-                  )}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+
+              {/* Thumbnail Images */}
+              {images.length > 1 && (
+                <div className="flex flex-col gap-2">
+                  {images.slice(0, 6).map((image, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedImageIndex(index)}
+                      className={`aspect-video rounded-lg overflow-hidden border-2 transition-colors ${
+                        selectedImageIndex === index
+                          ? "border-wrench-accent"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <Image
+                        src={image}
+                        alt={`${service.title} - Image ${index + 1}`}
+                        width={50}
+                        height={50}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* Service Info */}
             <Card className="mb-6">

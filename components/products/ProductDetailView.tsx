@@ -19,7 +19,9 @@ import {
   Info,
   Package,
   Clock,
-  Award
+  Award,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -79,6 +81,30 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
     }
   };
 
+  // Handle image navigation
+  const goToPreviousImage = () => {
+    setSelectedImageIndex((prev) => 
+      prev === 0 ? images.length - 1 : prev - 1
+    );
+  };
+
+  const goToNextImage = () => {
+    setSelectedImageIndex((prev) => 
+      prev === images.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  // Handle keyboard navigation
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (images.length <= 1) return;
+    
+    if (event.key === 'ArrowLeft') {
+      goToPreviousImage();
+    } else if (event.key === 'ArrowRight') {
+      goToNextImage();
+    }
+  };
+
   return (
     <div className="container-responsive py-8 mt-20">
       {/* Breadcrumb */}
@@ -99,9 +125,13 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
 
       <div className="grid lg:grid-cols-2 gap-12">
         {/* Product Images */}
-        <div className="space-y-4">
+        <div className="space-y-4 flex flex-row-reverse gap-2">
           {/* Main Image */}
-          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden relative">
+          <div 
+            className="aspect-square bg-gray-100 rounded-lg overflow-hidden relative group focus:outline-none focus:ring-2 focus:ring-wrench-accent"
+            tabIndex={images.length > 1 ? 0 : -1}
+            onKeyDown={handleKeyDown}
+          >
             <Image
               src={primaryImage}
               alt={product.title}
@@ -110,12 +140,42 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
               priority
             />
             
+            {/* Image Counter */}
+            {images.length > 1 && (
+              <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded-lg text-sm font-medium">
+                {selectedImageIndex + 1} / {images.length}
+              </div>
+            )}
+
+            {/* Discount Badge */}
             {discountPercentage > 0 && (
               <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-lg font-semibold">
                 -{discountPercentage}% OFF
               </div>
             )}
 
+            {/* Navigation Arrows */}
+            {images.length > 1 && (
+              <>
+                <button
+                  onClick={goToPreviousImage}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+                
+                <button
+                  onClick={goToNextImage}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                  aria-label="Next image"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+              </>
+            )}
+
+            {/* Out of Stock Overlay */}
             {!isInStock && (
               <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                 <span className="bg-gray-900 text-white px-4 py-2 rounded-lg font-semibold">
@@ -127,8 +187,8 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
 
           {/* Thumbnail Images */}
           {images.length > 1 && (
-            <div className="grid grid-cols-4 gap-2">
-              {images.slice(0, 4).map((image, index) => (
+            <div className="flex flex-col gap-2">
+              {images.slice(0, 6).map((image, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedImageIndex(index)}
@@ -142,8 +202,8 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
                   <Image
                     src={image}
                     alt={`${product.title} - Image ${index + 1}`}
-                    width={100}
-                    height={100}
+                    width={50}
+                    height={50}
                     className="w-full h-full object-cover"
                   />
                 </button>

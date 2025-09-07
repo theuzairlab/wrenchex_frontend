@@ -34,7 +34,6 @@ interface NavbarProps {
 }
 
 const Navbar = ({ className }: NavbarProps) => {
-  const router = useRouter();
   const pathname = usePathname();
   const { user, isAuthenticated, logout, isLoading } = useAuthStore();
   const { getCount: getWishlistCount } = useWishlistStore();
@@ -268,7 +267,7 @@ const Navbar = ({ className }: NavbarProps) => {
                 variant="ghost"
                 size="sm"
                 onClick={toggleSearchDropdown}
-                className="rounded-full"
+                className="!rounded-full hover:bg-gray-100/50"
               >
                 <Search className="h-4 w-4" />
               </Button>
@@ -289,12 +288,12 @@ const Navbar = ({ className }: NavbarProps) => {
             {isAuthenticated ? (
               <>
                 {/* Notifications */}
-                <Button variant="ghost" size="sm" className="rounded-full relative">
+                {/* <Button variant="ghost" size="sm" className="rounded-full relative">
                   <Bell className="h-4 w-4" />
                   <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
                     2
                   </span>
-                </Button>
+                </Button> */}
 
                 {/* Chat Icon with Dropdown */}
                 {(role === 'BUYER' || role === 'SELLER') && (
@@ -326,7 +325,7 @@ const Navbar = ({ className }: NavbarProps) => {
                 )}
 
                 <Link href="/wishlist">
-                  <Button variant="ghost" size="sm" className="rounded-full relative">
+                  <Button variant="ghost" size="sm" className="!rounded-full relative hover:bg-gray-100/50">
                     <Heart className="h-4 w-4" />
                     {wishlistCount > 0 && (
                       <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
@@ -338,16 +337,14 @@ const Navbar = ({ className }: NavbarProps) => {
 
                 {/* User Menu */}
                 <div className="relative">
-                  <Button
-                    variant="ghost"
-                    size="sm"
+                  <button
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="flex items-center space-x-2 rounded-full"
+                    className="!rounded-full bg-gray-200 cursor-pointer hover:bg-gray-100/50"
                   >
-                    <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center">
                       <User className="h-4 w-4" />
                     </div>
-                  </Button>
+                  </button>
 
                   {/* User Dropdown */}
                   {isUserMenuOpen && (
@@ -396,7 +393,7 @@ const Navbar = ({ className }: NavbarProps) => {
             ) : (
               <div className="flex items-center space-x-2">
                 <Link href="/wishlist">
-                  <Button variant="ghost" size="sm" className="rounded-full relative">
+                  <Button variant="ghost" size="sm" className="!rounded-full relative hover:bg-gray-100/50">
                     <Heart className="h-4 w-4" />
                     {wishlistCount > 0 && (
                       <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
@@ -439,14 +436,7 @@ const Navbar = ({ className }: NavbarProps) => {
               variant="ghost"
               size="sm"
               onClick={toggleSearchDropdown}
-              // onClick={() => {
-              //   setIsSearchDropdownOpen((prev) => {
-              //     const next = !prev;
-              //     if (next) setIsMobileMenuOpen(false);
-              //     return next;
-              //   });
-              // }}
-              className="rounded-full"
+              className="!rounded-full hover:bg-gray-100/50"
             >
               <Search className="h-4 w-4" />
             </Button>
@@ -463,7 +453,7 @@ const Navbar = ({ className }: NavbarProps) => {
                 });
               }}
               data-mobile-menu
-              className="rounded-full"
+              className="!rounded-full hover:bg-gray-100/50"
             >
               {isMobileMenuOpen ? (
                 <X className="h-4 w-4" />
@@ -515,7 +505,7 @@ const Navbar = ({ className }: NavbarProps) => {
               {isAuthenticated ? (
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3 py-2">
-                    <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center">
                       <User className="h-5 w-5 text-gray-600" />
                     </div>
                     <div>
@@ -576,18 +566,18 @@ const Navbar = ({ className }: NavbarProps) => {
                 <div className="space-y-3">
                   <Button
                     variant="outline"
-                    className="w-full justify-center rounded-full"
+                    className="w-full justify-center !rounded-full"
                     onClick={() => handleOpenAuthModal('login')}
                   >
                     Login
                   </Button>
                   <HoverBorderGradient
-                    containerClassName="rounded-full"
+                    containerClassName="!rounded-full"
                     as="button"
                     className="dark:bg-black bg-white text-black dark:text-white flex items-center space-x-2"
                   >
                     <Button
-                      className="w-full justify-center rounded-full"
+                      className="w-full justify-center !rounded-full"
                       onClick={() => handleOpenAuthModal('seller-register')}
                     >
                       <Plus className="h-4 w-4 mr-3" />

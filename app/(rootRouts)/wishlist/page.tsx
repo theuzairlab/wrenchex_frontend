@@ -45,7 +45,7 @@ export default function WishlistPage() {
             </p>
             <div className="space-x-4">
               <Link href="/products">
-                <Button className="bg-wrench-orange-500 hover:bg-wrench-orange-600">
+                <Button variant="primary">
                   Browse Products
                 </Button>
               </Link>
@@ -89,7 +89,7 @@ export default function WishlistPage() {
           <button
             onClick={() => setActiveTab('all')}
             className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${activeTab === 'all'
-                ? 'bg-wrench-orange-500 text-white'
+                ? 'bg-wrench-accent '
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
               }`}
           >
@@ -98,7 +98,7 @@ export default function WishlistPage() {
           <button
             onClick={() => setActiveTab('products')}
             className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${activeTab === 'products'
-                ? 'bg-wrench-orange-500 text-white'
+                ? 'bg-wrench-accent'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
               }`}
           >
@@ -107,7 +107,7 @@ export default function WishlistPage() {
           <button
             onClick={() => setActiveTab('services')}
             className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${activeTab === 'services'
-                ? 'bg-wrench-orange-500 text-white'
+                ? 'bg-wrench-accent'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
               }`}
           >

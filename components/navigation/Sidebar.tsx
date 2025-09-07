@@ -27,7 +27,8 @@ import {
   FileText,
   Truck,
   User,
-  SidebarClose
+  SidebarClose,
+  SidebarIcon
 } from 'lucide-react';
 import { useUserRole } from '@/lib/stores/auth';
 import { cn } from '@/lib/utils';
@@ -299,37 +300,38 @@ export function Sidebar({ isCollapsed = false, onToggle, className, onLinkClick 
 
   return (
     <div className={cn(
-      "bg-white border-r border-gray-200 flex flex-col h-full transition-all duration-300",
+      "bg-white border-r border-gray-200 flex flex-col h-screen transition-all duration-300",
       isCollapsed ? "w-16" : "w-64",
       className
     )}>
       {/* Sidebar Header */}
       <div className="p-4 border-b border-gray-200">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col">
+        {onToggle && (
+            <button
+              onClick={onToggle}
+              className="p-1 rounded-lg hover:bg-gray-100 transition-colors h-5 w-5 mb-2"
+            >
+              <SidebarIcon className="h-5 w-5" />
+            </button>
+          )}
           {!isCollapsed && (
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Navigation</h2>
               <p className="text-sm text-gray-500 capitalize">{role?.toLowerCase()} Panel</p>
             </div>
           )}
-          {onToggle && (
-            <button
-              onClick={onToggle}
-              className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              <SidebarClose className="h-5 w-5" />
-            </button>
-          )}
+          
         </div>
       </div>
 
       {/* Navigation Items */}
-      <div className="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
+      <div className="flex-1 px-3 py-4 space-y-2 overflow-y-auto min-h-0">
         {navigationItems.map(item => renderNavigationItem(item))}
       </div>
 
       {/* Sidebar Footer */}
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-4 border-t border-gray-200 flex-shrink-0">
         <Link
           href="/help"
           onClick={onLinkClick}

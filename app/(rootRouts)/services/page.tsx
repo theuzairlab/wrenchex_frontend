@@ -5,13 +5,11 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent, } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { apiClient } from '@/lib/api/client';
 import { Service, ServiceFilters } from '@/types';
 import { toast } from 'sonner';
-import { 
-  Search, MapPin, Clock, Star, Wrench, 
-  Grid, List,
+import {
+  Search, MapPin, Clock, Star, Wrench
 } from 'lucide-react';
 import { WishlistIcon } from '@/components/ui/WishlistIcon';
 import Link from 'next/link';
@@ -34,8 +32,7 @@ export default function ServicesPage() {
   const [data, setData] = useState<ServicesPageData | null>(null);
   const [categories, setCategories] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  
+
   // Filter states
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all');
@@ -44,7 +41,7 @@ export default function ServicesPage() {
   const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') || '');
   const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') || '');
   const [location, setLocation] = useState(searchParams.get('location') || '');
-  const [coordinates, setCoordinates] = useState<{lat: number; lng: number} | null>(null);
+  const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
 
   useEffect(() => {
     loadServices();
@@ -67,12 +64,12 @@ export default function ServicesPage() {
       };
 
       // Remove undefined values
-      Object.keys(filters).forEach(key => 
+      Object.keys(filters).forEach(key =>
         filters[key as keyof ServiceFilters] === undefined && delete filters[key as keyof ServiceFilters]
       );
 
       let response;
-      
+
       // Use location-based search if coordinates are available
       if (coordinates) {
         response = await apiClient.searchServicesNearLocation(
@@ -84,10 +81,10 @@ export default function ServicesPage() {
       } else {
         response = await apiClient.getServices(filters);
       }
-      
+
       if (response.success && response.data) {
         console.log('Services API response:', response.data);
-        
+
         // Log services to check if inactive ones are being returned
         if (response.data.services) {
           console.log('Services received:', response.data.services.length);
@@ -96,7 +93,7 @@ export default function ServicesPage() {
             console.warn('Found inactive services in response:', inactiveServices);
           }
         }
-        
+
         setData(response.data);
       } else {
         toast.error('Failed to load services');
@@ -122,7 +119,7 @@ export default function ServicesPage() {
 
   const applyFilters = () => {
     const params = new URLSearchParams();
-    
+
     if (searchQuery.trim()) params.set('search', searchQuery.trim());
     if (selectedCategory && selectedCategory !== 'all') params.set('category', selectedCategory);
     if (serviceType && serviceType !== 'all') params.set('type', serviceType);
@@ -130,7 +127,7 @@ export default function ServicesPage() {
     if (minPrice) params.set('minPrice', minPrice);
     if (maxPrice) params.set('maxPrice', maxPrice);
     if (location.trim()) params.set('location', location.trim());
-    
+
     router.push(`/services?${params.toString()}`);
   };
 
@@ -142,6 +139,7 @@ export default function ServicesPage() {
     setMinPrice('');
     setMaxPrice('');
     setLocation('');
+    setCoordinates(null);
     router.push('/services');
   };
 
@@ -165,143 +163,109 @@ export default function ServicesPage() {
   return (
     <div className="min-h-screen bg-wrench-bg-primary">
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-wrench-accent to-wrench-accent-light text-black">
-        <div className="container-responsive py-16">
+      <div 
+        className="relative bg-cover bg-center bg-no-repeat text-white"
+        style={{
+          backgroundImage: 'url(/service01.jpg)',
+          minHeight: '40vh'
+        }}
+      >
+        {/* Overlay for better text readability */}
+        <div className="absolute inset-0 bg-black/40"></div>
+        
+        <div className="container-responsive py-16 relative z-10">
           <div className="text-center max-w-3xl mx-auto mt-20">
-            <h1 className="text-4xl lg:text-5xl font-bold mb-4">
+            <h1 className="text-4xl lg:text-5xl font-bold mb-4 text-white">
               Professional Auto Services
             </h1>
-            <p className="text-xl text-gray-900 mb-8">
+            <p className="text-xl text-white/90 mb-8">
               Find trusted mechanics and book automotive services near you
             </p>
-            
-            {/* Quick Search */}
-            <div className="bg-white rounded-lg p-6 shadow-xl">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1">
-                  <Input
-                    placeholder="Search services (e.g., oil change, brake repair)"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="h-12"
-                  />
-                </div>
-                <div className="flex-1">
-                  <LocationSearch
-                    value={location}
-                    onChange={(newLocation, coords) => {
-                      setLocation(newLocation);
-                      setCoordinates(coords || null);
-                    }}
-                    placeholder="Enter city or area"
-                    className="h-12"
-                  />
-                </div>
-                <Button 
-                  onClick={applyFilters}
-                  className="h-12 px-8"
-                  leftIcon={<Search className="h-5 w-5" />}
-                >
-                  Search
-                </Button>
-              </div>
-              
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <Link href="/services/categories">
-                  <Button variant="outline" size="sm">
-                    Browse by Category
-                  </Button>
-                </Link>
-              </div>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Filters & Controls */}
-      <div className="bg-white border-b border-gray-200 ">
-        <div className="container-responsive py-4">
-          <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
-            <div className="flex flex-wrap gap-4 items-center">
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="All Categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={serviceType} onValueChange={setServiceType}>
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder="Service Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="mobile">Mobile Service</SelectItem>
-                  <SelectItem value="shop">Shop Service</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <div className="flex gap-2 items-center">
-                <Input
-                  placeholder="Min Price"
-                  value={minPrice}
-                  onChange={(e) => setMinPrice(e.target.value)}
-                  type="number"
-                  className="w-24"
-                />
-                <span>-</span>
-                <Input
-                  placeholder="Max Price"
-                  value={maxPrice}
-                  onChange={(e) => setMaxPrice(e.target.value)}
-                  type="number"
-                  className="w-24"
-                />
-              </div>
-
-              <Button variant="outline" onClick={clearFilters}>
-                Clear All
-              </Button>
-            </div>
-
-            <div className="flex gap-2 items-center">
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="rating">Best Rated</SelectItem>
-                  <SelectItem value="price-low">Price: Low to High</SelectItem>
-                  <SelectItem value="price-high">Price: High to Low</SelectItem>
-                  <SelectItem value="newest">Newest First</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <div className="border rounded-lg p-1 flex">
-                <Button
-                  variant={viewMode === 'grid' ? 'primary' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('grid')}
-                >
-                  <Grid className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'list' ? 'primary' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-              </div>
+      {/* Simple Filter Bar */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6 mx-4">
+        <div className="flex flex-wrap items-center gap-4">
+          {/* Search */}
+          <div className="flex-1 min-w-[200px]">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                type="text"
+                placeholder="Search services..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && applyFilters()}
+                className="pl-9 pr-3 py-2 text-sm"
+              />
             </div>
           </div>
+
+          {/* Location Search */}
+          <div className="flex-1 min-w-[200px]">
+            <LocationSearch
+              value={location}
+              onChange={(newLocation, coords) => {
+                setLocation(newLocation);
+                setCoordinates(coords || null);
+              }}
+              placeholder="Enter city or area"
+              className="h-10 text-sm"
+            />
+          </div>
+
+          {/* Service Type Dropdown */}
+          <div className="min-w-[120px]">
+            <select
+              value={serviceType}
+              onChange={(e) => setServiceType(e.target.value)}
+              className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-wrench-accent"
+            >
+              <option value="all">All Types</option>
+              <option value="mobile">Mobile Service</option>
+              <option value="shop">Shop Service</option>
+            </select>
+          </div>
+
+          {/* Price Range */}
+          <div className="flex items-center gap-2 min-w-[200px]">
+            <Input
+              type="number"
+              placeholder="Min"
+              value={minPrice}
+              onChange={(e) => setMinPrice(e.target.value)}
+              className="w-20 text-sm py-2"
+            />
+            <span className="text-gray-500">-</span>
+            <Input
+              type="number"
+              placeholder="Max"
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(e.target.value)}
+              className="w-20 text-sm py-2"
+            />
+            <Button
+              size="sm"
+              onClick={applyFilters}
+              className="px-3 py-2"
+            >
+              Apply
+            </Button>
+          </div>
+
+          {/* Clear Filters */}
+          {(searchQuery || location || serviceType !== 'all' || minPrice || maxPrice) && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={clearFilters}
+              className="text-gray-600 hover:text-gray-800"
+            >
+              Clear
+            </Button>
+          )}
         </div>
       </div>
 
@@ -323,26 +287,12 @@ export default function ServicesPage() {
           </div>
         ) : (
           <>
-            {/* Results Count */}
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">
-                {data.pagination.total} Services Found
-              </h2>
-              <p className="text-gray-600">
-                Page {data.pagination.page} of {data.pagination.pages}
-              </p>
-            </div>
-
-            {/* Services Grid/List */}
-            <div className={viewMode === 'grid' 
-              ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8'
-              : 'space-y-6 mb-8'
-            }>
+            {/* Services Grid */}
+            <div className="flex justify-center flex-wrap gap-4">
               {data.services.map((service) => (
-                <ServiceCard 
-                  key={service.id} 
-                  service={service} 
-                  viewMode={viewMode}
+                <ServiceCard
+                  key={service.id}
+                  service={service}
                   formatPrice={formatPrice}
                   formatDuration={formatDuration}
                 />
@@ -374,162 +324,124 @@ export default function ServicesPage() {
   );
 }
 
-// Service Card Component
-function ServiceCard({ 
-  service, 
-  viewMode, 
-  formatPrice, 
-  formatDuration 
-}: { 
-  service: Service; 
-  viewMode: 'grid' | 'list';
+// Service Card Component - Wishlist Style
+function ServiceCard({
+  service,
+  formatPrice,
+  formatDuration
+}: {
+  service: Service;
   formatPrice: (price: number) => string;
   formatDuration: (minutes: number) => string;
 }) {
   const primaryImage = service.images?.[0];
 
-  if (viewMode === 'list') {
-    return (
-      <Card className="hover:shadow-lg transition-shadow">
-        <CardContent className="p-6">
-          <div className="flex gap-6">
-            {/* Image */}
-            <div className="w-48 h-32 flex-shrink-0 relative">
-              {primaryImage ? (
-                <Image
-                  src={primaryImage}
-                  alt={service.title}
-                  width={192}
-                  height={128}
-                  className="w-full h-full object-cover rounded-lg"
-                />
-              ) : (
-                <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
-                  <Wrench className="h-8 w-8 text-gray-400" />
-                </div>
-              )}
-              
-              {/* Wishlist Icon */}
-              <WishlistIcon
-                id={service.id}
-                type="service"
-                title={service.title}
-                price={service.price}
-                image={primaryImage || ''}
-                category={service.category?.name}
-                sellerName={service.seller.shopName}
-                size="sm"
-                className="absolute top-2 right-2"
-              />
-            </div>
-
-            {/* Content */}
-            <div className="flex-1">
-              <div className="flex justify-between items-start mb-2">
-                <h3 className="text-xl font-semibold text-gray-900">{service.title}</h3>
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-blue-600">{formatPrice(service.price)}</div>
-                  <div className="text-sm text-gray-500">{formatDuration(service.durationMinutes)}</div>
-                </div>
-              </div>
-
-              <p className="text-gray-600 mb-4 line-clamp-2">{service.description}</p>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                    <span className="text-sm font-medium">{service.ratingAverage || 'New'}</span>
-                  </div>
-                  
-                  <div className="flex items-center gap-1 text-sm text-gray-600">
-                    <MapPin className="h-4 w-4" />
-                    <span>{service.seller.city}, {service.seller.area}</span>
-                  </div>
-
-                  {service.isMobileService && (
-                    <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
-                      Mobile Service
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex gap-2">
-                  <Link href={`/services/${service.id}`}>
-                    <Button size="sm">View Details</Button>
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
-    <Card className="hover:shadow-lg transition-shadow">
-      <div className="aspect-video relative">
-        {primaryImage ? (
-          <Image
-            src={primaryImage}
-            alt={service.title}
-            fill
-            className="object-cover rounded-t-lg"
-          />
-        ) : (
-          <div className="w-full h-full bg-gray-200 rounded-t-lg flex items-center justify-center">
-            <Wrench className="h-12 w-12 text-gray-400" />
-          </div>
-        )}
-        
-        {/* Wishlist Icon */}
-        <WishlistIcon
-          id={service.id}
-          type="service"
-          title={service.title}
-          price={service.price}
-          image={primaryImage || ''}
-          category={service.category?.name}
-          sellerName={service.seller.shopName}
+    <Card className="group hover:shadow-lg transition-shadow p-3 w-[260px] sm:w-[280px]">
+      <div className="relative aspect-square overflow-hidden rounded-t-lg">
+        <Image
+          src={primaryImage || '/placeholder-image.jpg'}
+          alt={service.title}
+          fill
+          className="object-cover group-hover:scale-105 transition-transform duration-200"
         />
-        
-        {service.isMobileService && (
-          <div className="absolute top-3 left-3">
-            <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
-              Mobile Service
-            </span>
-          </div>
-        )}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+
+        {/* Left Side Badges */}
+        <div className="absolute top-2 left-2 flex gap-1">
+          {/* Category Badge */}
+          {service.category?.name && (
+            <div className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
+              {service.category.name}
+            </div>
+          )}
+
+          {/* Mobile Service Badge */}
+          {service.isMobileService && (
+            <div className="bg-wrench-accent text-wrench-text-primary text-xs px-2 py-1 rounded">
+              Mobile
+            </div>
+          )}
+        </div>
+
+        {/* Wishlist Heart Icon - Right Side */}
+        <div className="absolute top-1 right-1">
+          <WishlistIcon
+            id={service.id}
+            type="service"
+            title={service.title}
+            price={service.price}
+            image={primaryImage || ''}
+            category={service.category?.name}
+            sellerName={service.seller.shopName}
+            size="sm"
+          />
+        </div>
       </div>
 
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="font-semibold text-gray-900 line-clamp-1">{service.title}</h3>
-          <div className="text-right">
-            <div className="text-lg font-bold text-blue-600">{formatPrice(service.price)}</div>
-          </div>
-        </div>
+      <CardContent className="pt-2">
+        <Link href={`/services/${service.id}`}>
+          <Button variant="link" className="font-semibold p-0 text-gray-900 mb-2 line-clamp-2">
+            {service.title}
+          </Button>
+        </Link>
 
-        <p className="text-gray-600 text-sm mb-3 line-clamp-2">{service.description}</p>
-
-        <div className="flex items-center gap-2 mb-3 text-sm text-gray-600">
-          <Clock className="h-4 w-4" />
-          <span>{formatDuration(service.durationMinutes)}</span>
-          
-          <MapPin className="h-4 w-4 ml-2" />
-          <span className="line-clamp-1">{service.seller.city}</span>
-        </div>
+        <p className="text-sm text-gray-600 mb-2">
+          by {service.seller.shopName}
+        </p>
 
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1">
-            <Star className="h-4 w-4 text-yellow-400 fill-current" />
-            <span className="text-sm font-medium">{service.ratingAverage || 'New'}</span>
-          </div>
+          <span className="text-lg font-bold text-wrench-orange-600">
+            {formatPrice(service.price)}
+          </span>
 
-          <Link href={`/services/${service.id}`}>
-            <Button size="sm">Book Now</Button>
-          </Link>
+          <div className="flex space-x-2">
+            <Link href={`/services/${service.id}`} className="w-full">
+              <Button
+                size="sm"
+                className="w-full"
+              >
+                Book Now
+              </Button>
+            </Link>
+          </div>
+        </div>
+
+        {/* Duration and Location */}
+        <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
+          <div className="flex items-center">
+            <Clock className="h-3 w-3 mr-1" />
+            <span>{formatDuration(service.durationMinutes)}</span>
+          </div>
+          <div className="flex items-center">
+            <MapPin className="h-3 w-3 mr-1" />
+            <span className="line-clamp-1">
+              {service.seller.city}, {service.seller.area}
+            </span>
+          </div>
+        </div>
+
+        {/* Rating */}
+        <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
+          <div className="flex items-center">
+            <div className="flex items-center">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  className={`h-3 w-3 ${i < Math.floor(service.ratingAverage || 0)
+                    ? 'text-yellow-400 fill-current'
+                    : 'text-gray-300'
+                    }`}
+                />
+              ))}
+            </div>
+            <span className="text-xs text-gray-500 ml-1">
+              ({service.ratingCount || 0})
+            </span>
+          </div>
+          <div className="text-xs text-gray-500">
+            {service.isMobileService ? 'Mobile' : 'Shop'}
+          </div>
         </div>
       </CardContent>
     </Card>
