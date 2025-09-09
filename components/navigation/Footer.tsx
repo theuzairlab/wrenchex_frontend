@@ -7,12 +7,14 @@ export function Footer() {
   return (
     <div className="bg-white">
       {/* Comprehensive Footer */}
-      <footer className="bg-[#121212] text-white rounded-tl-[9rem] rounded-tr-[9rem]">
-        <div className="container-responsive py-16">
+      <footer className="bg-[#121212] text-white rounded-tl-[3rem] rounded-tr-[3rem] md:rounded-tl-[6rem] md:rounded-tr-[6rem] lg:rounded-tl-[9rem] lg:rounded-tr-[9rem]">
+
+      <div className="container-responsive px-6 sm:px-8 md:px-12 py-16">
+
           <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
             {/* Brand Section */}
             <div className="lg:col-span-2 space-y-6">
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-3 flex-shrink-0">
                 <div className="w-10 h-10 bg-wrench-accent rounded-lg flex items-center justify-center">
                   <Wrench className="h-6 w-6 text-black" />
                 </div>
