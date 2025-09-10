@@ -84,7 +84,7 @@ export function FeaturedProducts() {
         {isLoading ? (
           <div className="flex gap-4 sm:gap-6 overflow-x-auto py-2">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="min-w-[280px] sm:min-w-[320px] h-80 rounded-xl bg-gray-100 animate-pulse" />
+              <div key={i} className="min-w-[260px] sm:min-w-[280px] h-80 rounded-xl bg-gray-100 animate-pulse" />
             ))}
           </div>
         ) : error ? (
@@ -96,7 +96,7 @@ export function FeaturedProducts() {
               type="button"
               aria-label="Scroll left"
               onClick={() => scrollByAmount('left')}
-              className="hidden md:flex absolute left-0 -top-6 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-white border border-gray-200 shadow-wrench-card hover:shadow-wrench-hover"
+              className="flex absolute left-0 -top-6 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-white border border-gray-200 shadow-wrench-card hover:shadow-wrench-hover"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
@@ -104,7 +104,7 @@ export function FeaturedProducts() {
               type="button"
               aria-label="Scroll right"
               onClick={() => scrollByAmount('right')}
-              className="hidden md:flex absolute right-0 -top-6 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-white border border-gray-200 shadow-wrench-card hover:shadow-wrench-hover"
+              className="flex absolute right-0 -top-6 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-white border border-gray-200 shadow-wrench-card hover:shadow-wrench-hover"
             >
               <ChevronRight className="h-5 w-5" />
             </button>
@@ -116,7 +116,7 @@ export function FeaturedProducts() {
             >
               <div className="flex gap-4 sm:gap-6 py-2">
                 {featuredProducts.map((product) => (
-                  <div key={product.id} className="snap-start min-w-[260px] sm:min-w-[280px]">
+                  <div key={product.id} className="snap-start min-w-[330px] sm:min-w-[280px] lg:max-w-[280px]">
                     <Card className="group hover:shadow-lg transition-shadow p-3">
                       <CardHeader className="p-0 relative">
                         <div className="relative aspect-square overflow-hidden rounded-t-lg">
@@ -128,18 +128,14 @@ export function FeaturedProducts() {
                           />
                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
 
-                          {/* Type Badge */}
-                          <Badge className="absolute top-2 left-2 bg-blue-500 hover:bg-blue-600">
-                            Product
-                          </Badge>
 
                           {/* Category Badge */}
-                          <Badge variant="secondary" className="absolute top-2 left-20">
+                          <Badge variant="secondary" className="absolute top-2 left-2">
                             {product.category.name}
                           </Badge>
 
                           {/* Wishlist Heart Icon */}
-                          <div className="absolute top-2 right-2">
+                          <div className="">
                             <WishlistIcon
                               id={product.id}
                               type="product"

@@ -90,7 +90,7 @@ export function TopServices() {
         {isLoading ? (
           <div className="flex gap-4 sm:gap-6 overflow-x-auto py-2">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="min-w-[280px] sm:min-w-[320px] h-80 rounded-xl bg-gray-100 animate-pulse" />
+              <div key={i} className="min-w-[260px] sm:min-w-[280px] h-80 rounded-xl bg-gray-100 animate-pulse" />
             ))}
           </div>
         ) : error ? (
@@ -102,7 +102,7 @@ export function TopServices() {
               type="button"
               aria-label="Scroll left"
               onClick={() => scrollByAmount('left')}
-              className="hidden md:flex absolute left-0 -top-6 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-white border border-gray-200 shadow-wrench-card hover:shadow-wrench-hover"
+              className="flex absolute left-0 -top-6 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-white border border-gray-200 shadow-wrench-card hover:shadow-wrench-hover"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
@@ -110,7 +110,7 @@ export function TopServices() {
               type="button"
               aria-label="Scroll right"
               onClick={() => scrollByAmount('right')}
-              className="hidden md:flex absolute right-0 -top-6 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-white border border-gray-200 shadow-wrench-card hover:shadow-wrench-hover"
+              className="flex absolute right-0 -top-6 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-white border border-gray-200 shadow-wrench-card hover:shadow-wrench-hover"
             >
               <ChevronRight className="h-5 w-5" />
             </button>
@@ -122,7 +122,7 @@ export function TopServices() {
             >
               <div className="flex gap-4 sm:gap-6 py-2">
                 {topServices.map((service) => (
-                  <div key={service.id} className="snap-start w-[260px] sm:w-[280px]">
+                  <div key={service.id} className="snap-start min-w-[330px] sm:min-w-[280px] lg:max-w-[280px]">
                     <Card className="group hover:shadow-lg transition-shadow p-3">
                       <CardHeader className="p-0 relative">
                         <div className="relative aspect-square overflow-hidden rounded-t-lg">
@@ -133,27 +133,24 @@ export function TopServices() {
                             className="object-cover group-hover:scale-105 transition-transform duration-200"
                           />
                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-
-                          {/* Type Badge */}
-                          <Badge className="absolute top-2 left-2 bg-green-500 hover:bg-green-600">
-                            Service
-                          </Badge>
-
+                          
+                          <div className="absolute top-2 left-2 flex gap-2">
                           {/* Category Badge */}
-                          <Badge variant="secondary" className="absolute top-2 left-20">
+                          <Badge variant="secondary" className="">
                             {service.category.name}
                           </Badge>
 
                           {/* Mobile Service Badge */}
                           {service.isMobileService && (
-                            <Badge className="absolute top-2 right-2 bg-wrench-accent text-wrench-text-primary">
+                            <Badge className=" bg-wrench-accent text-wrench-nav-dark">
                               <Wrench className="h-3 w-3 mr-1" />
                               Mobile
                             </Badge>
                           )}
+                          </div>
 
                           {/* Wishlist Heart Icon */}
-                          <div className="absolute top-2 right-2">
+                          <div className="">
                             <WishlistIcon
                               id={service.id}
                               type="service"

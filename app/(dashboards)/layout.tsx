@@ -69,7 +69,7 @@ export default function DashboardLayout({ children, title, description }: Dashbo
           </div>
 
           {/* Desktop Sidebar */}
-          <div className="hidden md:block fixed top-0 left-0 h-screen z-30">
+          <div className="hidden md:block fixed top-0 left-0 h-screen z-50">
             <Sidebar 
               isCollapsed={isSidebarCollapsed}
               onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
@@ -80,7 +80,7 @@ export default function DashboardLayout({ children, title, description }: Dashbo
 
           {/* Mobile Sidebar Overlay */}
           {isMobileMenuOpen && (
-            <div className="fixed inset-0 bg-black/50 z-40 md:hidden">
+            <div className="fixed inset-0 bg-black/50 z-50 md:hidden">
               <div 
                 data-sidebar
                 className="fixed left-0 top-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-50"
