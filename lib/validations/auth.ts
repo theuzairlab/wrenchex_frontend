@@ -74,6 +74,26 @@ export const sellerRegisterSchema = baseRegisterSchema.extend({
     .min(1, 'Shop address is required')
     .min(10, 'Please provide a complete address')
     .max(500, 'Address must be less than 500 characters'),
+  city: z
+    .string()
+    .min(1, 'City is required')
+    .min(2, 'City name must be at least 2 characters')
+    .max(50, 'City name must be less than 50 characters'),
+  area: z
+    .string()
+    .min(1, 'Area is required')
+    .min(2, 'Area name must be at least 2 characters')
+    .max(50, 'Area name must be less than 50 characters'),
+  latitude: z
+    .number()
+    .min(-90, 'Invalid latitude')
+    .max(90, 'Invalid latitude')
+    .optional(),
+  longitude: z
+    .number()
+    .min(-180, 'Invalid longitude')
+    .max(180, 'Invalid longitude')
+    .optional(),
   businessType: z
     .string()
     .min(1, 'Business type is required')

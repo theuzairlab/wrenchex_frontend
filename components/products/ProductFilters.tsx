@@ -10,6 +10,7 @@ import {
   Star,
   Package,
   Search,
+  MapPin,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -103,8 +104,8 @@ const ProductFilters = ({
     // Reset to first page when filtering
     params.delete('page');
     
-    // Use router.replace to avoid adding to browser history for every filter change
-    router.replace(`/products?${params.toString()}`);
+    // Use shallow routing to prevent page refresh
+    router.push(`/products?${params.toString()}`, { scroll: false });
   };
 
   // Clear all filters
@@ -138,7 +139,9 @@ const ProductFilters = ({
     updateFilter('search', searchQuery.trim() || null);
   };
 
-  // Count active filters
+
+  // Count active filters (including location)
+  const locationFilterActive = currentFilters.location || currentFilters.latitude;
   const activeFiltersCount = Object.values(currentFilters).filter(Boolean).length;
 
   const conditions = [
@@ -224,6 +227,7 @@ const ProductFilters = ({
           </Button>
         </div>
 
+
         {/* Clear Filters */}
         {activeFiltersCount > 0 && (
           <Button 
@@ -233,10 +237,11 @@ const ProductFilters = ({
             className="text-gray-600 hover:text-gray-800"
           >
             <X className="h-4 w-4 mr-1" />
-            Clear
+            Clear All
           </Button>
         )}
       </div>
+
     </div>
   );
 };

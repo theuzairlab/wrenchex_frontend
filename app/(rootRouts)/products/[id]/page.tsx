@@ -322,19 +322,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <Suspense fallback={<LoadingSpinner size="lg" text="Loading product details..." />}>
           <ProductDetailView product={product} />
         </Suspense>
-
-        {/* Related Products */}
-        {/* {relatedProducts.length > 0 && (
-          <div className="container-responsive py-12 border-t border-gray-200">
-            <Suspense fallback={<LoadingSpinner size="md" text="Loading related products..." />}>
-              <RelatedProducts 
-                products={relatedProducts} 
-                currentProductId={product.id}
-                categoryName={product.category?.name || 'Auto Parts'}
-              />
-            </Suspense>
-          </div>
-        )} */}
       </div>
     </>
   );

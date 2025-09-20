@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { 
   Eye, EyeOff, User, Mail, Lock, Phone, CheckCircle, ArrowLeft, Store, 
-  MapPin, Building, FileText, AlertCircle, Loader2
+  MapPin, Building, FileText, AlertCircle, Loader2, Navigation
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -18,6 +18,9 @@ import {
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import AddressInput from '@/components/location/AddressInput';
+import { HierarchicalLocationPicker } from '@/components/location/HierarchicalLocationPicker';
+import { LocationData } from '@/lib/services/locationService';
 
 interface SellerRegisterFormProps {
   onSuccess?: () => void;
@@ -28,8 +31,25 @@ interface SellerRegisterFormProps {
 export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer }: SellerRegisterFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [locationData, setLocationData] = useState<LocationData | null>(null);
+  const [useHierarchicalPicker, setUseHierarchicalPicker] = useState(true);
   const { register: registerUser, isLoading, error, clearError, user } = useAuthStore();
   const router = useRouter();
+
+  // Toast on hierarchical location confirm
+  useEffect(() => {
+    const handler = () => {
+      toast.success('Location confirmed');
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('seller-location-confirmed', handler as EventListener);
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('seller-location-confirmed', handler as EventListener);
+      }
+    };
+  }, []);
 
   const {
     register,
@@ -38,6 +58,7 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
     setError,
     clearErrors,
     watch,
+    setValue,
   } = useForm<SellerRegisterFormData>({
     resolver: zodResolver(sellerRegisterSchema),
     defaultValues: {
@@ -50,6 +71,10 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
       phone: '',
       shopName: '',
       shopAddress: '',
+      city: '',
+      area: '',
+      latitude: undefined,
+      longitude: undefined,
       businessType: '',
       description: '',
     },
@@ -62,16 +87,52 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
 
   const password = watch('password');
 
+  // Handle location change from address input
+  const handleLocationChange = (location: LocationData | null) => {
+    setLocationData(location);
+    if (location) {
+      // Update form values with location data
+      if (location.city) {
+        setValue('city', location.city);
+      }
+      if (location.area) {
+        setValue('area', location.area);
+      }
+      if (location.latitude) {
+        setValue('latitude', location.latitude);
+      }
+      if (location.longitude) {
+        setValue('longitude', location.longitude);
+      }
+    }
+  };
+
   const onSubmit = async (data: SellerRegisterFormData) => {
     try {
       clearErrors();
-      await registerUser(data);
+      
+      // Include location data if available
+      const submissionData = {
+        ...data,
+        latitude: locationData?.latitude || data.latitude,
+        longitude: locationData?.longitude || data.longitude,
+        city: locationData?.city || data.city,
+        area: locationData?.area || data.area,
+      };
+      
+      console.log('SellerRegisterForm: Submitting data:', {
+        ...submissionData,
+        password: '[HIDDEN]',
+        confirmPassword: '[HIDDEN]'
+      });
+      
+      await registerUser(submissionData);
       
       // Show success message
       toast.success('Seller account created successfully! Welcome to WrenchEX.');
       
       // Redirect seller to seller dashboard
-      router.push('/dashboard/seller');
+      router.push('/dashboard');
       
       onSuccess?.();
     } catch (err: any) {
@@ -105,7 +166,7 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
           <span>{error || errors.root?.message}</span>
         </div>
       )}
-
+      
       {/* Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* Name Fields */}
@@ -121,6 +182,7 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
                 type="text"
                 placeholder="First name"
                 className="pl-10"
+                autoComplete="given-name"
                 {...register('firstName')}
               />
             </div>
@@ -140,6 +202,7 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
                 type="text"
                 placeholder="Last name"
                 className="pl-10"
+                autoComplete="family-name"
                 {...register('lastName')}
               />
             </div>
@@ -161,6 +224,7 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
               type="email"
               placeholder="Enter your email"
               className="pl-10"
+              autoComplete="email"
               {...register('email')}
             />
           </div>
@@ -181,6 +245,7 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
               type="tel"
               placeholder="Enter your phone number"
               className="pl-10"
+              autoComplete="tel"
               {...register('phone')}
             />
           </div>
@@ -202,6 +267,7 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
                 type="text"
                 placeholder="Enter your shop name"
                 className="pl-10"
+                autoComplete="organization"
                 {...register('shopName')}
               />
             </div>
@@ -219,6 +285,7 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
               <select
                 id="businessType"
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wrench-accent focus:border-wrench-accent"
+                autoComplete="off"
                 {...register('businessType')}
               >
                 <option value="">Select business type</option>
@@ -235,25 +302,114 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
           </div>
         </div>
 
-        {/* Shop Address */}
-        <div className="space-y-2">
-          <label htmlFor="shopAddress" className="text-sm font-medium text-wrench-text-primary">
-            Shop Address
-          </label>
-          <div className="relative">
-            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-wrench-text-secondary" />
-            <Input
-              id="shopAddress"
-              type="text"
-              placeholder="Enter your shop address"
-              className="pl-10"
-              {...register('shopAddress')}
-            />
+        {/* Location Selection Method Toggle */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium text-wrench-text-primary">
+              Shop Location *
+            </label>
+            <button
+              type="button"
+              onClick={() => setUseHierarchicalPicker(!useHierarchicalPicker)}
+              className="text-xs text-blue-600 hover:text-blue-800 underline"
+            >
+              {useHierarchicalPicker ? 'Use Simple Address Input' : 'Use Step-by-Step Selection'}
+            </button>
           </div>
-          {errors.shopAddress && (
-            <p className="text-sm text-red-600">{errors.shopAddress.message}</p>
+
+          {useHierarchicalPicker ? (
+            /* Zameen.com Style Hierarchical Picker */
+            <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+              <div className="mb-3 flex items-center gap-2 text-sm text-gray-600">
+                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                <span>Select your location step by step for better accuracy</span>
+              </div>
+              <HierarchicalLocationPicker
+                onLocationSelect={(location) => {
+                  setValue('shopAddress', location.address);
+                  handleLocationChange(location);
+                }}
+                defaultCity={locationData?.city || ''}
+                defaultArea={locationData?.area || ''}
+                defaultAddress={watch('shopAddress') || ''}
+              />
+            </div>
+          ) : (
+            /* Original Address Input */
+            <div className="space-y-2">
+              <AddressInput
+                value={watch('shopAddress')}
+                onChange={(value) => setValue('shopAddress', value)}
+                onLocationChange={handleLocationChange}
+                placeholder="Enter your complete shop address"
+                error={errors.shopAddress?.message}
+                required
+                showCurrentLocationButton={true}
+                showMapPinButton={true}
+                requireActivation={true}
+              />
+              <p className="text-xs text-gray-500">
+                We'll use this to help customers find you and calculate distances
+              </p>
+            </div>
           )}
         </div>
+
+        {/* City and Area - Auto-filled but editable */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label htmlFor="city" className="text-sm font-medium text-wrench-text-primary">
+              City *
+            </label>
+            <div className="relative">
+              <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-wrench-text-secondary" />
+              <Input
+                id="city"
+                type="text"
+                placeholder="City name"
+                className="pl-10"
+                autoComplete="address-level2"
+                {...register('city')}
+              />
+            </div>
+            {errors.city && (
+              <p className="text-sm text-red-600">{errors.city.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="area" className="text-sm font-medium text-wrench-text-primary">
+              Area *
+            </label>
+            <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-wrench-text-secondary" />
+              <Input
+                id="area"
+                type="text"
+                placeholder="Area/District"
+                className="pl-10"
+                autoComplete="address-level3"
+                {...register('area')}
+              />
+            </div>
+            {errors.area && (
+              <p className="text-sm text-red-600">{errors.area.message}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Location Status Indicator */}
+        {locationData && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+            <div className="flex items-center gap-2 text-green-700">
+              <Navigation className="h-4 w-4" />
+              <span className="text-sm font-medium">Location Detected</span>
+            </div>
+            <p className="text-xs text-green-600 mt-1">
+              Coordinates: {locationData.latitude?.toFixed(6)}, {locationData.longitude?.toFixed(6)}
+            </p>
+          </div>
+        )}
 
 
         {/* Description */}
@@ -268,6 +424,7 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
               placeholder="Describe your business and services"
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wrench-accent focus:border-wrench-accent resize-none"
               rows={3}
+              autoComplete="off"
               {...register('description')}
             />
           </div>
@@ -288,6 +445,7 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
               type={showPassword ? 'text' : 'password'}
               placeholder="Create a password"
               className="pl-10 pr-10"
+              autoComplete="new-password"
               {...register('password')}
             />
             <button
@@ -315,6 +473,7 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
               type={showConfirmPassword ? 'text' : 'password'}
               placeholder="Confirm your password"
               className="pl-10 pr-10"
+              autoComplete="new-password"
               {...register('confirmPassword')}
             />
             <button

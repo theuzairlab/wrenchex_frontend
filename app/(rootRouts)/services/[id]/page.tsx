@@ -19,6 +19,7 @@ import {
 import Link from 'next/link';
 import Image from 'next/image';
 import { WishlistIcon } from '@/components/ui/WishlistIcon';
+import { DirectionButton } from '@/components/location/DirectionButton';
 
 interface TimeSlot {
   startTime: string;
@@ -85,7 +86,22 @@ export default function ServiceDetailPage() {
       const response = await apiClient.get(`/appointments/service/${serviceId}/slots?date=${selectedDate}`);
       
       if (response.success && response.data) {
-        setAvailableSlots(response.data.slots || []);
+        let slots: TimeSlot[] = response.data.slots || [];
+
+        // If user selected today, hide past time slots (current local time)
+        const todayStr = new Date().toISOString().split('T')[0];
+        if (selectedDate === todayStr) {
+          const now = new Date();
+          const nowMinutes = now.getHours() * 60 + now.getMinutes();
+          slots = slots.map((slot: TimeSlot) => {
+            const [h, m] = slot.startTime.split(':').map(Number);
+            const slotMinutes = h * 60 + m;
+            // Mark as unavailable if slot is in the past
+            return { ...slot, isAvailable: slot.isAvailable && slotMinutes > nowMinutes };
+          });
+        }
+
+        setAvailableSlots(slots);
       }
     } catch (error) {
       console.error('Failed to load time slots:', error);
@@ -120,9 +136,18 @@ export default function ServiceDetailPage() {
       const scheduledTimeEnd = new Date(appointmentDate);
       scheduledTimeEnd.setHours(endHour, endMinute, 0, 0);
 
+      // Guard: if selected date is today, ensure slot is in the future
+      const now = new Date();
+      if (scheduledTimeStart <= now) {
+        toast.error('Please pick a time later today. Past time slots are not available.');
+        setIsBooking(false);
+        return;
+      }
+
       const appointmentData: CreateAppointmentData = {
         serviceId,
-        scheduledDate: appointmentDate.toISOString(),
+        // Use the start time for scheduledDate to satisfy backend validation (>= now)
+        scheduledDate: scheduledTimeStart.toISOString(),
         scheduledTimeStart: scheduledTimeStart.toISOString(),
         scheduledTimeEnd: scheduledTimeEnd.toISOString(),
         serviceLocation: service?.isMobileService && serviceLocation && serviceLocation.trim().length >= 10 ? 
@@ -140,7 +165,12 @@ export default function ServiceDetailPage() {
       }
     } catch (error: any) {
       console.error('Failed to book appointment:', error);
-      toast.error('Failed to book appointment');
+      const message = typeof error?.message === 'string' ? error.message : 'Failed to book appointment';
+      // Improve common validation message
+      const friendly = message.includes('scheduledDate')
+        ? 'Selected time must be in the future. Please choose a later slot.'
+        : message;
+      toast.error(friendly);
     } finally {
       setIsBooking(false);
     }
@@ -210,7 +240,7 @@ export default function ServiceDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-wrench-bg-primary pb-10">
+    <div className="min-h-screen bg-wrench-bg-primary px-4 pb-10">
       {/* Header */}
       <div className="pt-20">
         <div className="container-responsive py-4">
@@ -225,15 +255,15 @@ export default function ServiceDetailPage() {
         </div>
       </div>
 
-      <div className="container-responsive">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="container-responsive px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Service Details */}
           <div className="lg:col-span-2">
             {/* Image Gallery */}
-            <div className="space-y-4 flex flex-row-reverse gap-2 mb-6">
+            <div className="space-y-4 mb-6">
               {/* Main Image */}
               <div 
-                className="aspect-video relative group focus:outline-none focus:ring-2 focus:ring-wrench-accent flex-1"
+                className="aspect-video relative group focus:outline-none focus:ring-2 focus:ring-wrench-accent w-full"
                 tabIndex={images.length > 1 ? 0 : -1}
                 onKeyDown={handleKeyDown}
               >
@@ -304,12 +334,12 @@ export default function ServiceDetailPage() {
 
               {/* Thumbnail Images */}
               {images.length > 1 && (
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-row gap-2 overflow-x-auto pb-2">
                   {images.slice(0, 6).map((image, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedImageIndex(index)}
-                      className={`aspect-video rounded-lg overflow-hidden border-2 transition-colors ${
+                      className={`aspect-video rounded-lg overflow-hidden border-2 transition-colors flex-shrink-0 w-20 h-14 ${
                         selectedImageIndex === index
                           ? "border-wrench-accent"
                           : "border-gray-200 hover:border-gray-300"
@@ -318,8 +348,8 @@ export default function ServiceDetailPage() {
                       <Image
                         src={image}
                         alt={`${service.title} - Image ${index + 1}`}
-                        width={50}
-                        height={50}
+                        width={80}
+                        height={56}
                         className="w-full h-full object-cover"
                       />
                     </button>
@@ -331,9 +361,9 @@ export default function ServiceDetailPage() {
             {/* Service Info */}
             <Card className="mb-6">
               <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-2xl">{service.title}</CardTitle>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+                  <div className="flex-1">
+                    <CardTitle className="text-xl sm:text-2xl">{service.title}</CardTitle>
                     <div className="flex items-center gap-4 mt-2">
                       <div className="flex items-center gap-1">
                         <Star className="h-5 w-5 text-yellow-400 fill-current" />
@@ -346,8 +376,8 @@ export default function ServiceDetailPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-3xl font-bold text-blue-600">{formatPrice(service.price)}</div>
+                  <div className="text-left sm:text-right">
+                    <div className="text-2xl sm:text-3xl font-bold text-blue-600">{formatPrice(service.price)}</div>
                     <div className="text-sm text-gray-500">per service</div>
                   </div>
                 </div>
@@ -366,7 +396,7 @@ export default function ServiceDetailPage() {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t">
                     <div className="flex items-center gap-2">
                       <CheckCircle className="h-5 w-5 text-green-600" />
                       <span>Professional Service</span>
@@ -400,7 +430,9 @@ export default function ServiceDetailPage() {
                     <h3 className="font-semibold text-lg">{service.seller.shopName}</h3>
                     <div className="flex items-center gap-1 text-gray-600 mt-1">
                       <MapPin className="h-4 w-4" />
-                      <span>{service.seller.shopAddress}, {service.seller.city}, {service.seller.area}</span>
+                      <span className="line-clamp-1">
+                        {service.seller.shopAddress || `${service.seller.area}, ${service.seller.city}`}
+                      </span>
                     </div>
                   </div>
 
@@ -410,16 +442,31 @@ export default function ServiceDetailPage() {
                     <span className="text-gray-500">seller rating</span>
                   </div>
 
-                  <div className="flex gap-2 pt-4 border-t">
-                    <Link href={`/shop/${service.seller.id}`}>
+                  <div className="flex flex-col sm:flex-row gap-2 pt-4 border-t">
+                    <Link href={`/shop/${service.sellerId}`} className="flex-1">
                     <Button 
                       variant="outline" 
                       leftIcon={<Store className="h-4 w-4" />}
-                      className="flex-1"
+                      className="w-full"
                     >
-                      Seller's Shop
+                      View Shop
                     </Button>
                     </Link>
+                    {/* Directions to seller */}
+                    {service.seller.latitude && service.seller.longitude && (
+                      <DirectionButton
+                        destination={{
+                          latitude: service.seller.latitude,
+                          longitude: service.seller.longitude,
+                          name: service.seller.shopName,
+                          address: service.seller.shopAddress || `${service.seller.area}, ${service.seller.city}`
+                        }}
+                        className="flex-1"
+                        variant="outline"
+                        size="sm"
+                        showText={true}
+                      />
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -427,7 +474,7 @@ export default function ServiceDetailPage() {
           </div>
 
           {/* Booking Panel */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 order-first lg:order-last">
             <Card className="sticky top-4">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -490,7 +537,7 @@ export default function ServiceDetailPage() {
                             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
                           </div>
                         ) : availableSlots.length > 0 ? (
-                          <div className="grid grid-cols-2 gap-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             {availableSlots.map((slot, index) => (
                               <Button
                                 key={index}

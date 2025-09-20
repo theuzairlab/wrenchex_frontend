@@ -29,6 +29,7 @@ export default function SellerProfilePage() {
       // Get profile data for personal and shop information
       const profileResponse = await apiClient.getSellerProfile();
       console.log('Profile response:', profileResponse);
+      console.log('Profile data fields:', profileResponse.data ? Object.keys(profileResponse.data) : 'No data');
       
       if (profileResponse.success && profileResponse.data) {
         // Get dashboard data only for chat count stats

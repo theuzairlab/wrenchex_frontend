@@ -15,6 +15,7 @@ import { WishlistIcon } from '@/components/ui/WishlistIcon';
 import Link from 'next/link';
 import Image from 'next/image';
 import LocationSearch from '@/components/services/LocationSearch';
+import { LocationFilter } from '@/components/location/LocationFilter';
 
 interface ServicesPageData {
   services: Service[];
@@ -42,6 +43,20 @@ export default function ServicesPage() {
   const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') || '');
   const [location, setLocation] = useState(searchParams.get('location') || '');
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+  const [radiusKm, setRadiusKm] = useState(parseInt(searchParams.get('radiusKm') || '20'));
+  const [showLocationFilter, setShowLocationFilter] = useState(false);
+
+  // Initialize coordinates from URL parameters
+  useEffect(() => {
+    const lat = searchParams.get('latitude');
+    const lng = searchParams.get('longitude');
+    if (lat && lng) {
+      setCoordinates({
+        lat: parseFloat(lat),
+        lng: parseFloat(lng)
+      });
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     loadServices();
@@ -61,7 +76,21 @@ export default function ServicesPage() {
         minPrice: searchParams.get('minPrice') ? parseFloat(searchParams.get('minPrice')!) : undefined,
         maxPrice: searchParams.get('maxPrice') ? parseFloat(searchParams.get('maxPrice')!) : undefined,
         city: searchParams.get('location') || undefined,
+        latitude: coordinates?.lat ? Number(coordinates.lat) : undefined,
+        longitude: coordinates?.lng ? Number(coordinates.lng) : undefined,
+        radiusKm: Number(radiusKm),
       };
+
+      console.log('Services API filters before sending:', {
+        latitude: filters.latitude,
+        longitude: filters.longitude,
+        radiusKm: filters.radiusKm,
+        types: {
+          latitude: typeof filters.latitude,
+          longitude: typeof filters.longitude,
+          radiusKm: typeof filters.radiusKm
+        }
+      });
 
       // Remove undefined values
       Object.keys(filters).forEach(key =>
@@ -72,13 +101,15 @@ export default function ServicesPage() {
 
       // Use location-based search if coordinates are available
       if (coordinates) {
+        console.log('🌍 Using location-based search with coordinates:', coordinates, 'radius:', radiusKm);
         response = await apiClient.searchServicesNearLocation(
           coordinates.lat,
           coordinates.lng,
-          10, // 10km radius
+          radiusKm, // Use the user-selected radius
           filters
         );
       } else {
+        console.log('📍 No coordinates available, using regular search');
         response = await apiClient.getServices(filters);
       }
 
@@ -127,6 +158,11 @@ export default function ServicesPage() {
     if (minPrice) params.set('minPrice', minPrice);
     if (maxPrice) params.set('maxPrice', maxPrice);
     if (location.trim()) params.set('location', location.trim());
+    if (coordinates) {
+      params.set('latitude', coordinates.lat.toString());
+      params.set('longitude', coordinates.lng.toString());
+    }
+    if (radiusKm !== 20) params.set('radiusKm', radiusKm.toString());
 
     router.push(`/services?${params.toString()}`);
   };
@@ -140,7 +176,28 @@ export default function ServicesPage() {
     setMaxPrice('');
     setLocation('');
     setCoordinates(null);
+    setRadiusKm(20);
     router.push('/services');
+  };
+
+  // Location filter handlers
+  const handleLocationChange = (newLocation: string | null, coords?: { lat: number; lng: number }) => {
+    setLocation(newLocation || '');
+    setCoordinates(coords || null);
+  };
+
+  const handleRadiusChange = (newRadius: number) => {
+    setRadiusKm(newRadius);
+  };
+
+  const handleUseCurrentLocation = () => {
+    // This will trigger the location permission modal in LocationFilter
+  };
+
+  const handleClearLocation = () => {
+    setLocation('');
+    setCoordinates(null);
+    setRadiusKm(20);
   };
 
   const formatPrice = (price: number) => {
@@ -185,8 +242,8 @@ export default function ServicesPage() {
         </div>
       </div>
 
-      {/* Simple Filter Bar */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6 mx-4">
+      {/* Filter Bar */}
+      <div className="bg-white rounded-lg shadow-sm border mx-auto max-w-7xl border-gray-200 p-4 mb-6">
         <div className="flex flex-wrap items-center gap-4">
           {/* Search */}
           <div className="flex-1 min-w-[200px]">
@@ -201,19 +258,6 @@ export default function ServicesPage() {
                 className="pl-9 pr-3 py-2 text-sm"
               />
             </div>
-          </div>
-
-          {/* Location Search */}
-          <div className="flex-1 min-w-[200px]">
-            <LocationSearch
-              value={location}
-              onChange={(newLocation, coords) => {
-                setLocation(newLocation);
-                setCoordinates(coords || null);
-              }}
-              placeholder="Enter city or area"
-              className="h-10 text-sm"
-            />
           </div>
 
           {/* Service Type Dropdown */}
@@ -255,8 +299,19 @@ export default function ServicesPage() {
             </Button>
           </div>
 
+          {/* Location Filter Toggle */}
+          <Button
+            variant={location && coordinates ? "primary" : "outline"}
+            size="sm"
+            onClick={() => setShowLocationFilter(!showLocationFilter)}
+            className="min-w-[120px]"
+          >
+            <MapPin className="h-4 w-4 mr-1" />
+            {location && coordinates ? 'Location ✓' : 'Location'}
+          </Button>
+
           {/* Clear Filters */}
-          {(searchQuery || location || serviceType !== 'all' || minPrice || maxPrice) && (
+          {(searchQuery || location || serviceType !== 'all' || minPrice || maxPrice || radiusKm !== 20) && (
             <Button
               variant="outline"
               size="sm"
@@ -267,6 +322,20 @@ export default function ServicesPage() {
             </Button>
           )}
         </div>
+
+        {/* Location Distance Filter Section */}
+        {showLocationFilter && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <LocationFilter
+              currentLocation={location}
+              currentRadius={radiusKm}
+              onLocationChange={handleLocationChange}
+              onRadiusChange={handleRadiusChange}
+              onUseCurrentLocation={handleUseCurrentLocation}
+              onClearLocation={handleClearLocation}
+            />
+          </div>
+        )}
       </div>
 
       {/* Results */}

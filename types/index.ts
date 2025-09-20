@@ -101,6 +101,15 @@ export interface RegisterData {
   lastName: string;
   phone?: string;
   role: UserRole;
+  // Seller-specific fields
+  shopName?: string;
+  shopAddress?: string;
+  city?: string;
+  area?: string;
+  latitude?: number;
+  longitude?: number;
+  businessType?: string;
+  description?: string;
 }
 
 export interface GoogleAuthData {
@@ -112,6 +121,7 @@ export interface Seller {
   id: string;
   userId: string;
   shopName: string;
+  businessType?: string;
   shopDescription?: string;
   shopAddress: string;
   city: string;
@@ -130,6 +140,7 @@ export interface Seller {
 
 export interface SellerRegistrationData {
   shopName: string;
+  businessType?: string;
   shopDescription?: string;
   shopAddress: string;
   city: string;
@@ -153,7 +164,13 @@ export interface SellerDashboardData {
   seller: {
     id: string;
     shopName: string;
+    businessType?: string;
     shopDescription?: string;
+    shopAddress?: string;
+    city?: string;
+    area?: string;
+    latitude?: number;
+    longitude?: number;
     isApproved: boolean;
     ratingAverage: number;
     ratingCount: number;
@@ -328,6 +345,7 @@ export interface Product {
   productSpecs?: ProductSpecification[]; // enhanced specifications
   tags?: string[];
   weight?: number;
+  shopAddress?: string;
   dimensions?: {
     length: number;
     width: number;
@@ -350,8 +368,11 @@ export interface Product {
   seller: {
     id: string;
     shopName: string;
+    shopAddress?: string;
     city: string;
     area: string;
+    latitude?: number;
+    longitude?: number;
     ratingAverage?: number;
     ratingCount: number;
     user?: {
@@ -366,10 +387,16 @@ export interface Product {
 
 // Enhanced Product Search & Filtering
 export interface ProductFilters {
+  category?: string;
   categoryId?: string;
   sellerId?: string;
   search?: string;
   q?: string; // alternative search param
+  city?: string;
+  area?: string;
+  latitude?: number;
+  longitude?: number;
+  radiusKm?: number;
   minPrice?: number;
   maxPrice?: number;
   brand?: string;
@@ -458,7 +485,7 @@ export interface ServiceFilters {
   area?: string;
   latitude?: number;
   longitude?: number;
-  radius?: number;
+  radiusKm?: number;
   page?: number;
   limit?: number;
   sortBy?: string;

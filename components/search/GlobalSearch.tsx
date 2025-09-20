@@ -2,11 +2,12 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, X, Clock, TrendingUp, Filter } from 'lucide-react';
+import { Search, X, Clock, TrendingUp, Filter, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import { apiClient } from '@/lib/api/client';
 import { Product, Category } from '@/types';
+import { useLocationContext } from '@/lib/contexts/LocationContext';
 
 interface SearchSuggestion {
   type: 'product' | 'service' | 'category' | 'brand' | 'recent' | 'trending';
@@ -35,6 +36,7 @@ const GlobalSearch = ({
   onSearch,
 }: GlobalSearchProps) => {
   const router = useRouter();
+  const { location } = useLocationContext();
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
@@ -205,11 +207,32 @@ const GlobalSearch = ({
     setIsOpen(false);
     setQuery('');
     
-    if (searchType === 'products') {
-      router.push(`/search?q=${encodeURIComponent(finalQuery)}`);
-    } else {
-      router.push(`/services?search=${encodeURIComponent(finalQuery)}`);
+    // Build search URL with location if available
+    let searchUrl = '';
+    const locationParams = new URLSearchParams();
+    
+    if (location) {
+      locationParams.set('latitude', location.latitude.toString());
+      locationParams.set('longitude', location.longitude.toString());
+      const locationStr = location.city && location.area 
+        ? `${location.area}, ${location.city}`
+        : location.city || 'Current Location';
+      locationParams.set('location', locationStr);
     }
+    
+    if (searchType === 'products') {
+      searchUrl = `/search?q=${encodeURIComponent(finalQuery)}`;
+      if (locationParams.toString()) {
+        searchUrl += `&${locationParams.toString()}`;
+      }
+    } else {
+      searchUrl = `/services?search=${encodeURIComponent(finalQuery)}`;
+      if (locationParams.toString()) {
+        searchUrl += `&${locationParams.toString()}`;
+      }
+    }
+    
+    router.push(searchUrl);
     onSearch?.();
   };
 
@@ -316,10 +339,23 @@ const GlobalSearch = ({
           onChange={handleInputChange}
           onFocus={handleFocus}
           onKeyDown={handleKeyDown}
-          placeholder={searchType === 'products' ? "Search for auto parts, brands, or categories..." : "Search for automotive services, mechanics, or repairs..."}
+          placeholder={location 
+            ? `Search near ${location.city || 'your location'}...`
+            : (searchType === 'products' ? "Search for auto parts, brands, or categories..." : "Search for automotive services, mechanics, or repairs...")
+          }
           autoFocus={autoFocus}
           className="block w-full pl-10 pr-6 py-3 border border-gray-300 rounded-lg bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-wrench-accent focus:border-wrench-accent text-sm"
         />
+
+        {/* Location Indicator */}
+        {location && (
+          <div className="absolute bottom-0 left-10 transform translate-y-full">
+            <div className="flex items-center text-xs text-green-600 bg-green-50 px-2 py-1 rounded-b border border-t-0 border-green-200">
+              <MapPin className="h-3 w-3 mr-1" />
+              Location-based search enabled
+            </div>
+          </div>
+        )}
 
         <div className="absolute inset-y-0 right-0 flex items-center">
           {query && (

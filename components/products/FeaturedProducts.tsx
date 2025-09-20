@@ -41,7 +41,7 @@ export function FeaturedProducts() {
     return () => { mounted = false; };
   }, []);
 
-  const featuredProducts = useMemo(() => products.slice(0, 6), [products]);
+  const featuredProducts = useMemo(() => products.slice(0, 12), [products]);
 
   const scrollByAmount = (direction: 'left' | 'right') => {
     const el = scrollerRef.current;
@@ -168,8 +168,8 @@ export function FeaturedProducts() {
 
                           <div className="flex space-x-2">
                             <Link href={`/products/${product.id}`} className="w-full">
-                              <Button 
-                                size="sm" 
+                              <Button
+                                size="sm"
                                 className="w-full"
                               >
                                 <MessageCircle className="h-4 w-4 mr-2" />
@@ -198,7 +198,12 @@ export function FeaturedProducts() {
                             </span>
                           </div>
                           <div className="text-xs text-gray-500">
-                            {product.condition || 'NEW'}
+                            {(product.seller.shopAddress || product.seller.area || product.seller.city) && (
+                              <div className="text-xs text-gray-500 mb-1 line-clamp-1">
+                                <MapPin className="h-3 w-3 inline mr-1" />
+                                {product.seller.shopAddress || `${product.seller.area}, ${product.seller.city}`}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </CardContent>

@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
-import type { User, RegisterData, ApiResponse } from '@/types';
+import type { User, RegisterData } from '@/types';
 
 interface AuthState {
   user: User | null;
@@ -105,6 +105,11 @@ const useAuthStoreBase = create<AuthState & AuthActions>()(
       register: async (data: RegisterData) => {
         try {
           set({ isLoading: true, error: null });
+
+          console.log('AuthStore: Sending registration data:', {
+            ...data,
+            password: '[HIDDEN]'
+          });
 
           const response = await apiClient.post('/auth/register', data) as any;
           console.log('AuthStore: Register response:', response);

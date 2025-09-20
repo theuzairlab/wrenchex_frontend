@@ -38,6 +38,7 @@ export interface ButtonProps
   loading?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
+  asChild?: boolean;
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -50,8 +51,18 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     rightIcon, 
     children, 
     disabled, 
+    asChild,
     ...props 
   }, ref) => {
+    // If asChild is true, pass the styling to the child element
+    if (asChild) {
+      const child = children as React.ReactElement<any>;
+      return React.cloneElement(child, {
+        className: cn(buttonVariants({ variant, size, className }), child.props?.className),
+        ...props
+      });
+    }
+
     return (
       <button
         className={cn(buttonVariants({ variant, size, className }))}

@@ -484,7 +484,7 @@ const handleToggleStatus = async (product: Product) => {
                 }
               </p>
               <div className="flex justify-center space-x-3">
-                <Link href="/seller/products/new">
+                <Link href="/seller/products/add">
                   <Button>
                     <Plus className="h-4 w-4 mr-2" />
                     Add Your First Product

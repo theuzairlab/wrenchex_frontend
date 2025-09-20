@@ -106,7 +106,7 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
   };
 
   return (
-    <div className="container-responsive py-8 mt-20">
+    <div className="container-responsive py-8 px-4 mt-20">
       {/* Breadcrumb */}
       <nav className="flex text-sm text-gray-600 mb-8" aria-label="Breadcrumb">
         <Link href="/" className="hover:text-wrench-accent">Home</Link>
@@ -123,12 +123,12 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
         <span className="text-gray-900 font-medium truncate">{product.title}</span>
       </nav>
 
-      <div className="grid lg:grid-cols-2 gap-12">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12">
         {/* Product Images */}
-        <div className="space-y-4 flex flex-row-reverse gap-2">
+        <div className="space-y-4 flex flex-col lg:flex-row-reverse gap-4 lg:gap-2">
           {/* Main Image */}
           <div 
-            className="aspect-square bg-gray-100 rounded-lg overflow-hidden relative group focus:outline-none focus:ring-2 focus:ring-wrench-accent"
+            className="aspect-square bg-gray-100 rounded-lg overflow-hidden relative group focus:outline-none focus:ring-2 focus:ring-wrench-accent max-w-2xl lg:flex-1"
             tabIndex={images.length > 1 ? 0 : -1}
             onKeyDown={handleKeyDown}
           >
@@ -187,13 +187,14 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
 
           {/* Thumbnail Images */}
           {images.length > 1 && (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0">
               {images.slice(0, 6).map((image, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedImageIndex(index)}
                   className={cn(
-                    "aspect-square rounded-lg overflow-hidden border-2 transition-colors",
+                    "aspect-square rounded-lg overflow-hidden border-2 transition-colors flex-shrink-0",
+                    "w-16 h-16 lg:w-12 lg:h-12",
                     selectedImageIndex === index
                       ? "border-wrench-accent"
                       : "border-gray-200 hover:border-gray-300"
@@ -202,8 +203,8 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
                   <Image
                     src={image}
                     alt={`${product.title} - Image ${index + 1}`}
-                    width={50}
-                    height={50}
+                    width={64}
+                    height={64}
                     className="w-full h-full object-cover"
                   />
                 </button>
@@ -216,7 +217,7 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
         <div className="space-y-6">
           {/* Header */}
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.title}</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{product.title}</h1>
             
             <div className="flex items-center space-x-4 mb-4">
               {product.brand && (
@@ -256,7 +257,7 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
           {/* Price */}
           <div className="border-b border-gray-200 pb-6">
             <div className="flex items-baseline space-x-3">
-              <span className="text-4xl font-bold text-gray-900">
+              <span className="text-3xl sm:text-4xl font-bold text-gray-900">
                 AED {product.price?.toLocaleString() || '0'}
               </span>
               {product.originalPrice && product.originalPrice > (product.price || 0) && (
@@ -324,13 +325,13 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
           {isInStock && (
             <div className="space-y-4">
 
-              <div className="flex space-x-4">
+              <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
                 <ChatWithSellerButton 
                   productId={product.id}
                   sellerId={product.seller?.user?.id || product.seller?.id || ''}
                   sellerPhone={product.seller?.user?.phone}
                   showPhone={false}
-                  className="flex-1"
+                  className="w-full sm:flex-1"
                 />
                 
                 <WishlistIcon
@@ -342,10 +343,10 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
                   category={product.category?.name}
                   sellerName={product.seller.shopName}
                   size="lg"
-                  className="static w-12 h-12 flex items-center justify-center"
+                  className="static w-12 h-12 flex items-center justify-center self-center sm:self-auto"
                 />
                 
-                <Button variant="outline" size="lg" onClick={handleShare}>
+                <Button variant="outline" size="lg" onClick={handleShare} className="w-full sm:w-auto">
                   <Share2 className="h-5 w-5" />
                 </Button>
               </div>
@@ -364,7 +365,14 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-semibold text-lg">{product.seller.shopName}</h4>
-
+                  {(product.seller.shopAddress || product.seller.area || product.seller.city) && (
+                    <div className="flex items-center text-sm text-gray-600 mt-1">
+                      <MapPin className="h-3 w-3 mr-1" />
+                      <span className="line-clamp-1">
+                        {product.seller.shopAddress || `${product.seller.area}, ${product.seller.city}`}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="text-right">
@@ -376,21 +384,36 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
                 </div>
               </div>
               
-              <div className="flex space-x-2">
-                <Button variant="outline" size="sm" className="flex-1">
-                  <Package className="h-4 w-4 mr-2" />
-                  View Store
-                </Button>
-                <Button variant="outline" size="sm" className="flex-1">
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                <Link href={`/shop/${product.sellerId}`} className="w-full sm:flex-1">
+                  <Button variant="outline" size="sm" className="w-full">
+                    <Package className="h-4 w-4 mr-2" />
+                    View Shop Details
+                  </Button>
+                </Link>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full sm:flex-1" 
+                  onClick={() => {
+                    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+                    if (isMobile) {
+                      window.open(`tel:${product.seller.user?.phone}`, '_blank');
+                    } else {
+                      // Show phone number in a modal or alert for desktop/tablet
+                      alert(`Contact Number: ${product.seller.user?.phone}`);
+                    }
+                  }}
+                >
                   <Phone className="h-4 w-4 mr-2" />
-                  Contact
+                  Contact Shop
                 </Button>
               </div>
             </CardContent>
           </Card>
 
           {/* Shipping & Warranty Info */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
               <Truck className="h-6 w-6 text-wrench-accent" />
               <div>
@@ -427,7 +450,7 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
       {/* Product Details Tabs */}
       <div className="mt-12">
         <div className="border-b border-gray-200">
-          <nav className="flex space-x-8">
+          <nav className="flex flex-wrap space-x-4 sm:space-x-8 overflow-x-auto">
             {[
               { id: 'description', label: 'Description', icon: Info },
               { id: 'specifications', label: 'Specifications', icon: Package },
@@ -438,7 +461,7 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
                 className={cn(
-                  "flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors",
+                  "flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors whitespace-nowrap",
                   activeTab === tab.id
                     ? "border-wrench-accent text-wrench-accent"
                     : "border-transparent text-gray-500 hover:text-gray-700"

@@ -8,6 +8,7 @@ import TopCategories from '@/components/categories/TopCategories';
 import FeaturedProducts from '@/components/products/FeaturedProducts';
 import TopServices from '@/components/services/TopServices';
 import WhyChooseUs from '@/components/landing/WhyChooseUs';
+import MapsSection from '@/components/landing/MapsSection';
 import { useAuthStore } from '@/lib/stores/auth';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/Card';
 import { useAuthModal } from '@/components/auth';
@@ -16,21 +17,46 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { AnimatedTestimonialsDemo } from '@/components/testimonials/Testimonial';
+import LocationSearch from '@/components/services/LocationSearch';
 
 export default function Home() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const { isAuthenticated } = useAuthStore();
   const { openAuthModal } = useAuthModal();
+  
+  // Location state for advanced search
+  const [location, setLocation] = useState('');
+  const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      let searchUrl = `/search?q=${encodeURIComponent(searchQuery.trim())}`;
+      
+      // Add location parameters if available
+      if (coordinates) {
+        searchUrl += `&latitude=${coordinates.lat}&longitude=${coordinates.lng}`;
+        if (location) {
+          searchUrl += `&location=${encodeURIComponent(location)}`;
+        }
+      }
+      
+      router.push(searchUrl);
     }
   };
 
   const handleQuickSearch = (term: string) => {
-    router.push(`/search?q=${encodeURIComponent(term)}`);
+    let searchUrl = `/search?q=${encodeURIComponent(term)}`;
+    
+    // Add location parameters if available
+    if (coordinates) {
+      searchUrl += `&latitude=${coordinates.lat}&longitude=${coordinates.lng}`;
+      if (location) {
+        searchUrl += `&location=${encodeURIComponent(location)}`;
+      }
+    }
+    
+    router.push(searchUrl);
   };
 
   return (
@@ -141,11 +167,12 @@ export default function Home() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-gray-900">Quick Search</h3>
-                      <p className="text-sm text-gray-600">Find parts instantly</p>
+                      <p className="text-sm text-gray-600">Find parts near you instantly</p>
                     </div>
                   </div>
 
                   <form onSubmit={handleSearch} className="space-y-3">
+                    {/* Product Search */}
                     <div className="relative">
                       <input
                         type="text"
@@ -162,6 +189,15 @@ export default function Home() {
                         <Search className="h-4 w-4" />
                       </Button>
                     </div>
+
+                    
+
+                    {/* Location Status */}
+                    {coordinates && (
+                      <div className="text-xs text-green-600 bg-green-50/80 px-2 py-1 rounded">
+                        📍 Location-based search enabled
+                      </div>
+                    )}
 
                     <div className="flex flex-wrap gap-2">
                       {['Brake Pads', 'Oil Filters', 'Spark Plugs', 'Tires'].map(tag => (
@@ -199,7 +235,8 @@ export default function Home() {
       {/* Top Services Section */}
       <TopServices />
 
-      
+      {/* Maps Section */}
+      <MapsSection />
 
       {/* Testimonials Section */}
       <div className="py-20 bg-gray-50">

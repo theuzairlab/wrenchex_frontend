@@ -39,42 +39,42 @@ export default function LocationSearch({
 
   // Pakistani cities and areas for suggestions
   const pakistaniLocations = [
-    // Major cities
-    { id: 'karachi', name: 'Karachi', type: 'city' as const },
-    { id: 'lahore', name: 'Lahore', type: 'city' as const },
-    { id: 'islamabad', name: 'Islamabad', type: 'city' as const },
-    { id: 'rawalpindi', name: 'Rawalpindi', type: 'city' as const },
-    { id: 'faisalabad', name: 'Faisalabad', type: 'city' as const },
-    { id: 'multan', name: 'Multan', type: 'city' as const },
-    { id: 'peshawar', name: 'Peshawar', type: 'city' as const },
-    { id: 'quetta', name: 'Quetta', type: 'city' as const },
-    { id: 'sialkot', name: 'Sialkot', type: 'city' as const },
-    { id: 'gujranwala', name: 'Gujranwala', type: 'city' as const },
-    { id: 'hyderabad', name: 'Hyderabad', type: 'city' as const },
-    { id: 'sargodha', name: 'Sargodha', type: 'city' as const },
+    // Major cities with coordinates
+    { id: 'karachi', name: 'Karachi', type: 'city' as const, latitude: 24.8607, longitude: 67.0011 },
+    { id: 'lahore', name: 'Lahore', type: 'city' as const, latitude: 31.5204, longitude: 74.3587 },
+    { id: 'islamabad', name: 'Islamabad', type: 'city' as const, latitude: 33.6844, longitude: 73.0479 },
+    { id: 'rawalpindi', name: 'Rawalpindi', type: 'city' as const, latitude: 33.5651, longitude: 73.0169 },
+    { id: 'faisalabad', name: 'Faisalabad', type: 'city' as const, latitude: 31.4504, longitude: 73.1350 },
+    { id: 'multan', name: 'Multan', type: 'city' as const, latitude: 30.1575, longitude: 71.5249 },
+    { id: 'peshawar', name: 'Peshawar', type: 'city' as const, latitude: 34.0151, longitude: 71.5249 },
+    { id: 'quetta', name: 'Quetta', type: 'city' as const, latitude: 30.1798, longitude: 66.9750 },
+    { id: 'sialkot', name: 'Sialkot', type: 'city' as const, latitude: 32.4945, longitude: 74.5229 },
+    { id: 'gujranwala', name: 'Gujranwala', type: 'city' as const, latitude: 32.1877, longitude: 74.1945 },
+    { id: 'hyderabad', name: 'Hyderabad', type: 'city' as const, latitude: 25.3960, longitude: 68.3578 },
+    { id: 'sargodha', name: 'Sargodha', type: 'city' as const, latitude: 32.0836, longitude: 72.6711 },
     
     // Karachi areas
-    { id: 'dha-karachi', name: 'DHA, Karachi', type: 'area' as const },
-    { id: 'clifton', name: 'Clifton, Karachi', type: 'area' as const },
-    { id: 'gulshan-iqbal', name: 'Gulshan-e-Iqbal, Karachi', type: 'area' as const },
-    { id: 'nazimabad', name: 'Nazimabad, Karachi', type: 'area' as const },
-    { id: 'north-nazimabad', name: 'North Nazimabad, Karachi', type: 'area' as const },
-    { id: 'malir', name: 'Malir, Karachi', type: 'area' as const },
-    { id: 'korangi', name: 'Korangi, Karachi', type: 'area' as const },
+    { id: 'dha-karachi', name: 'DHA, Karachi', type: 'area' as const, latitude: 24.8136, longitude: 67.0222 },
+    { id: 'clifton', name: 'Clifton, Karachi', type: 'area' as const, latitude: 24.8136, longitude: 67.0222 },
+    { id: 'gulshan-iqbal', name: 'Gulshan-e-Iqbal, Karachi', type: 'area' as const, latitude: 24.9208, longitude: 67.0661 },
+    { id: 'nazimabad', name: 'Nazimabad, Karachi', type: 'area' as const, latitude: 24.9208, longitude: 67.0661 },
+    { id: 'north-nazimabad', name: 'North Nazimabad, Karachi', type: 'area' as const, latitude: 24.9208, longitude: 67.0661 },
+    { id: 'malir', name: 'Malir, Karachi', type: 'area' as const, latitude: 24.9208, longitude: 67.0661 },
+    { id: 'korangi', name: 'Korangi, Karachi', type: 'area' as const, latitude: 24.9208, longitude: 67.0661 },
     
     // Lahore areas
-    { id: 'dha-lahore', name: 'DHA, Lahore', type: 'area' as const },
-    { id: 'gulberg', name: 'Gulberg, Lahore', type: 'area' as const },
-    { id: 'model-town', name: 'Model Town, Lahore', type: 'area' as const },
-    { id: 'johar-town', name: 'Johar Town, Lahore', type: 'area' as const },
-    { id: 'cantt-lahore', name: 'Cantt, Lahore', type: 'area' as const },
+    { id: 'dha-lahore', name: 'DHA, Lahore', type: 'area' as const, latitude: 31.5204, longitude: 74.3587 },
+    { id: 'gulberg', name: 'Gulberg, Lahore', type: 'area' as const, latitude: 31.5204, longitude: 74.3587 },
+    { id: 'model-town', name: 'Model Town, Lahore', type: 'area' as const, latitude: 31.5204, longitude: 74.3587 },
+    { id: 'johar-town', name: 'Johar Town, Lahore', type: 'area' as const, latitude: 31.5204, longitude: 74.3587 },
+    { id: 'cantt-lahore', name: 'Cantt, Lahore', type: 'area' as const, latitude: 31.5204, longitude: 74.3587 },
     
     // Islamabad areas
-    { id: 'blue-area', name: 'Blue Area, Islamabad', type: 'area' as const },
-    { id: 'f-6', name: 'F-6, Islamabad', type: 'area' as const },
-    { id: 'f-7', name: 'F-7, Islamabad', type: 'area' as const },
-    { id: 'f-8', name: 'F-8, Islamabad', type: 'area' as const },
-    { id: 'g-9', name: 'G-9, Islamabad', type: 'area' as const },
+    { id: 'blue-area', name: 'Blue Area, Islamabad', type: 'area' as const, latitude: 33.6844, longitude: 73.0479 },
+    { id: 'f-6', name: 'F-6, Islamabad', type: 'area' as const, latitude: 33.6844, longitude: 73.0479 },
+    { id: 'f-7', name: 'F-7, Islamabad', type: 'area' as const, latitude: 33.6844, longitude: 73.0479 },
+    { id: 'f-8', name: 'F-8, Islamabad', type: 'area' as const, latitude: 33.6844, longitude: 73.0479 },
+    { id: 'g-9', name: 'G-9, Islamabad', type: 'area' as const, latitude: 33.6844, longitude: 73.0479 },
   ];
 
   useEffect(() => {
@@ -93,7 +93,27 @@ export default function LocationSearch({
     };
   }, []);
 
-  const searchLocations = (query: string) => {
+  const geocodeLocation = async (query: string): Promise<{ lat: number; lng: number } | null> => {
+    try {
+      // Use a free geocoding service (Nominatim)
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=pk`
+      );
+      const data = await response.json();
+      
+      if (data && data.length > 0) {
+        return {
+          lat: parseFloat(data[0].lat),
+          lng: parseFloat(data[0].lon)
+        };
+      }
+    } catch (error) {
+      console.error('Geocoding error:', error);
+    }
+    return null;
+  };
+
+  const searchLocations = async (query: string) => {
     if (!query.trim()) {
       setSuggestions([]);
       return;
@@ -105,7 +125,30 @@ export default function LocationSearch({
       )
       .slice(0, 8);
 
-    setSuggestions(filtered);
+    // If no hardcoded locations match, try geocoding
+    if (filtered.length === 0) {
+      setIsLoading(true);
+      const coords = await geocodeLocation(query);
+      if (coords) {
+        setSuggestions([{
+          id: `custom-${query}`,
+          name: query,
+          type: 'city',
+          latitude: coords.lat,
+          longitude: coords.lng
+        }]);
+      } else {
+        // If geocoding fails, still offer the location as an option (without coordinates)
+        setSuggestions([{
+          id: `manual-${query}`,
+          name: query,
+          type: 'city'
+        }]);
+      }
+      setIsLoading(false);
+    } else {
+      setSuggestions(filtered);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -117,8 +160,8 @@ export default function LocationSearch({
       clearTimeout(debounceRef.current);
     }
 
-    debounceRef.current = setTimeout(() => {
-      searchLocations(newValue);
+    debounceRef.current = setTimeout(async () => {
+      await searchLocations(newValue);
     }, 200);
   };
 

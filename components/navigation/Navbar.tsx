@@ -414,16 +414,11 @@ const Navbar = ({ className }: NavbarProps) => {
                 <HoverBorderGradient
                   containerClassName="rounded-full"
                   as="button"
-                  className="dark:bg-black bg-white text-black dark:text-white flex items-center"
-                >
-                <Button
-                  size="sm"
-                  className="!rounded-full"
+                  className="dark:bg-black bg-white text-black dark:text-white flex items-center h-9 px-3 text-sm !rounded-full"
                   onClick={() => handleOpenAuthModal('seller-register')}
                 >
                   <Plus className="h-4 w-4 mr-3" />
                   Sell
-                </Button>
                 </HoverBorderGradient>
               </div>
             )}
@@ -574,15 +569,11 @@ const Navbar = ({ className }: NavbarProps) => {
                   <HoverBorderGradient
                     containerClassName="!rounded-full"
                     as="button"
-                    className="dark:bg-black bg-white text-black dark:text-white flex items-center space-x-2"
+                    className="dark:bg-black bg-white text-black dark:text-white flex items-center space-x-2 h-11 px-5 text-sm w-full justify-center !rounded-full"
+                    onClick={() => handleOpenAuthModal('seller-register')}
                   >
-                    <Button
-                      className="w-full justify-center !rounded-full"
-                      onClick={() => handleOpenAuthModal('seller-register')}
-                    >
-                      <Plus className="h-4 w-4 mr-3" />
-                      Sell
-                    </Button>
+                    <Plus className="h-4 w-4 mr-3" />
+                    Sell
                   </HoverBorderGradient>
                 </div>
               )}

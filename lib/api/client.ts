@@ -350,8 +350,10 @@ class APIClient {
     params.append('longitude', longitude.toString());
     params.append('radiusKm', radiusKm.toString());
     
+    // Add other filters (excluding location params to avoid duplicates)
     Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
+      if (value !== undefined && value !== null && value !== '' && 
+          key !== 'latitude' && key !== 'longitude' && key !== 'radiusKm') {
         params.append(key, value.toString());
       }
     });

@@ -5,10 +5,10 @@ import { WishlistIcon } from '@/components/ui/WishlistIcon';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { 
-  Star, 
-  MapPin, 
-  ShoppingCart, 
+import {
+  Star,
+  MapPin,
+  ShoppingCart,
   Heart,
   ChevronLeft,
   ChevronRight,
@@ -35,7 +35,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const [imageError, setImageError] = useState(false);
 
   const primaryImage = product.images?.[0] || product.productImages?.[0]?.url;
-  const discountPercentage = product.originalPrice 
+  const discountPercentage = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
 
@@ -105,8 +105,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
           <div className="flex space-x-2">
             <Link href={`/products/${product.id}`} className="w-full">
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 className="w-full"
               >
                 <MessageCircle className="h-4 w-4 mr-2" />
@@ -135,7 +135,12 @@ const ProductCard = ({ product }: ProductCardProps) => {
             </span>
           </div>
           <div className="text-xs text-gray-500">
-            {product.condition || 'NEW'}
+            {(product.seller.shopAddress || product.seller.area || product.seller.city) && (
+              <div className="text-xs text-gray-500 mb-1 line-clamp-1">
+                <MapPin className="h-3 w-3 inline mr-1" />
+                {product.seller.shopAddress || `${product.seller.area}, ${product.seller.city}`}
+              </div>
+            )}
           </div>
         </div>
       </CardContent>
@@ -151,7 +156,7 @@ const ProductCatalog = ({ searchResult, currentFilters }: ProductCatalogProps) =
   const rawProducts = searchResult?.products || [];
   const products = Array.isArray(rawProducts) ? rawProducts : [];
   const pagination = searchResult?.pagination || { total: 0, page: 1, pages: 0 };
-  
+
   const totalCount = pagination.total;
   const currentPage = pagination.page;
   const totalPages = pagination.pages;
@@ -215,7 +220,7 @@ const ProductCatalog = ({ searchResult, currentFilters }: ProductCatalogProps) =
           <div className="text-sm text-gray-600">
             Showing page {currentPage} of {totalPages} ({totalCount.toLocaleString()} total products)
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <Button
               variant="outline"
@@ -226,7 +231,7 @@ const ProductCatalog = ({ searchResult, currentFilters }: ProductCatalogProps) =
               <ChevronLeft className="h-4 w-4 mr-1" />
               Previous
             </Button>
-            
+
             {/* Page Numbers */}
             <div className="flex space-x-1">
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -247,7 +252,7 @@ const ProductCatalog = ({ searchResult, currentFilters }: ProductCatalogProps) =
                 );
               })}
             </div>
-            
+
             <Button
               variant="outline"
               size="sm"

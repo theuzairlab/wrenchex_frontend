@@ -2,16 +2,26 @@
 
 import { Metadata } from 'next';
 import { Suspense, useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { ProductSearchResult, Category } from '@/types';
 import ProductCatalog from '@/components/products/ProductCatalog';
-import ProductFilters from '@/components/products/ProductFilters';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { LocationFilter } from '@/components/location/LocationFilter';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Search, MapPin } from 'lucide-react';
 
 // Define props type for the page
 interface ProductsPageProps {
   searchParams: Promise<{
     category?: string;
     search?: string;
+    city?: string;
+    area?: string;
+    location?: string;
+    latitude?: string;
+    longitude?: string;
+    radiusKm?: string;
     minPrice?: string;
     maxPrice?: string;
     sortBy?: string;
@@ -29,6 +39,11 @@ async function getProductsData(searchParams: any) {
     const filters = {
       category: params.category, // Backend expects 'category' parameter
       search: params.search,
+      city: params.city,
+      area: params.area,
+      latitude: params.latitude ? parseFloat(params.latitude) : undefined,
+      longitude: params.longitude ? parseFloat(params.longitude) : undefined,
+      radiusKm: params.radiusKm ? parseFloat(params.radiusKm) : undefined,
       minPrice: params.minPrice ? parseFloat(params.minPrice) : undefined,
       maxPrice: params.maxPrice ? parseFloat(params.maxPrice) : undefined,
       sortBy: params.sortBy || 'newest',
@@ -92,29 +107,128 @@ async function getProductsData(searchParams: any) {
 
 
 export default function ProductsPage({ searchParams }: ProductsPageProps) {
+  const router = useRouter();
   const [products, setProducts] = useState<ProductSearchResult | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [params, setParams] = useState<any>(null);
+  
+  // Location state (like services page)
+  const [location, setLocation] = useState('');
+  const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+  const [radiusKm, setRadiusKm] = useState(10);
+  const [showLocationFilter, setShowLocationFilter] = useState(false);
+  
+  // Filter state (like services page)
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
 
+  // Initialize all state from URL parameters (like services page)
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        setIsLoading(true);
-        const resolvedParams = await searchParams;
-        setParams(resolvedParams);
-        const data = await getProductsData(searchParams);
-        setProducts(data.products);
-        setCategories(data.categories);
-      } catch (error) {
-        console.error('Failed to load products data:', error);
-      } finally {
-        setIsLoading(false);
+    const initializeFromParams = async () => {
+      const resolvedParams = await searchParams;
+      
+      // Initialize all filter state from URL
+      if (resolvedParams.search) setSearchQuery(resolvedParams.search);
+      if (resolvedParams.category) setSelectedCategory(resolvedParams.category);
+      if (resolvedParams.minPrice) setMinPrice(resolvedParams.minPrice);
+      if (resolvedParams.maxPrice) setMaxPrice(resolvedParams.maxPrice);
+      if (resolvedParams.location) setLocation(resolvedParams.location);
+      
+      const lat = resolvedParams.latitude;
+      const lng = resolvedParams.longitude;
+      const radius = resolvedParams.radiusKm;
+      
+      if (lat && lng) {
+        setCoordinates({
+          lat: parseFloat(lat),
+          lng: parseFloat(lng)
+        });
+      }
+      if (radius) {
+        setRadiusKm(parseFloat(radius));
       }
     };
     
-    loadData();
+    initializeFromParams();
   }, [searchParams]);
+
+  useEffect(() => {
+    loadData();
+  }, [searchParams, coordinates, radiusKm, searchQuery, selectedCategory, minPrice, maxPrice]);
+
+  const loadData = async () => {
+    try {
+      setIsLoading(true);
+      const resolvedParams = await searchParams;
+      console.log('🔍 Products page - URL params:', resolvedParams);
+      setParams(resolvedParams);
+      
+      // Create modified searchParams with current state (like services page)
+      const modifiedSearchParams = {
+        ...resolvedParams,
+        search: searchQuery || undefined,
+        category: selectedCategory || undefined,
+        minPrice: minPrice || undefined,
+        maxPrice: maxPrice || undefined,
+        location: location || undefined,
+        latitude: coordinates?.lat?.toString(),
+        longitude: coordinates?.lng?.toString(),
+        radiusKm: radiusKm.toString()
+      };
+      
+      const data = await getProductsData(modifiedSearchParams);
+      console.log('📦 Products page - API response:', data);
+      setProducts(data.products);
+      setCategories(data.categories);
+    } catch (error) {
+      console.error('Failed to load products data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Location handlers (like services page)
+  const handleLocationChange = (newLocation: string | null, coords?: { lat: number; lng: number }) => {
+    setLocation(newLocation || '');
+    setCoordinates(coords || null);
+  };
+
+  const handleRadiusChange = (newRadius: number) => {
+    setRadiusKm(newRadius);
+  };
+
+  const handleUseCurrentLocation = () => {
+    // This will trigger the location permission modal in LocationFilter
+  };
+
+  const handleClearLocation = () => {
+    setLocation('');
+    setCoordinates(null);
+    setRadiusKm(10);
+  };
+
+  // Apply filters (no page refresh)
+  const applyFilters = () => {
+    // Just trigger data reload - no router navigation
+    loadData();
+  };
+
+  // Clear all filters (no page refresh)
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory('');
+    setMinPrice('');
+    setMaxPrice('');
+    setLocation('');
+    setCoordinates(null);
+    setRadiusKm(10);
+    setShowLocationFilter(false);
+    // Trigger data reload after clearing
+    setTimeout(() => loadData(), 0);
+  };
 
   if (isLoading) {
     return (
@@ -152,20 +266,107 @@ export default function ProductsPage({ searchParams }: ProductsPageProps) {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6 sm:pb-8">
 
-        {/* Top Filters Section */}
+        {/* Filters Section - Exactly like services page */}
         <div className="mb-8">
-          <Suspense fallback={<LoadingSpinner />}>
-            <ProductFilters
-              categories={categories || []}
-              currentFilters={params}
-              totalProducts={products?.pagination?.total || 0}
-              availableFilters={{
-                categories: (categories || []).map((cat: any) => ({ id: cat.id, name: cat.name, count: 0 })),
-                priceRange: { min: 0, max: 10000 },
-                conditions: []
-              }}
-            />
-          </Suspense>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            {/* Main Filters Row */}
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Search */}
+              <div className="flex-1 min-w-[200px]">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    type="text"
+                    placeholder="Search products..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && applyFilters()}
+                    className="pl-9 pr-3 py-2 text-sm"
+                  />
+                </div>
+              </div>
+
+
+              {/* Category Dropdown */}
+              <div className="min-w-[120px]">
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-wrench-accent"
+                >
+                  <option value="">All Categories</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Price Range */}
+              <div className="flex items-center gap-2 min-w-[200px]">
+                <Input
+                  type="number"
+                  placeholder="Min"
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(e.target.value)}
+                  className="w-20 text-sm py-2"
+                />
+                <span className="text-gray-500">-</span>
+                <Input
+                  type="number"
+                  placeholder="Max"
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(e.target.value)}
+                  className="w-20 text-sm py-2"
+                />
+                <Button
+                  size="sm"
+                  onClick={applyFilters}
+                  className="px-3 py-2"
+                >
+                  Apply
+                </Button>
+              </div>
+
+              {/* Location Filter Toggle (like services page) */}
+              <Button
+                variant={location && coordinates ? "primary" : "outline"}
+                size="sm"
+                onClick={() => setShowLocationFilter(!showLocationFilter)}
+                className="min-w-[120px]"
+              >
+                <MapPin className="h-4 w-4 mr-1" />
+                {location && coordinates ? 'Location ✓' : 'Location'}
+              </Button>
+
+              {/* Clear Filters */}
+              {(searchQuery || location || selectedCategory || minPrice || maxPrice || radiusKm !== 10) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearFilters}
+                  className="text-gray-600 hover:text-gray-800"
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
+
+            {/* Location Distance Filter Section */}
+            {showLocationFilter && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <LocationFilter
+                  currentLocation={location}
+                  currentRadius={radiusKm}
+                  onLocationChange={handleLocationChange}
+                  onRadiusChange={handleRadiusChange}
+                  onUseCurrentLocation={handleUseCurrentLocation}
+                  onClearLocation={handleClearLocation}
+                />
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Products Catalog */}

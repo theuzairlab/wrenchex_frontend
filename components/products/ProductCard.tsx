@@ -8,6 +8,8 @@ import { Star, MapPin, ShoppingCart, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import { Product } from '@/types';
+import DistanceDisplay from '@/components/location/DistanceDisplay';
+import { DirectionButton } from '@/components/location/DirectionButton';
 
 interface ProductCardProps {
   product: Product;
@@ -106,11 +108,45 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </div>
         )}
 
-        {/* Seller */}
-        <div className="flex items-center space-x-1 mb-3 text-sm text-gray-600">
-          <MapPin className="h-3 w-3 text-gray-400" />
-          <span className="line-clamp-1">{product.seller.shopName}</span>
-
+        {/* Seller & Distance */}
+        <div className="mb-3">
+          <div className="flex items-center space-x-1 text-sm text-gray-600 mb-1">
+            <span className="font-medium line-clamp-1">{product.seller.shopName}</span>
+          </div>
+          
+          {/* Shop Address */}
+          {(product.seller.shopAddress || product.seller.area || product.seller.city) && (
+            <div className="text-xs text-gray-500 mb-1 line-clamp-1">
+              <MapPin className="h-3 w-3 inline mr-1" />
+              {product.seller.shopAddress || `${product.seller.area}, ${product.seller.city}`}
+            </div>
+          )}
+          
+          <div className="flex items-center justify-between">
+            <DistanceDisplay
+              sellerLatitude={product.seller.latitude}
+              sellerLongitude={product.seller.longitude}
+              sellerCity={product.seller.city}
+              sellerArea={product.seller.area}
+              className="text-xs"
+              showIcon={true}
+              showFallbackLocation={true}
+            />
+            {product.seller.latitude && product.seller.longitude && (
+              <DirectionButton
+                destination={{
+                  latitude: product.seller.latitude,
+                  longitude: product.seller.longitude,
+                  address: product.seller.shopAddress || `${product.seller.area}, ${product.seller.city}`,
+                  name: product.seller.shopName
+                }}
+                size="sm"
+                variant="ghost"
+                showText={false}
+                className="text-xs px-1 h-6"
+              />
+            )}
+          </div>
         </div>
 
         {/* Price */}

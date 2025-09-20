@@ -4,6 +4,7 @@ import './globals.css';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { AuthModalProvider } from '@/components/auth/AuthModalProvider';
 import { CriticalErrorBoundary } from '@/components/error/ErrorBoundary';
+import { LocationProvider } from '@/lib/contexts/LocationContext';
 import { Toaster } from 'sonner';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -47,12 +48,14 @@ export default function RootLayout({
       <body className={inter.className}>
         <CriticalErrorBoundary>
           <AuthProvider>
-            <AuthModalProvider>
-              <main>
-                {children}
-              </main>
-              <Toaster />
-            </AuthModalProvider>
+            <LocationProvider requestOnMount={true}>
+              <AuthModalProvider>
+                <main>
+                  {children}
+                </main>
+                <Toaster />
+              </AuthModalProvider>
+            </LocationProvider>
           </AuthProvider>
         </CriticalErrorBoundary>
       </body>
