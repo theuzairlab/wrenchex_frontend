@@ -3,58 +3,60 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
 import { apiClient } from '@/lib/api/client';
+import { Review } from '@/types';
 import { toast } from 'sonner';
-import { Star, User, MoreVertical, ThumbsUp } from 'lucide-react';
+import { Star, MoreVertical, ThumbsUp, Camera, Verified } from 'lucide-react';
 import { format } from 'date-fns';
 
-interface Review {
-  id: string;
-  rating: number;
-  comment?: string;
-  createdAt: string;
-  reviewer: {
-    firstName: string;
-    lastName: string;
-  };
-}
-
 interface ReviewsListProps {
-  serviceId?: string;
-  sellerId?: string;
-  appointmentId?: string;
+  entityType?: 'product' | 'service' | 'seller' | 'appointment' | 'chat';
+  entityId?: string;
   limit?: number;
   showLoadMore?: boolean;
+  sortBy?: 'newest' | 'oldest' | 'rating_high' | 'rating_low' | 'helpful';
+  ratingFilter?: number;
 }
 
 export default function ReviewsList({
-  serviceId,
-  sellerId,
-  appointmentId,
+  entityType,
+  entityId,
   limit = 10,
-  showLoadMore = true
+  showLoadMore = true,
+  sortBy = 'newest',
+  ratingFilter
 }: ReviewsListProps) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
+  const [helpfulVotes, setHelpfulVotes] = useState<{[key: string]: boolean}>({});
 
   useEffect(() => {
     loadReviews();
-  }, [serviceId, sellerId, appointmentId]);
+  }, [entityType, entityId, sortBy, ratingFilter]);
 
   const loadReviews = async (pageNum = 1, append = false) => {
     try {
       setIsLoading(true);
 
-      const params = new URLSearchParams();
-      if (serviceId) params.append('serviceId', serviceId);
-      if (sellerId) params.append('sellerId', sellerId);
-      if (appointmentId) params.append('appointmentId', appointmentId);
-      params.append('page', pageNum.toString());
-      params.append('limit', limit.toString());
+      const filters: any = {
+        page: pageNum,
+        limit,
+        sortBy
+      };
 
-      const response = await apiClient.get(`/reviews?${params.toString()}`);
+      if (entityType && entityId) {
+        filters.entityType = entityType;
+        filters.entityId = entityId;
+      }
+
+      if (ratingFilter) {
+        filters.rating = ratingFilter;
+      }
+
+      const response = await apiClient.getReviews(filters);
 
       if (response.success && response.data) {
         const newReviews = response.data.reviews || [];
@@ -67,6 +69,36 @@ export default function ReviewsList({
       toast.error('Failed to load reviews');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleHelpfulVote = async (reviewId: string) => {
+    try {
+      const response = await apiClient.markReviewHelpful(reviewId);
+      
+      if (response.success) {
+        setHelpfulVotes(prev => ({
+          ...prev,
+          [reviewId]: response.data.helpful
+        }));
+        
+        // Update the helpful count in the reviews list
+        setReviews(prev => prev.map(review => 
+          review.id === reviewId 
+            ? { 
+                ...review, 
+                helpfulCount: response.data.helpful 
+                  ? review.helpfulCount + 1 
+                  : review.helpfulCount - 1 
+              }
+            : review
+        ));
+        
+        toast.success(response.data.message);
+      }
+    } catch (error) {
+      console.error('Failed to mark review as helpful:', error);
+      toast.error('Failed to mark review as helpful');
     }
   };
 
@@ -93,6 +125,21 @@ export default function ReviewsList({
 
   const getInitials = (firstName: string, lastName: string) => {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  };
+
+  const getEntityInfo = (review: Review) => {
+    if (review.product) {
+      return { type: 'Product', name: review.product.title };
+    } else if (review.service) {
+      return { type: 'Service', name: review.service.title };
+    } else if (review.seller) {
+      return { type: 'Shop', name: review.seller.shopName };
+    } else if (review.appointmentId) {
+      return { type: 'Appointment', name: 'Service Experience' };
+    } else if (review.chatId) {
+      return { type: 'Chat', name: 'Communication Experience' };
+    }
+    return { type: 'Review', name: 'Experience' };
   };
 
   if (isLoading && reviews.length === 0) {
@@ -128,55 +175,111 @@ export default function ReviewsList({
 
   return (
     <div className="space-y-4">
-      {reviews.map((review) => (
-        <Card key={review.id} className="hover:shadow-md transition-shadow">
-          <CardContent className="p-4">
-            <div className="flex gap-4">
-              {/* Avatar */}
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-sm font-medium text-blue-700">
-                  {getInitials(review.reviewer.firstName, review.reviewer.lastName)}
-                </span>
-              </div>
+      {reviews.map((review) => {
+        const entityInfo = getEntityInfo(review);
+        const isHelpful = helpfulVotes[review.id];
+        
+        return (
+          <Card key={review.id} className="hover:shadow-md transition-shadow">
+            <CardContent className="p-4">
+              <div className="flex gap-4">
+                {/* Avatar */}
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-sm font-medium text-blue-700">
+                    {getInitials(review.reviewer.firstName, review.reviewer.lastName)}
+                  </span>
+                </div>
 
-              {/* Review Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between mb-2">
-                  <div>
-                    <h4 className="font-medium text-gray-900">
-                      {review.reviewer.firstName} {review.reviewer.lastName}
-                    </h4>
-                    <div className="flex items-center gap-2">
-                      {renderStars(review.rating)}
-                      <span className="text-sm text-gray-500">
-                        {format(new Date(review.createdAt), 'MMM d, yyyy')}
-                      </span>
+                {/* Review Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-medium text-gray-900">
+                          {review.reviewer.firstName} {review.reviewer.lastName}
+                        </h4>
+                        {review.isVerified && (
+                          <div title="Verified Purchase">
+                            <Verified className="h-4 w-4 text-blue-500" />
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center gap-2 mb-1">
+                        {renderStars(review.rating)}
+                        <span className="text-sm text-gray-500">
+                          {format(new Date(review.createdAt), 'MMM d, yyyy')}
+                        </span>
+                      </div>
+
+                      {/* Entity Badge (only show if not filtering by specific entity) */}
+                      {!entityType && (
+                        <Badge variant="outline" className="text-xs">
+                          {entityInfo.type}: {entityInfo.name}
+                        </Badge>
+                      )}
                     </div>
+                    
+                    <Button variant="ghost" size="sm">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
                   </div>
-                  
-                  <Button variant="ghost" size="sm">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </div>
 
-                {review.comment && (
-                  <p className="text-gray-700 text-sm mb-3 leading-relaxed">
-                    {review.comment}
-                  </p>
-                )}
+                  {/* Review Title */}
+                  {review.title && (
+                    <h5 className="font-medium text-gray-900 mb-2">
+                      {review.title}
+                    </h5>
+                  )}
 
-                {/* Review Actions */}
-                <div className="flex items-center gap-4">
-                  <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700">
-                    <ThumbsUp className="h-3 w-3 mr-1" />
-                    Helpful
-                  </Button>
+                  {/* Review Comment */}
+                  {review.comment && (
+                    <p className="text-gray-700 text-sm mb-3 leading-relaxed">
+                      {review.comment}
+                    </p>
+                  )}
+
+                  {/* Review Images */}
+                  {review.images && review.images.length > 0 && (
+                    <div className="flex gap-2 mb-3 overflow-x-auto">
+                      {review.images.map((image, index) => (
+                        <img
+                          key={index}
+                          src={image}
+                          alt={`Review image ${index + 1}`}
+                          className="w-20 h-20 object-cover rounded-lg flex-shrink-0 border cursor-pointer hover:opacity-80 transition-opacity"
+                          onClick={() => {
+                            // TODO: Implement image lightbox
+                            window.open(image, '_blank');
+                          }}
+                        />
+                      ))}
+                      {review.images.length > 0 && (
+                        <div className="flex items-center justify-center w-20 h-20 bg-gray-100 rounded-lg border flex-shrink-0">
+                          <Camera className="h-6 w-6 text-gray-400" />
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Review Actions */}
+                  <div className="flex items-center gap-4">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className={`text-gray-500 hover:text-gray-700 ${isHelpful ? 'text-blue-600' : ''}`}
+                      onClick={() => handleHelpfulVote(review.id)}
+                    >
+                      <ThumbsUp className={`h-3 w-3 mr-1 ${isHelpful ? 'fill-current' : ''}`} />
+                      Helpful {review.helpfulCount > 0 && `(${review.helpfulCount})`}
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+            </CardContent>
+          </Card>
+        );
+      })}
 
       {/* Load More */}
       {hasMore && showLoadMore && (

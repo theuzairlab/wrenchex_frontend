@@ -15,6 +15,11 @@ interface AuthState {
 interface AuthActions {
   login: (email: string, password: string) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
+  googleLogin: (idToken: string) => Promise<void>;
+  linkGoogleAccount: (idToken: string) => Promise<void>;
+  unlinkSocialAccount: (provider: string) => Promise<void>;
+  verifyEmail: (token: string) => Promise<void>;
+  resendVerificationEmail: () => Promise<void>;
   logout: () => void;
   clearError: () => void; // Add back clearError function
   refreshAuth: () => Promise<void>;
@@ -155,6 +160,208 @@ const useAuthStoreBase = create<AuthState & AuthActions>()(
           set({
             isLoading: false,
             error: error?.message || 'Registration failed',
+          });
+          throw error;
+        }
+      },
+
+      googleLogin: async (idToken: string) => {
+        try {
+          set({ isLoading: true, error: null });
+
+          console.log('AuthStore: Sending Google login request');
+
+          const response = await apiClient.post('/auth/google', { idToken }) as any;
+          console.log('AuthStore: Google login response:', response);
+
+          // Handle nested data structure like in login
+          let user, token;
+          
+          if (response && typeof response === 'object') {
+            // Direct response structure
+            if (response.user && response.token) {
+              user = response.user;
+              token = response.token;
+            }
+            // Nested data structure (expected format)
+            else if (response.data && response.data.user && response.data.token) {
+              user = response.data.user;
+              token = response.data.token;
+            }
+          }
+
+          if (!token) {
+            throw new Error('No token received from server');
+          }
+
+          if (!user) {
+            throw new Error('No user data received from server');
+          }
+
+          // Set token in both places
+          apiClient.setAuthToken(token);
+
+          set({
+            user,
+            token,
+            isAuthenticated: true,
+            isLoading: false,
+            error: null,
+          });
+
+          console.log('AuthStore: Google login successful', { userId: user?.id, role: user?.role });
+        } catch (error: any) {
+          console.error('AuthStore: Google login failed:', error);
+          set({
+            isLoading: false,
+            error: error?.message || 'Google login failed',
+          });
+          throw error;
+        }
+      },
+
+      linkGoogleAccount: async (idToken: string) => {
+        try {
+          set({ isLoading: true, error: null });
+
+          console.log('AuthStore: Linking Google account');
+
+          const response = await apiClient.post('/auth/link-google', { idToken }) as any;
+          console.log('AuthStore: Link Google response:', response);
+
+          // Handle nested data structure
+          let user;
+          
+          if (response && typeof response === 'object') {
+            // Direct response structure
+            if (response.user) {
+              user = response.user;
+            }
+            // Nested data structure (expected format)
+            else if (response.data && response.data.user) {
+              user = response.data.user;
+            }
+          }
+
+          if (!user) {
+            throw new Error('No user data received from server');
+          }
+
+          // Update user in store
+          set({
+            user,
+            isLoading: false,
+            error: null,
+          });
+
+          console.log('AuthStore: Google account linked successfully', { userId: user?.id });
+        } catch (error: any) {
+          console.error('AuthStore: Link Google account failed:', error);
+          set({
+            isLoading: false,
+            error: error?.message || 'Failed to link Google account',
+          });
+          throw error;
+        }
+      },
+
+      unlinkSocialAccount: async (provider: string) => {
+        try {
+          set({ isLoading: true, error: null });
+
+          console.log('AuthStore: Unlinking social account:', provider);
+
+          const response = await apiClient.post('/auth/unlink-social', { provider }) as any;
+          console.log('AuthStore: Unlink social response:', response);
+
+          // Handle nested data structure
+          let user;
+          
+          if (response && typeof response === 'object') {
+            // Direct response structure
+            if (response.user) {
+              user = response.user;
+            }
+            // Nested data structure (expected format)
+            else if (response.data && response.data.user) {
+              user = response.data.user;
+            }
+          }
+
+          if (!user) {
+            throw new Error('No user data received from server');
+          }
+
+          // Update user in store
+          set({
+            user,
+            isLoading: false,
+            error: null,
+          });
+
+          console.log('AuthStore: Social account unlinked successfully', { provider });
+        } catch (error: any) {
+          console.error('AuthStore: Unlink social account failed:', error);
+          set({
+            isLoading: false,
+            error: error?.message || 'Failed to unlink social account',
+          });
+          throw error;
+        }
+      },
+
+      verifyEmail: async (token: string) => {
+        try {
+          set({ isLoading: true, error: null });
+          console.log('AuthStore: Verifying email with token');
+          
+          const response = await apiClient.post('/auth/verify-email', { token }) as any;
+          console.log('AuthStore: Verify email response:', response);
+          
+          if (response.success && response.data.user) {
+            set({
+              user: response.data.user,
+              isLoading: false,
+              error: null,
+            });
+            console.log('AuthStore: Email verified successfully', { userId: response.data.user.id });
+            toast.success('Email verified successfully!');
+          } else {
+            throw new Error(response.error?.message || 'Email verification failed');
+          }
+        } catch (error: any) {
+          console.error('AuthStore: Email verification failed:', error);
+          set({
+            isLoading: false,
+            error: error?.message || 'Failed to verify email',
+          });
+          throw error;
+        }
+      },
+
+      resendVerificationEmail: async () => {
+        try {
+          set({ isLoading: true, error: null });
+          console.log('AuthStore: Resending verification email');
+          
+          const response = await apiClient.post('/auth/resend-verification') as any;
+          console.log('AuthStore: Resend verification response:', response);
+          
+          if (response.success) {
+            set({
+              isLoading: false,
+              error: null,
+            });
+            console.log('AuthStore: Verification email sent successfully');
+            toast.success('Verification email sent successfully!');
+          } else {
+            throw new Error(response.error?.message || 'Failed to resend verification email');
+          }
+        } catch (error: any) {
+          console.error('AuthStore: Resend verification email failed:', error);
+          set({
+            isLoading: false,
+            error: error?.message || 'Failed to resend verification email',
           });
           throw error;
         }

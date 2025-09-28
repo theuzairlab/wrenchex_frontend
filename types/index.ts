@@ -76,6 +76,7 @@ export interface User {
   phone?: string;
   isVerified: boolean;
   googleId?: string;
+  googleEmail?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -744,16 +745,63 @@ export interface Review {
   id: string;
   reviewerId: string;
   revieweeId: string;
-  orderId?: string;
+  
+  // Multi-entity support (one of these will be filled)
+  productId?: string;
+  serviceId?: string;
+  sellerId?: string;
   appointmentId?: string;
-  rating: number; // 1-5
-  comment?: string;
+  chatId?: string;
+  
+  // Review content
+  rating: number; // 1-5 stars
+  title?: string; // Optional review title
+  comment?: string; // Review text
+  images?: string[]; // Array of image URLs
+  
+  // Engagement metrics
+  helpfulCount: number;
+  isVerified: boolean;
+  
   createdAt: string;
   updatedAt: string;
-  reviewer: User;
-  reviewee: User;
-  order?: Order;
+  
+  // Relations
+  reviewer: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
+  product?: {
+    id: string;
+    title: string;
+  };
+  service?: {
+    id: string;
+    title: string;
+  };
+  seller?: {
+    id: string;
+    shopName: string;
+  };
   appointment?: Appointment;
+}
+
+export interface ReviewSummary {
+  averageRating: number;
+  totalReviews: number;
+  ratingBreakdown: {
+    [key: number]: number; // rating (1-5) -> count
+  };
+}
+
+export interface CreateReviewData {
+  entityType: 'product' | 'service' | 'seller' | 'appointment' | 'chat';
+  entityId: string;
+  rating: number;
+  title?: string;
+  comment?: string;
+  images?: string[];
 }
 
 // API Response Types

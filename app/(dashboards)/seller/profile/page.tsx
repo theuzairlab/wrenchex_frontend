@@ -5,6 +5,8 @@ import { useAuthStore } from '@/lib/stores/auth';
 import { apiClient } from '@/lib/api/client'; 
 import { SellerProfileForm } from '@/components/seller/SellerProfileForm';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { SocialAccountManager } from '@/components/auth/SocialAccountManager';
+import { EmailVerificationBanner } from '@/components/auth/EmailVerificationBanner';
 
 export default function SellerProfilePage() {
   const { user, isAuthenticated } = useAuthStore();
@@ -146,6 +148,12 @@ export default function SellerProfilePage() {
             Manage your seller profile and business information.
           </p>
         </div>
+
+        {/* Email Verification Banner */}
+        <EmailVerificationBanner />
+
+        {/* Social Account Management */}
+        <SocialAccountManager />
 
         {/* Profile Form */}
         <SellerProfileForm

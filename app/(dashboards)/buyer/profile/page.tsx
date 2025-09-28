@@ -9,6 +9,8 @@ import { useAuthStore } from '@/lib/stores/auth';
 import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
 import { User, Mail, Phone, Save } from 'lucide-react';
+import { SocialAccountManager } from '@/components/auth/SocialAccountManager';
+import { EmailVerificationBanner } from '@/components/auth/EmailVerificationBanner';
 
 export default function BuyerProfilePage() {
   const { user } = useAuthStore();
@@ -68,6 +70,9 @@ export default function BuyerProfilePage() {
             Manage your personal information and preferences
           </p>
         </div>
+
+        {/* Email Verification Banner */}
+        <EmailVerificationBanner />
 
         {/* Profile Form */}
         <Card>
@@ -136,6 +141,9 @@ export default function BuyerProfilePage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Social Account Management */}
+        <SocialAccountManager />
 
         {/* Account Settings */}
         <Card>

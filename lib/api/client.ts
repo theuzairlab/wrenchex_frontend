@@ -552,6 +552,66 @@ class APIClient {
     const endpoint = queryString ? `/admin/appointments?${queryString}` : '/admin/appointments';
     return this.get(endpoint);
   }
+
+  // ===== REVIEWS =====
+  async getReviews(filters: {
+    entityType?: string;
+    entityId?: string;
+    rating?: number;
+    sortBy?: string;
+    page?: number;
+    limit?: number;
+  } = {}): Promise<ApiResponse<any>> {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        params.append(key, value.toString());
+      }
+    });
+    const queryString = params.toString();
+    const endpoint = queryString ? `/reviews?${queryString}` : '/reviews';
+    return this.get(endpoint);
+  }
+
+  async createReview(reviewData: {
+    entityType: string;
+    entityId: string;
+    rating: number;
+    title?: string;
+    comment?: string;
+    images?: string[];
+  }): Promise<ApiResponse<any>> {
+    return this.post('/reviews', reviewData);
+  }
+
+  async getReviewById(reviewId: string): Promise<ApiResponse<any>> {
+    return this.get(`/reviews/${reviewId}`);
+  }
+
+  async updateReview(reviewId: string, updateData: {
+    rating?: number;
+    title?: string;
+    comment?: string;
+    images?: string[];
+  }): Promise<ApiResponse<any>> {
+    return this.put(`/reviews/${reviewId}`, updateData);
+  }
+
+  async deleteReview(reviewId: string): Promise<ApiResponse<any>> {
+    return this.delete(`/reviews/${reviewId}`);
+  }
+
+  async markReviewHelpful(reviewId: string): Promise<ApiResponse<any>> {
+    return this.post(`/reviews/${reviewId}/helpful`, {});
+  }
+
+  async canUserReview(entityType: string, entityId: string): Promise<ApiResponse<{ canReview: boolean }>> {
+    return this.get(`/reviews/can-review/${entityType}/${entityId}`);
+  }
+
+  async getReviewSummary(entityType: string, entityId: string): Promise<ApiResponse<any>> {
+    return this.get(`/reviews/summary/${entityType}/${entityId}`);
+  }
 }
 
 // Export singleton instance

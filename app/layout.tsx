@@ -6,6 +6,7 @@ import { AuthModalProvider } from '@/components/auth/AuthModalProvider';
 import { CriticalErrorBoundary } from '@/components/error/ErrorBoundary';
 import { LocationProvider } from '@/lib/contexts/LocationContext';
 import { Toaster } from 'sonner';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -43,20 +44,24 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+
   return (
     <html lang="en" className="scroll-smooth" data-scroll-behavior="smooth">
       <body className={inter.className}>
         <CriticalErrorBoundary>
-          <AuthProvider>
-            <LocationProvider requestOnMount={true}>
-              <AuthModalProvider>
-                <main>
-                  {children}
-                </main>
-                <Toaster />
-              </AuthModalProvider>
-            </LocationProvider>
-          </AuthProvider>
+          <GoogleOAuthProvider clientId={googleClientId || ''}>
+            <AuthProvider>
+              <LocationProvider requestOnMount={true}>
+                <AuthModalProvider>
+                  <main>
+                    {children}
+                  </main>
+                  <Toaster />
+                </AuthModalProvider>
+              </LocationProvider>
+            </AuthProvider>
+          </GoogleOAuthProvider>
         </CriticalErrorBoundary>
       </body>
     </html>

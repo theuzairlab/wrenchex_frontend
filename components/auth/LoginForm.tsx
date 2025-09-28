@@ -10,6 +10,7 @@ import { useAuthStore } from '@/lib/stores/auth';
 import { loginSchema, type LoginFormData } from '@/lib/validations/auth';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { GoogleLoginButton } from './GoogleLoginButton';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -48,6 +49,11 @@ export function LoginForm({ onSuccess, onSwitchToRegister, redirectTo = '/dashbo
       
       // Show success message
       toast.success('Login successful! Welcome back.');
+      
+      // Check if email needs verification
+      if (user && !user.isVerified) {
+        toast.info('Please verify your email address to access all features.');
+      }
       
       // Handle redirect based on user role and source
       const redirectPath = getRedirectPath();
@@ -167,6 +173,23 @@ export function LoginForm({ onSuccess, onSwitchToRegister, redirectTo = '/dashbo
           )}
         </Button>
       </form>
+
+      {/* Divider */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-white px-2 text-wrench-text-secondary">Or</span>
+        </div>
+      </div>
+
+      {/* Google Login */}
+      <GoogleLoginButton
+        onSuccess={onSuccess}
+        redirectTo={redirectTo}
+        text="Continue with Google"
+      />
 
       {/* Footer */}
       <div className="text-center space-y-4">

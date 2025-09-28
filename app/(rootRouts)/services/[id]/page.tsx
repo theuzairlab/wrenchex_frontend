@@ -14,12 +14,20 @@ import { useAuthModal } from '@/components/auth';
 import { 
   ArrowLeft, Star, Clock, MapPin, 
   Calendar, CheckCircle, Shield, Wrench, User,
-  Store, ChevronLeft, ChevronRight
+  Store, ChevronLeft, ChevronRight, Phone,
+  Award, Zap, Heart, MessageCircle, 
+  ArrowRight, Play, Pause, RotateCcw,
+  Truck, CreditCard, Timer, Users
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { WishlistIcon } from '@/components/ui/WishlistIcon';
 import { DirectionButton } from '@/components/location/DirectionButton';
+import ReviewSummary from '@/components/reviews/ReviewSummary';
+import ReviewsList from '@/components/reviews/ReviewsList';
+import SmartReviewButton from '@/components/reviews/SmartReviewButton';
+import ServiceBookingModal from '@/components/services/ServiceBookingModal';
+import { useScrollSpy } from '@/hooks/useScrollSpy';
 
 interface TimeSlot {
   startTime: string;
@@ -36,29 +44,23 @@ export default function ServiceDetailPage() {
 
   const [service, setService] = useState<Service | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isBooking, setIsBooking] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   
-  // Booking form state
-  const [selectedDate, setSelectedDate] = useState('');
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
-  const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
-  const [loadingSlots, setLoadingSlots] = useState(false);
-  const [notes, setNotes] = useState('');
-  const [serviceLocation, setServiceLocation] = useState('');
+  // Show booking modal
+  const [showBookingModal, setShowBookingModal] = useState(false);
   
-  // Show booking form
-  const [showBookingForm, setShowBookingForm] = useState(false);
+  // Review system state
+  const [selectedRatingFilter, setSelectedRatingFilter] = useState<number | null>(null);
+  const [reviewsKey, setReviewsKey] = useState(0);
+
+  // Scroll spy for section navigation
+  const sectionIds = ['overview', 'process', 'reviews', 'provider'];
+  const { activeSection, scrollToSection } = useScrollSpy({ sectionIds, offset: 120 });
 
   useEffect(() => {
     loadService();
   }, [serviceId]);
 
-  useEffect(() => {
-    if (selectedDate) {
-      loadAvailableSlots();
-    }
-  }, [selectedDate, serviceId]);
 
   const loadService = async () => {
     try {
@@ -80,101 +82,6 @@ export default function ServiceDetailPage() {
     }
   };
 
-  const loadAvailableSlots = async () => {
-    try {
-      setLoadingSlots(true);
-      const response = await apiClient.get(`/appointments/service/${serviceId}/slots?date=${selectedDate}`);
-      
-      if (response.success && response.data) {
-        let slots: TimeSlot[] = response.data.slots || [];
-
-        // If user selected today, hide past time slots (current local time)
-        const todayStr = new Date().toISOString().split('T')[0];
-        if (selectedDate === todayStr) {
-          const now = new Date();
-          const nowMinutes = now.getHours() * 60 + now.getMinutes();
-          slots = slots.map((slot: TimeSlot) => {
-            const [h, m] = slot.startTime.split(':').map(Number);
-            const slotMinutes = h * 60 + m;
-            // Mark as unavailable if slot is in the past
-            return { ...slot, isAvailable: slot.isAvailable && slotMinutes > nowMinutes };
-          });
-        }
-
-        setAvailableSlots(slots);
-      }
-    } catch (error) {
-      console.error('Failed to load time slots:', error);
-      toast.error('Failed to load available time slots');
-    } finally {
-      setLoadingSlots(false);
-    }
-  };
-
-  const handleBookAppointment = async () => {
-    if (!isAuthenticated) {
-      // Open auth modal instead of redirecting
-      openAuthModal('login');
-      return;
-    }
-
-    if (!selectedDate || !selectedTimeSlot) {
-      toast.error('Please select date and time');
-      return;
-    }
-
-    try {
-      setIsBooking(true);
-
-      const appointmentDate = new Date(selectedDate);
-      const [startHour, startMinute] = selectedTimeSlot.startTime.split(':').map(Number);
-      const [endHour, endMinute] = selectedTimeSlot.endTime.split(':').map(Number);
-
-      const scheduledTimeStart = new Date(appointmentDate);
-      scheduledTimeStart.setHours(startHour, startMinute, 0, 0);
-
-      const scheduledTimeEnd = new Date(appointmentDate);
-      scheduledTimeEnd.setHours(endHour, endMinute, 0, 0);
-
-      // Guard: if selected date is today, ensure slot is in the future
-      const now = new Date();
-      if (scheduledTimeStart <= now) {
-        toast.error('Please pick a time later today. Past time slots are not available.');
-        setIsBooking(false);
-        return;
-      }
-
-      const appointmentData: CreateAppointmentData = {
-        serviceId,
-        // Use the start time for scheduledDate to satisfy backend validation (>= now)
-        scheduledDate: scheduledTimeStart.toISOString(),
-        scheduledTimeStart: scheduledTimeStart.toISOString(),
-        scheduledTimeEnd: scheduledTimeEnd.toISOString(),
-        serviceLocation: service?.isMobileService && serviceLocation && serviceLocation.trim().length >= 10 ? 
-          { address: serviceLocation.trim(), type: 'CUSTOMER_LOCATION' as const } : undefined,
-        notes: notes || undefined,
-      };
-
-      const response = await apiClient.createAppointment(appointmentData);
-
-      if (response.success) {
-        toast.success('Appointment booked successfully!');
-        router.push('/buyer/appointments');
-      } else {
-        toast.error(response.error?.message || 'Failed to book appointment');
-      }
-    } catch (error: any) {
-      console.error('Failed to book appointment:', error);
-      const message = typeof error?.message === 'string' ? error.message : 'Failed to book appointment';
-      // Improve common validation message
-      const friendly = message.includes('scheduledDate')
-        ? 'Selected time must be in the future. Please choose a later slot.'
-        : message;
-      toast.error(friendly);
-    } finally {
-      setIsBooking(false);
-    }
-  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -209,27 +116,14 @@ export default function ServiceDetailPage() {
     );
   };
 
-  // Handle keyboard navigation
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (images.length <= 1) return;
-    
-    if (event.key === 'ArrowLeft') {
-      goToPreviousImage();
-    } else if (event.key === 'ArrowRight') {
-      goToNextImage();
-    }
-  };
-
-  // Get minimum date (today)
-  const today = new Date();
-  const minDate = today.toISOString().split('T')[0];
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-wrench-bg-primary flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading service details...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent mx-auto mb-6"></div>
+          <h2 className="text-xl font-semibold text-gray-800">Loading Service Details...</h2>
+          <p className="text-gray-600 mt-2">Please wait while we fetch the information</p>
         </div>
       </div>
     );
@@ -240,398 +134,495 @@ export default function ServiceDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-wrench-bg-primary px-4 pb-10">
-      {/* Header */}
-      <div className="pt-20">
-        <div className="container-responsive py-4">
-          <Button
-            variant="ghost"
-            onClick={() => router.back()}
-            leftIcon={<ArrowLeft className="h-4 w-4" />}
-            className=""
-          >
-            Back to Services
-          </Button>
+    <div className="min-h-screen bg-wrench-bg-primary">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0"></div>
+        <div className="absolute inset-0 "></div>
+        
+        <div className="relative pt-20 pb-16">
+          <div className="container-responsive">
+            <div className="flex items-center gap-4 mb-8">
+              <Button
+                variant="ghost"
+                onClick={() => router.back()}
+                className="hover:bg-white/20"
+              >
+                <ArrowLeft className="h-5 w-5 mr-2" />
+                Back to Services
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+             
+
+              {/* Service Image */}
+              <div className="relative">
+                <div className="relative aspect-square rounded-3xl overflow-hidden shadow-2xl">
+                  <Image
+                    src={primaryImage}
+                    alt={service?.title || 'Service'}
+                    fill
+                    className="object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                  
+                  {/* Image Navigation */}
+                  {images.length > 1 && (
+                    <>
+                      <button
+                        onClick={goToPreviousImage}
+                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full backdrop-blur-sm transition-all"
+                      >
+                        <ChevronLeft className="h-6 w-6" />
+                      </button>
+                      <button
+                        onClick={goToNextImage}
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full backdrop-blur-sm transition-all"
+                      >
+                        <ChevronRight className="h-6 w-6" />
+                      </button>
+                    </>
+                  )}
+
+                  {/* Wishlist */}
+                  <div className="absolute top-4 right-4">
+                        <WishlistIcon
+                          id={service?.id || ''}
+                          type="service"
+                          title={service?.title || ''}
+                          price={service?.price || 0}
+                          image={primaryImage}
+                          category={service?.category?.name}
+                          sellerName={service?.seller?.shopName || ''}
+                          size="sm"
+                        />
+                  </div>
+
+                  {/* Mobile Service Badge */}
+                  {service?.isMobileService && (
+                    <div className="absolute bottom-4 left-4">
+                      <div className="bg-green-500 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2">
+                        <MapPin className="h-4 w-4" />
+                        Mobile Service
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Image Thumbnails */}
+                {images.length > 1 && (
+                  <div className="flex gap-3 mt-4 justify-center">
+                    {images.slice(0, 4).map((image, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setSelectedImageIndex(index)}
+                        className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                          selectedImageIndex === index
+                            ? "border-wrench-accent scale-110"
+                            : "border-white/30 hover:border-white/60"
+                        }`}
+                      >
+                        <Image
+                          src={image}
+                          alt={`${service?.title || 'Service'} - Image ${index + 1}`}
+                          width={64}
+                          height={64}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+              </div>
+
+               {/* Service Info */}
+               <div className="space-y-8">
+                <div>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-white/20 rounded-lg">
+                      <Wrench className="h-6 w-6 " />
+                    </div>
+                    <span className=" font-medium">{service?.category?.name || ''}</span>
+                  </div>
+                  
+                  <h1 className="text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+                    {service?.title || ''}
+                  </h1>
+                </div>
+
+                 {/* Service Stats */}
+                 <div className="grid grid-cols-3 gap-6">
+                   <div className="text-center">
+                     <div className="text-3xl font-bold  mb-1">{formatPrice(service?.price || 0)}</div>
+                     <div className=" text-sm">Starting Price</div>
+                   </div>
+                   <div className="text-center">
+                     <div className="text-3xl font-bold  mb-1">{formatDuration(service?.durationMinutes || 0)}</div>
+                     <div className=" text-sm">Duration</div>
+                   </div>
+                   <div className="text-center">
+                     <div className="flex items-center justify-center gap-1 mb-1">
+                       <Star className="h-8 w-8 text-wrench-accent fill-current" />
+                       <span className="text-3xl font-bold ">{service?.ratingAverage || 'New'}</span>
+                     </div>
+                     <div className=" text-sm">Rating</div>
+                   </div>
+                 </div>
+
+                 {/* Booking Section */}
+                 <div className="mt-8">
+                   <Card className="shadow-lg border-0 bg-white">
+                     <CardHeader className="text-center pb-4">
+                       <div className="text-4xl font-bold mb-2 text-black">{formatPrice(service?.price || 0)}</div>
+                       <div className="text-gray-600">per service</div>
+                     </CardHeader>
+                     <CardContent className="space-y-4">
+                       <Button
+                         onClick={() => setShowBookingModal(true)}
+                         className="w-full bg-wrench-accent hover:bg-wrench-accent/90 text-black font-semibold py-4 text-lg"
+                         size="lg"
+                       >
+                         <Calendar className="h-5 w-5 mr-2" />
+                         Book This Service
+                       </Button>
+                       
+                       <div className="text-center text-gray-600 text-sm">
+                         <div className="flex items-center justify-center gap-2 mb-2">
+                           <CheckCircle className="h-4 w-4" />
+                           <span>Instant Confirmation</span>
+                         </div>
+                         <div className="flex items-center justify-center gap-2">
+                           <Shield className="h-4 w-4" />
+                           <span>Secure Booking</span>
+                         </div>
+                       </div>
+                     </CardContent>
+                   </Card>
+                 </div>
+
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="container-responsive px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          {/* Service Details */}
-          <div className="lg:col-span-2">
-            {/* Image Gallery */}
-            <div className="space-y-4 mb-6">
-              {/* Main Image */}
-              <div 
-                className="aspect-video relative group focus:outline-none focus:ring-2 focus:ring-wrench-accent w-full"
-                tabIndex={images.length > 1 ? 0 : -1}
-                onKeyDown={handleKeyDown}
+      {/* Sticky Navigation */}
+      <div className="sticky top-20 w-auto z-40 bg-wrench-bg-primary/60 backdrop-blur-sm border-b border-gray-200 shadow-sm">
+        <div className="container-responsive">
+          <nav className="flex space-x-8 overflow-x-auto">
+            {[
+              { id: 'overview', label: 'Overview', icon: Zap },
+              { id: 'process', label: 'How It Works', icon: Play },
+              { id: 'reviews', label: 'Reviews', icon: Star },
+              { id: 'provider', label: 'Provider', icon: User },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => scrollToSection(tab.id)}
+                className={`flex items-center gap-2 py-4 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                  activeSection === tab.id
+                    ? 'border-wrench-accent text-wrench-accent'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
               >
-                {primaryImage ? (
-                  <Image
-                    src={primaryImage}
-                    alt={service.title}
-                    fill
-                    className="object-cover rounded-lg"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
-                    <Wrench className="h-16 w-16 text-gray-400" />
-                  </div>
-                )}
-                
-                {/* Image Counter */}
-                {images.length > 1 && (
-                  <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded-lg text-sm font-medium">
-                    {selectedImageIndex + 1} / {images.length}
-                  </div>
-                )}
+                <tab.icon className="h-4 w-4" />
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </nav>
+        </div>
+      </div>
 
-                {/* Mobile Service Badge */}
-                {service.isMobileService && (
-                  <div className="absolute top-4 left-4">
-                    <span className="bg-green-700 text-white px-3 py-1 rounded-full text-sm font-medium">
-                      Mobile Service Available
-                    </span>
-                  </div>
-                )}
-
-                {/* Navigation Arrows */}
-                {images.length > 1 && (
-                  <>
-                    <button
-                      onClick={goToPreviousImage}
-                      className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                      aria-label="Previous image"
-                    >
-                      <ChevronLeft className="h-6 w-6" />
-                    </button>
+      {/* Content Sections */}
+      <div className="space-y-20 py-16">
+        {/* Overview Section */}
+        <section id="overview" className="scroll-mt-32">
+          <div className="container-responsive">
+            <div className="max-w-4xl mx-auto space-y-8">
+                <div>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-6">Service Overview</h2>
+                  <div className="bg-white rounded-2xl p-8 shadow-lg">
+                    <p className="text-gray-700 leading-relaxed text-lg mb-6">
+                      {service?.description || ''}
+                    </p>
                     
-                    <button
-                      onClick={goToNextImage}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                      aria-label="Next image"
-                    >
-                      <ChevronRight className="h-6 w-6" />
-                    </button>
-                  </>
-                )}
-
-                {/* Wishlist Icon */}
-                <div className="absolute top-4 right-4">
-                  <WishlistIcon
-                    id={service.id}
-                    type="service"
-                    title={service.title}
-                    price={service.price}
-                    image={primaryImage}
-                    category={service.category?.name}
-                    sellerName={service.seller.shopName}
-                    size="sm"
-                  />
-                </div>
-              </div>
-
-              {/* Thumbnail Images */}
-              {images.length > 1 && (
-                <div className="flex flex-row gap-2 overflow-x-auto pb-2">
-                  {images.slice(0, 6).map((image, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setSelectedImageIndex(index)}
-                      className={`aspect-video rounded-lg overflow-hidden border-2 transition-colors flex-shrink-0 w-20 h-14 ${
-                        selectedImageIndex === index
-                          ? "border-wrench-accent"
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
-                    >
-                      <Image
-                        src={image}
-                        alt={`${service.title} - Image ${index + 1}`}
-                        width={80}
-                        height={56}
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Service Info */}
-            <Card className="mb-6">
-              <CardHeader>
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
-                  <div className="flex-1">
-                    <CardTitle className="text-xl sm:text-2xl">{service.title}</CardTitle>
-                    <div className="flex items-center gap-4 mt-2">
-                      <div className="flex items-center gap-1">
-                        <Star className="h-5 w-5 text-yellow-400 fill-current" />
-                        <span className="font-medium">{service.ratingAverage || 'New'}</span>
-                        <span className="text-gray-500">({service.ratingCount || 0} reviews)</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-xl">
+                        <div className="p-3 bg-blue-100 rounded-lg">
+                          <Clock className="h-6 w-6 text-blue-600" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-900">Duration</div>
+                          <div className="text-gray-600">{formatDuration(service?.durationMinutes || 0)}</div>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1 text-gray-600">
-                        <Clock className="h-4 w-4" />
-                        <span>{formatDuration(service.durationMinutes)}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-left sm:text-right">
-                    <div className="text-2xl sm:text-3xl font-bold text-blue-600">{formatPrice(service.price)}</div>
-                    <div className="text-sm text-gray-500">per service</div>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="font-semibold mb-2">Description</h3>
-                    <p className="text-gray-600">{service.description}</p>
-                  </div>
-
-                  <div>
-                    <h3 className="font-semibold mb-2">Service Category</h3>
-                    <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
-                      {service.category.name}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                      <span>Professional Service</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Shield className="h-5 w-5 text-green-600" />
-                      <span>Quality Guaranteed</span>
-                    </div>
-                    {service.isMobileService && (
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-5 w-5 text-green-600" />
-                        <span>Mobile Service Available</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Seller Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  Service Provider
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="font-semibold text-lg">{service.seller.shopName}</h3>
-                    <div className="flex items-center gap-1 text-gray-600 mt-1">
-                      <MapPin className="h-4 w-4" />
-                      <span className="line-clamp-1">
-                        {service.seller.shopAddress || `${service.seller.area}, ${service.seller.city}`}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                    <span className="font-medium">{service.seller.ratingAverage || 'New'}</span>
-                    <span className="text-gray-500">seller rating</span>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row gap-2 pt-4 border-t">
-                    <Link href={`/shop/${service.sellerId}`} className="flex-1">
-                    <Button 
-                      variant="outline" 
-                      leftIcon={<Store className="h-4 w-4" />}
-                      className="w-full"
-                    >
-                      View Shop
-                    </Button>
-                    </Link>
-                    {/* Directions to seller */}
-                    {service.seller.latitude && service.seller.longitude && (
-                      <DirectionButton
-                        destination={{
-                          latitude: service.seller.latitude,
-                          longitude: service.seller.longitude,
-                          name: service.seller.shopName,
-                          address: service.seller.shopAddress || `${service.seller.area}, ${service.seller.city}`
-                        }}
-                        className="flex-1"
-                        variant="outline"
-                        size="sm"
-                        showText={true}
-                      />
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Booking Panel */}
-          <div className="lg:col-span-1 order-first lg:order-last">
-            <Card className="sticky top-4">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Book This Service
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {!showBookingForm ? (
-                  <div className="space-y-4">
-                    <div className="text-center p-6 border-2 border-dashed border-gray-300 rounded-lg">
                       
-                      <h3 className="font-semibold text-lg mb-2">AED {formatPrice(service.price)}</h3>
-                      <p className="text-gray-600 text-sm mb-4">
-                        Duration: {formatDuration(service.durationMinutes)}
-                      </p>
-                      <Button 
-                        onClick={() => setShowBookingForm(true)}
-                        className="w-full"
-                        disabled={!isAuthenticated}
-                      >
-                        {isAuthenticated ? 'Select Date & Time' : 'Login to Book'}
-                      </Button>
-                      {!isAuthenticated && (
-                        <p className="text-sm text-gray-500 mt-2">
-                          <button 
-                            onClick={() => openAuthModal('login')}
-                            className="text-blue-600 hover:underline"
-                          >
-                            Login
-                          </button> or                           <button 
-                            onClick={() => openAuthModal('buyer-register')}
-                            className="text-blue-600 hover:underline"
-                          >
-                            register
-                          </button> to book this service
-                        </p>
+                      <div className="flex items-center gap-4 p-4 bg-green-50 rounded-xl">
+                        <div className="p-3 bg-green-100 rounded-lg">
+                          <Award className="h-6 w-6 text-green-600" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-900">Quality</div>
+                          <div className="text-gray-600">Professional Service</div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-4 p-4 bg-purple-50 rounded-xl">
+                        <div className="p-3 bg-purple-100 rounded-lg">
+                          <Shield className="h-6 w-6 text-purple-600" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-900">Guarantee</div>
+                          <div className="text-gray-600">100% Satisfaction</div>
+                        </div>
+                      </div>
+                      
+                      {service?.isMobileService && (
+                        <div className="flex items-center gap-4 p-4 bg-orange-50 rounded-xl">
+                          <div className="p-3 bg-orange-100 rounded-lg">
+                            <MapPin className="h-6 w-6 text-orange-600" />
+                          </div>
+                          <div>
+                            <div className="font-semibold text-gray-900">Location</div>
+                            <div className="text-gray-600">We Come to You</div>
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>
-                ) : (
-                  <div className="space-y-4">
-                    {/* Date Selection */}
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Select Date</label>
-                      <Input
-                        type="date"
-                        value={selectedDate}
-                        onChange={(e) => setSelectedDate(e.target.value)}
-                        min={minDate}
-                      />
+                </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Process Section */}
+        <section id="process" className="scroll-mt-32">
+          <div className="container-responsive py-20 bg-white rounded-2xl shadow-lg">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">How It Works</h2>
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                Simple steps to get your service booked and completed
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="text-center group">
+                <div className="relative mb-6">
+                  <div className="w-20 h-20 bg-wrench-accent/20 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
+                    <Calendar className="h-10 w-10 " />
+                  </div>
+                 
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">Book Your Service</h3>
+                <p className="text-gray-600">
+                  Select your preferred date and time slot. We'll confirm your booking instantly.
+                </p>
+              </div>
+
+              <div className="text-center group">
+                <div className="relative mb-6">
+                  <div className="w-20 h-20 bg-wrench-accent/20 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
+                    <User className="h-10 w-10 " />
+                  </div>
+                  
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">Meet Your Expert</h3>
+                <p className="text-gray-600">
+                  Our professional technician arrives at your location or you visit our shop.
+                </p>
+              </div>
+
+              <div className="text-center group">
+                <div className="relative mb-6">
+                  <div className="w-20 h-20 bg-wrench-accent/20 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
+                    <CheckCircle className="h-10 w-10 " />
+                  </div>
+                  
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">Service Complete</h3>
+                <p className="text-gray-600">
+                  Your service is completed with quality guarantee. Leave a review to help others.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Reviews Section */}
+        <section id="reviews" className="scroll-mt-32">
+          <div className="container-responsive">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Customer Reviews</h2>
+              <p className="text-xl text-gray-600">
+                See what our customers say about this service
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Review Summary */}
+              <div className="lg:col-span-1">
+                <ReviewSummary
+                  entityType="service"
+                  entityId={service?.id || ''}
+                  onRatingFilter={setSelectedRatingFilter}
+                  selectedRating={selectedRatingFilter}
+                />
+                
+                {/* Smart Review Button */}
+                <Card className="mt-6 shadow-lg">
+                  <CardContent className="p-6 text-center">
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      Share Your Experience
+                    </h4>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Help others by reviewing this service
+                    </p>
+                    <SmartReviewButton
+                      entityType="service"
+                      entityId={service?.id || ''}
+                      entityName={service?.title || ''}
+                      entityImage={primaryImage}
+                      onReviewSubmitted={() => setReviewsKey(prev => prev + 1)}
+                      className="w-full bg-wrench-accent hover:bg-wrench-accent/90 text-black"
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Reviews List */}
+              <div className="lg:col-span-2">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    All Reviews
+                  </h3>
+                  {selectedRatingFilter && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedRatingFilter(null)}
+                    >
+                      Clear Filter
+                    </Button>
+                  )}
+                </div>
+                
+                <ReviewsList
+                  key={reviewsKey}
+                  entityType="service"
+                  entityId={service?.id || ''}
+                  ratingFilter={selectedRatingFilter || undefined}
+                  sortBy="helpful"
+                  limit={10}
+                  showLoadMore={true}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Provider Section */}
+        <section id="provider" className="scroll-mt-32 ">
+          <div className="container-responsive py-20">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Service Provider</h2>
+              <p className="text-xl text-gray-600">
+                Meet the professional behind this service
+              </p>
+            </div>
+
+            <div className="max-w-4xl mx-auto">
+              <Card className="shadow-xl border-0 p-0 overflow-hidden">
+                <div className="bg-gradient-to-r from-wrench-accent to-wrench-accent/80 border-0 p-8 text-black">
+                  <div className="flex flex-col md:flex-row items-center gap-8">
+                    <div className="w-24 h-24 bg-white/30 rounded-full flex items-center justify-center text-3xl font-bold text-black">
+                      {service?.seller?.shopName?.charAt(0).toUpperCase() || 'S'}
                     </div>
-
-                    {/* Time Slots */}
-                    {selectedDate && (
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Available Time Slots</label>
-                        {loadingSlots ? (
-                          <div className="text-center py-4">
-                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
-                          </div>
-                        ) : availableSlots.length > 0 ? (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            {availableSlots.map((slot, index) => (
-                              <Button
-                                key={index}
-                                variant={selectedTimeSlot === slot ? 'primary' : 'outline'}
-                                size="sm"
-                                onClick={() => setSelectedTimeSlot(slot)}
-                                disabled={!slot.isAvailable}
-                                className="text-xs"
-                              >
-                                {slot.startTime}
-                              </Button>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-gray-500 text-center py-4">
-                            No available slots for this date
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Mobile Service Location */}
-                    {service.isMobileService && (
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Service Location</label>
-                        <Textarea
-                          placeholder="Enter your address for mobile service"
-                          value={serviceLocation}
-                          onChange={(e) => setServiceLocation(e.target.value)}
-                          rows={3}
-                        />
-                      </div>
-                    )}
-
-                    {/* Notes */}
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Additional Notes (Optional)</label>
-                      <Textarea
-                        placeholder="Any specific requirements or notes"
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        rows={3}
-                      />
-                    </div>
-
-                    {/* Booking Summary */}
-                    {selectedDate && selectedTimeSlot && (
-                      <div className="bg-blue-50 p-4 rounded-lg">
-                        <h4 className="font-semibold mb-2">Booking Summary</h4>
-                        <div className="space-y-1 text-sm">
-                          <div className="flex justify-between">
-                            <span>Service:</span>
-                            <span>{service.title}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Date:</span>
-                            <span>{new Date(selectedDate).toLocaleDateString()}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Time:</span>
-                            <span>{selectedTimeSlot.startTime} - {selectedTimeSlot.endTime}</span>
-                          </div>
-                          <div className="flex justify-between font-semibold">
-                            <span>Total:</span>
-                            <span>{formatPrice(service.price)}</span>
-                          </div>
+                    <div className="flex-1 text-center md:text-left">
+                      <h3 className="text-2xl font-bold mb-2">{service?.seller?.shopName || ''}</h3>
+                      <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
+                        <div className="flex items-center gap-1">
+                          <Star className="h-5 w-5 text-white fill-current" />
+                          <span className="font-semibold">{service?.seller?.ratingAverage || 'New'}</span>
+                          <span className="text-black/70">({service?.seller?.ratingCount || 0} reviews)</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <MapPin className="h-4 w-4" />
+                          <span className="text-black/70">
+                            {service?.seller?.shopAddress || `${service?.seller?.area}, ${service?.seller?.city}`}
+                          </span>
                         </div>
                       </div>
-                    )}
-
-                    {/* Action Buttons */}
-                    <div className="space-y-2">
-                      <Button
-                        onClick={handleBookAppointment}
-                        disabled={!selectedDate || !selectedTimeSlot || isBooking}
-                        className="w-full"
-                      >
-                        {isBooking ? 'Booking...' : 'Confirm Booking'}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => setShowBookingForm(false)}
-                        className="w-full"
-                      >
-                        Back
-                      </Button>
+                      <p className="text-black/70">
+                        Professional service provider with years of experience in {service?.category?.name || 'services'}
+                      </p>
                     </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                </div>
+                
+                <CardContent className="p-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-4">Contact Information</h4>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                          <Phone className="h-5 w-5 text-gray-400" />
+                          <span className="text-gray-700">{service?.seller?.user?.phone || 'N/A'}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <MapPin className="h-5 w-5 text-gray-400" />
+                          <span className="text-gray-700">
+                            {service?.seller?.shopAddress || `${service?.seller?.area}, ${service?.seller?.city}`}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-4">Quick Actions</h4>
+                      <div className="space-y-3">
+                        <Link href={`/shop/${service?.sellerId}`} className="block">
+                          <Button variant="outline" className="w-full justify-start">
+                            <Store className="h-4 w-4 mr-2" />
+                            View Shop
+                          </Button>
+                        </Link>
+                        {service?.seller?.latitude && service?.seller?.longitude && (
+                          <DirectionButton
+                            destination={{
+                              latitude: service?.seller?.latitude || 0,
+                              longitude: service?.seller?.longitude || 0,
+                              name: service?.seller?.shopName || '',
+                              address: service?.seller?.shopAddress || `${service?.seller?.area}, ${service?.seller?.city}`
+                            }}
+                            className="w-full justify-start"
+                            variant="outline"
+                            size="sm"
+                            showText={true}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
-        </div>
+        </section>
       </div>
+
+      {/* Booking Modal */}
+      <ServiceBookingModal
+        service={service}
+        isOpen={showBookingModal}
+        onClose={() => setShowBookingModal(false)}
+        onBookingSuccess={() => {
+          // Refresh any data if needed
+          setReviewsKey(prev => prev + 1);
+        }}
+      />
     </div>
   );
 }

@@ -128,10 +128,10 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
       
       await registerUser(submissionData);
       
-      // Show success message
-      toast.success('Seller account created successfully! Welcome to WrenchEX.');
+      // Show success message with email verification info
+      toast.success('Seller account created successfully! Please check your email to verify your account.');
       
-      // Redirect seller to seller dashboard
+      // Redirect seller to seller dashboard (they'll see verification banner)
       router.push('/dashboard');
       
       onSuccess?.();
@@ -505,6 +505,7 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
           )}
         </Button>
       </form>
+
 
       {/* Footer */}
       <div className="text-center space-y-4">

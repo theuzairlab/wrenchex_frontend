@@ -29,6 +29,10 @@ import { cn } from '@/lib/utils';
 import { Product } from '@/types';
 import { ChatWithSellerButton } from '@/components/chat/ChatWithSellerButton';
 import { WishlistIcon } from '@/components/ui/WishlistIcon';
+import ReviewSummary from '@/components/reviews/ReviewSummary';
+import ReviewsList from '@/components/reviews/ReviewsList';
+import SmartReviewButton from '@/components/reviews/SmartReviewButton';
+import { useScrollSpy } from '@/hooks/useScrollSpy';
 
 interface ProductDetailViewProps {
   product: Product;
@@ -37,7 +41,12 @@ interface ProductDetailViewProps {
 const ProductDetailView = ({ product }: ProductDetailViewProps) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState<'description' | 'specifications' | 'shipping' | 'reviews'>('description');
+  const [selectedRatingFilter, setSelectedRatingFilter] = useState<number | null>(null);
+  const [reviewsKey, setReviewsKey] = useState(0); // For refreshing reviews after submission
+
+  // Scroll spy for section navigation
+  const sectionIds = ['description', 'specifications', 'shipping', 'reviews'];
+  const { activeSection, scrollToSection } = useScrollSpy({ sectionIds, offset: 120 });
 
   const images = product.images || product.productImages?.map(img => img.url) || ['/placeholder-product.jpg'];
   const primaryImage = images[selectedImageIndex] || images[0];
@@ -447,9 +456,9 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
         </div>
       </div>
 
-      {/* Product Details Tabs */}
-      <div className="mt-12">
-        <div className="border-b border-gray-200">
+      {/* Sticky Navigation */}
+      <div className="sticky top-20 z-40 bg-wrench-bg-primary/80 backdrop-blur-sm border-b border-gray-200 mt-12">
+        <div className="container-responsive">
           <nav className="flex flex-wrap space-x-4 sm:space-x-8 overflow-x-auto">
             {[
               { id: 'description', label: 'Description', icon: Info },
@@ -459,10 +468,10 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => scrollToSection(tab.id)}
                 className={cn(
                   "flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors whitespace-nowrap",
-                  activeTab === tab.id
+                  activeSection === tab.id
                     ? "border-wrench-accent text-wrench-accent"
                     : "border-transparent text-gray-500 hover:text-gray-700"
                 )}
@@ -473,24 +482,31 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
             ))}
           </nav>
         </div>
+      </div>
 
-        <div className="py-8">
-          {activeTab === 'description' && (
-            <div className="max-w-4xl">
-              <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                {product.description}
-              </p>
-            </div>
-          )}
+      {/* All Sections - Full Page Layout */}
+      <div className="space-y-16 py-8">
+        {/* Description Section */}
+        <section id="description" className="scroll-mt-32">
+          <div className="max-w-4xl">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Description</h2>
+            <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+              {product.description}
+            </p>
+          </div>
+        </section>
 
-          {activeTab === 'specifications' && (
-            <div className="max-w-4xl">
-              {(product.specifications || product.productSpecs) ? (
+        {/* Specifications Section */}
+        <section id="specifications" className="scroll-mt-32">
+          <div className="max-w-4xl">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Specifications</h2>
+            {(product.specifications || product.productSpecs) ? (
+              <div className="bg-gray-50 p-6 rounded-lg">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Legacy specifications */}
                   {product.specifications && typeof product.specifications === 'object' && (
                     Object.entries(product.specifications).map(([key, value]) => (
-                      <div key={key} className="flex justify-between py-2 border-b border-gray-100">
+                      <div key={key} className="flex justify-between py-3 border-b border-gray-200">
                         <span className="font-medium text-gray-900 capitalize">
                           {key.replace(/([A-Z])/g, ' $1').trim()}
                         </span>
@@ -501,7 +517,7 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
                   
                   {/* Enhanced specifications */}
                   {product.productSpecs?.map((spec) => (
-                    <div key={spec.id} className="flex justify-between py-2 border-b border-gray-100">
+                    <div key={spec.id} className="flex justify-between py-3 border-b border-gray-200">
                       <span className="font-medium text-gray-900">{spec.name}</span>
                       <span className="text-gray-600">
                         {spec.value} {spec.unit && <span className="text-gray-500">{spec.unit}</span>}
@@ -509,17 +525,28 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
                     </div>
                   ))}
                 </div>
-              ) : (
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-gray-50 rounded-lg">
+                <Package className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                 <p className="text-gray-500">No specifications available for this product.</p>
-              )}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
+        </section>
 
-          {activeTab === 'shipping' && (
-            <div className="max-w-4xl space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Shipping Information</h3>
-                <div className="space-y-2 text-gray-700">
+        {/* Shipping & Returns Section */}
+        <section id="shipping" className="scroll-mt-32">
+          <div className="max-w-4xl">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Shipping & Returns</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Shipping Information */}
+              <div className="bg-gray-50 p-6 rounded-lg">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <Truck className="h-5 w-5 text-wrench-accent mr-2" />
+                  Shipping Information
+                </h3>
+                <div className="space-y-3 text-gray-700">
                   <p>• {product.shippingInfo?.freeShipping ? 'Free shipping on this item' : `Shipping cost: AED ${product.shippingInfo?.shippingCost || 25}`}</p>
                   <p>• Estimated delivery: {product.shippingInfo?.estimatedDelivery || '2-3 business days'}</p>
                   <p>• Ships from seller location in UAE</p>
@@ -527,9 +554,13 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
                 </div>
               </div>
               
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Returns & Refunds</h3>
-                <div className="space-y-2 text-gray-700">
+              {/* Returns & Refunds */}
+              <div className="bg-gray-50 p-6 rounded-lg">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <RotateCcw className="h-5 w-5 text-wrench-accent mr-2" />
+                  Returns & Refunds
+                </h3>
+                <div className="space-y-3 text-gray-700">
                   <p>• 30-day return policy</p>
                   <p>• Items must be in original condition</p>
                   <p>• Return shipping may apply</p>
@@ -537,44 +568,77 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
                 </div>
               </div>
             </div>
-          )}
+          </div>
+        </section>
 
-          {activeTab === 'reviews' && (
-            <div className="max-w-4xl">
-              {product.ratingCount > 0 ? (
-                <div className="text-center py-8">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    {product.ratingCount} Customer Reviews
+        {/* Reviews Section */}
+        <section id="reviews" className="scroll-mt-32">
+          <div className="max-w-6xl">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Customer Reviews</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Review Summary */}
+              <div className="lg:col-span-1">
+                <ReviewSummary
+                  entityType="product"
+                  entityId={product.id}
+                  onRatingFilter={setSelectedRatingFilter}
+                  selectedRating={selectedRatingFilter}
+                />
+                
+                {/* Smart Review Button */}
+                <Card className="mt-4">
+                  <CardContent className="p-4 text-center">
+                    <h4 className="font-medium text-gray-900 mb-2">
+                      Share Your Experience
+                    </h4>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Help others by reviewing this product
+                    </p>
+                    <SmartReviewButton
+                      entityType="product"
+                      entityId={product.id}
+                      entityName={product.title}
+                      entityImage={primaryImage}
+                      onReviewSubmitted={() => setReviewsKey(prev => prev + 1)}
+                      className="w-full bg-yellow-500 hover:bg-yellow-600 text-white"
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Reviews List */}
+              <div className="lg:col-span-2">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    All Reviews
                   </h3>
-                  <div className="flex items-center justify-center space-x-2 mb-4">
-                    <div className="flex">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={cn(
-                            "h-6 w-6",
-                            i < Math.floor(product.ratingAverage!)
-                              ? "text-yellow-400 fill-current"
-                              : "text-gray-300"
-                          )}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-xl font-semibold">{product.ratingAverage?.toFixed(1)}</span>
-                  </div>
-                  <p className="text-gray-600">Reviews section coming soon...</p>
+                  {selectedRatingFilter && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedRatingFilter(null)}
+                    >
+                      Clear Filter
+                    </Button>
+                  )}
                 </div>
-              ) : (
-                <div className="text-center py-8">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No Reviews Yet</h3>
-                  <p className="text-gray-600">Be the first to review this product!</p>
-                </div>
-              )}
+                
+                <ReviewsList
+                  key={reviewsKey} // Force refresh when reviews change
+                  entityType="product"
+                  entityId={product.id}
+                  ratingFilter={selectedRatingFilter || undefined}
+                  sortBy="helpful"
+                  limit={10}
+                  showLoadMore={true}
+                />
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        </section>
       </div>
-    </div>
+      </div>
+    
   );
 };
 

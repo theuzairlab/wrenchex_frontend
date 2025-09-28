@@ -11,6 +11,7 @@ import { buyerRegisterSchema, type BuyerRegisterFormData } from '@/lib/validatio
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { GoogleLoginButton } from './GoogleLoginButton';
 
 interface BuyerRegisterFormProps {
   onSuccess?: () => void;
@@ -56,10 +57,10 @@ export function BuyerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToSeller
       clearErrors();
       await registerUser(data);
       
-      // Show success message
-      toast.success('Account created successfully! Welcome to WrenchEX.');
+      // Show success message with email verification info
+      toast.success('Account created successfully! Please check your email to verify your account.');
       
-      // Redirect buyer to dashboard
+      // Redirect buyer to dashboard (they'll see verification banner)
       router.push('/dashboard');
       
       onSuccess?.();
@@ -248,6 +249,22 @@ export function BuyerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToSeller
           )}
         </Button>
       </form>
+
+      {/* Divider */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-white px-2 text-wrench-text-secondary">Or</span>
+        </div>
+      </div>
+
+      {/* Google Login */}
+      <GoogleLoginButton
+        onSuccess={onSuccess}
+        text="Continue with Google"
+      />
 
       {/* Footer */}
       <div className="text-center space-y-4">
