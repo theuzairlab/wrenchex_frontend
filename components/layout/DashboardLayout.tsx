@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/navigation/Header';
 import { Sidebar } from '@/components/navigation/Sidebar';
 import { AuthenticatedRoute } from '@/components/auth/ProtectedRoute';
+import { EmailVerificationBanner } from '@/components/auth/EmailVerificationBanner';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -73,6 +74,8 @@ export function DashboardLayout({ children, title, description }: DashboardLayou
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className="flex-1 overflow-auto">
               <div className="p-6">
+                {/* Show verification banner at top for unverified users */}
+                <EmailVerificationBanner className="mb-4" />
                 {children}
               </div>
             </div>

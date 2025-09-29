@@ -8,6 +8,7 @@ import { formatPrice } from '@/lib/utils';
 import { BuyerDashboard } from '@/components/dashboards/BuyerDashboard';
 import { ShopDashboard } from '@/components/dashboards/ShopDashboard';
 import { AdminDashboard } from '@/components/dashboards/AdminDashboard';
+import { EmailVerificationBanner } from '@/components/auth';
 
 // Utility function for date formatting
 const formatDateTime = (dateString: string) => {
@@ -227,7 +228,12 @@ export default function DashboardPage() {
   };
 
   return (
+    // <DashboardLayout title={getTitle()} description={getDescription()}>
+    //   {getDashboardContent()}
+    // </DashboardLayout>
+
     <div>
+      <EmailVerificationBanner className="mb-4" />
       {getDashboardContent()}
     </div>
   );
