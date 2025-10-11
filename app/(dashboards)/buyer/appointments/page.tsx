@@ -8,12 +8,17 @@ import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
 import { Calendar, Plus } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import AppointmentCard from '@/components/appointments/AppointmentCard';
 
 export default function BuyerAppointmentsPage() {
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
   const [appointments, setAppointments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'past'>('upcoming');
+  const t = useTranslations('buyerAppointments');
 
   useEffect(() => {
     loadAppointments();
@@ -22,22 +27,22 @@ export default function BuyerAppointmentsPage() {
   const loadAppointments = async () => {
     try {
       setIsLoading(true);
-      
+
       const filters: any = {
         limit: 100 // Increase limit to get more appointments
       };
-      
+
       if (filter === 'upcoming') {
         // Don't use status filter - let frontend filter upcoming appointments
         filters.startDate = new Date().toISOString();
       } else if (filter === 'past') {
         filters.endDate = new Date().toISOString();
       }
-      
+
       console.log('Loading appointments with filters:', filters);
       const response = await apiClient.getAppointments(filters);
       console.log('Appointments response:', response);
-      
+
       if (response.success && response.data) {
         // Handle both direct array and wrapped response formats
         const appointmentsData = Array.isArray(response.data) ? response.data : (response.data as any).appointments;
@@ -46,7 +51,7 @@ export default function BuyerAppointmentsPage() {
       }
     } catch (error: any) {
       console.error('Failed to load appointments:', error);
-      toast.error('Failed to load appointments');
+      toast.error(t('loadAppointmentsFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -65,7 +70,7 @@ export default function BuyerAppointmentsPage() {
   const filteredAppointments = appointments && Array.isArray(appointments) ? appointments.filter(appointment => {
     const appointmentDate = new Date(appointment.scheduledDate);
     const now = new Date();
-    
+
     if (filter === 'upcoming') {
       return appointmentDate >= now && ['CONFIRMED', 'PENDING'].includes(appointment.status);
     } else if (filter === 'past') {
@@ -82,15 +87,15 @@ export default function BuyerAppointmentsPage() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
               <Calendar className="text-blue-600" />
-              My Appointments
+              {t('myAppointments')}
             </h1>
             <p className="text-gray-600">
-              Manage your service appointments and bookings
+              {t('manageAppointments')}
             </p>
           </div>
-          <Link href="/services">
+          <Link href={`/${currentLocale}/services`}>
             <Button leftIcon={<Plus className="h-4 w-4" />}>
-              Book Service
+              {t('bookService')}
             </Button>
           </Link>
         </div>
@@ -98,18 +103,17 @@ export default function BuyerAppointmentsPage() {
         {/* Filter Tabs */}
         <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
           {[
-            { key: 'upcoming', label: 'Upcoming' },
-            { key: 'past', label: 'Past' },
-            { key: 'all', label: 'All' }
+            { key: 'upcoming', label: t('upcoming') },
+            { key: 'past', label: t('past') },
+            { key: 'all', label: t('all') }
           ].map((tab) => (
             <button
               key={tab.key}
               onClick={() => setFilter(tab.key as any)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                filter === tab.key
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${filter === tab.key
                   ? 'bg-white text-blue-600 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               {tab.label}
             </button>
@@ -119,25 +123,20 @@ export default function BuyerAppointmentsPage() {
         {/* Appointments List */}
         {isLoading ? (
           <div className="text-center py-12">
-            <div className="text-gray-500">Loading appointments...</div>
+            <div className="text-gray-500">{t('loadingAppointments')}</div>
           </div>
         ) : filteredAppointments.length === 0 ? (
           <Card>
             <CardContent className="text-center py-12">
               <Calendar className="mx-auto mb-4 text-gray-400" size={48} />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                No {filter === 'all' ? '' : filter} appointments
+                {t(`noAppointments${filter === 'all' ? 'All' : filter.charAt(0).toUpperCase() + filter.slice(1)}`)}
               </h3>
               <p className="text-gray-600 mb-4">
-                {filter === 'upcoming' 
-                  ? "You don't have any upcoming appointments."
-                  : filter === 'past'
-                  ? "You don't have any past appointments."
-                  : "You haven't booked any services yet."
-                }
+                {t(`noAppointmentsDescription${filter === 'all' ? 'All' : filter.charAt(0).toUpperCase() + filter.slice(1)}`)}
               </p>
-              <Link href="/services">
-                <Button>Book Your First Service</Button>
+              <Link href={`/${currentLocale}/services`}>
+                <Button>{t('bookFirstService')}</Button>
               </Link>
             </CardContent>
           </Card>

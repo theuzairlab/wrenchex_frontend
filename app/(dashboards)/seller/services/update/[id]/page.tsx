@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, usePathname } from 'next/navigation';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/lib/stores/auth';
 import { Input } from '@/components/ui/Input';
@@ -16,12 +16,19 @@ import { ArrowLeft, Save, Upload, Clock, MapPin, Trash2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { apiClient } from '@/lib/api/client';
 import { Category, Service } from '@/types';
+import { useTranslations } from 'next-intl';
+import { formatPrice } from '@/lib/utils';
+import CurrencySelector from '@/components/ui/CurrencySelector';
+import { CurrencyService, CurrencyInfo } from '@/lib/services/currencyService';
 
 export default function UpdateServicePage() {
   const router = useRouter();
   const params = useParams();
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
   const serviceId = params.id as string;
   const { token } = useAuthStore();
+  const t = useTranslations('sellerServicesUpdate');
   
   const [service, setService] = useState<Service | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -29,6 +36,7 @@ export default function UpdateServicePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
   const [imageToRemove, setImageToRemove] = useState<string | null>(null);
+  const [selectedCurrency, setSelectedCurrency] = useState<CurrencyInfo | null>(null);
 
   useEffect(() => {
     if (serviceId) {
@@ -37,19 +45,48 @@ export default function UpdateServicePage() {
     }
   }, [serviceId]);
 
+  useEffect(() => {
+    if (service) {
+      // Set the currency from the service data
+      if (service.currency) {
+        const currencyInfo: CurrencyInfo = {
+          code: service.currency,
+          symbol: service.currency === 'AED' ? 'د.إ' : service.currency === 'PKR' ? '₨' : service.currency,
+          name: service.currency === 'AED' ? 'UAE Dirham' : service.currency === 'PKR' ? 'Pakistani Rupee' : service.currency
+        };
+        setSelectedCurrency(currencyInfo);
+      } else {
+        // Default to AED if no currency is set
+        const defaultCurrency: CurrencyInfo = {
+          code: 'AED',
+          symbol: 'د.إ',
+          name: 'UAE Dirham'
+        };
+        setSelectedCurrency(defaultCurrency);
+      }
+    }
+  }, [service]);
+
+  const handleCurrencyChange = (currency: CurrencyInfo) => {
+    setSelectedCurrency(currency);
+    if (service) {
+      setService(prev => prev ? { ...prev, currency: currency.code } : null);
+    }
+  };
+
   const fetchServiceData = async () => {
     try {
       const response = await apiClient.getServiceById(serviceId);
       if (response.success && response.data) {
         setService(response.data);
       } else {
-        toast.error('Service not found');
-        router.push('/seller/services');
+        toast.error(t('serviceNotFound'));
+        router.push(`/${currentLocale}/seller/services`);
       }
     } catch (error) {
       console.error('Failed to fetch service:', error);
-      toast.error('Failed to load service');
-      router.push('/seller/services');
+      toast.error(t('failedToLoadService'));
+      router.push(`/${currentLocale}/seller/services`);
     } finally {
       setIsLoading(false);
     }
@@ -68,7 +105,7 @@ export default function UpdateServicePage() {
       }
     } catch (error) {
       console.error('Failed to fetch categories:', error);
-      toast.error('Failed to load categories');
+      toast.error(t('failedToLoadCategories'));
     }
   };
 
@@ -144,10 +181,10 @@ export default function UpdateServicePage() {
         images: [...(prev?.images || []), ...uploadedUrls]
       }));
       
-      toast.success(`${uploadedUrls.length} image(s) uploaded successfully`);
+      toast.success(t('imagesUploadedSuccessfully', { count: uploadedUrls.length }));
     } catch (error) {
       console.error('Image upload failed:', error);
-      toast.error('Failed to upload images');
+      toast.error(t('failedToUploadImages'));
     } finally {
       setIsUploadingImages(false);
     }
@@ -165,7 +202,7 @@ export default function UpdateServicePage() {
       images: prev!.images?.filter(img => img !== imageToRemove) || []
     }));
     setImageToRemove(null);
-    toast.success('Image removed');
+    toast.success(t('imageRemoved'));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -174,7 +211,7 @@ export default function UpdateServicePage() {
     if (!service) return;
 
     if (!service.title || !service.description || !service.categoryId || !service.price || !service.durationMinutes) {
-      toast.error('Please fill in all required fields');
+      toast.error(t('fillRequiredFields'));
       return;
     }
 
@@ -187,6 +224,7 @@ export default function UpdateServicePage() {
         description: service.description,
         categoryId: service.categoryId,
         price: service.price,
+        currency: service.currency || 'AED',
         durationMinutes: service.durationMinutes,
         isMobileService: service.isMobileService,
         images: service.images || []
@@ -195,15 +233,15 @@ export default function UpdateServicePage() {
       const response = await apiClient.updateService(updateData);
 
       if (response.success) {
-        toast.success('Service updated successfully!');
+        toast.success(t('serviceUpdatedSuccessfully'));
         // Force a refresh of the services page to show the updated service
-        router.push('/seller/services?refresh=' + Date.now());
+        router.push(`/${currentLocale}/seller/services?refresh=` + Date.now());
       } else {
-        toast.error(response.error?.message || 'Failed to update service');
+        toast.error(response.error?.message || t('failedToUpdateService'));
       }
     } catch (error: any) {
       console.error('Failed to update service:', error);
-      toast.error('Failed to update service');
+      toast.error(t('failedToUpdateService'));
     } finally {
       setIsSubmitting(false);
     }
@@ -223,7 +261,7 @@ export default function UpdateServicePage() {
     return (
       <ProtectedRoute requiredRole="SELLER">
         <div className="min-h-screen bg-wrench-bg-primary flex items-center justify-center">
-          <LoadingSpinner size="lg" text="Loading service..." />
+          <LoadingSpinner size="lg" text={t('loadingService')} />
         </div>
       </ProtectedRoute>
     );
@@ -234,9 +272,9 @@ export default function UpdateServicePage() {
       <ProtectedRoute requiredRole="SELLER">
         <div className="min-h-screen bg-wrench-bg-primary flex items-center justify-center">
           <div className="text-center">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Service not found</h2>
-            <Button onClick={() => router.push('/seller/services')}>
-              Back to Services
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('serviceNotFound')}</h2>
+            <Button onClick={() => router.push(`/${currentLocale}/seller/services`)}>
+              {t('backToServices')}
             </Button>
           </div>
         </div>
@@ -252,10 +290,10 @@ export default function UpdateServicePage() {
           <div className="mb-6">
             <Button variant="outline" className="mb-4" onClick={() => router.back()}>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Services
+              {t('backToServices')}
             </Button>
-            <h1 className="text-3xl font-bold text-gray-900">Update Service</h1>
-            <p className="text-gray-600 mt-2">Modify your service details</p>
+            <h1 className="text-3xl font-bold text-gray-900">{t('updateService')}</h1>
+            <p className="text-gray-600 mt-2">{t('modifyServiceDetails')}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
@@ -265,12 +303,12 @@ export default function UpdateServicePage() {
                 {/* Basic Information */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Basic Information</CardTitle>
+                    <CardTitle>{t('basicInformation')}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
                       <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-                        Service Title *
+{t('serviceTitle')} *
                       </label>
                       <Input
                         type="text"
@@ -278,21 +316,21 @@ export default function UpdateServicePage() {
                         name="title"
                         value={service.title}
                         onChange={handleChange}
-                        placeholder="e.g., Oil Change Service, Brake Repair, Engine Diagnostic"
+placeholder={t('serviceTitlePlaceholder')}
                         required
                       />
                     </div>
 
                     <div>
                       <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                        Service Description *
+{t('serviceDescription')} *
                       </label>
                       <Textarea
                         id="description"
                         name="description"
                         value={service.description}
                         onChange={handleChange}
-                        placeholder="Describe your service in detail..."
+placeholder={t('serviceDescriptionPlaceholder')}
                         rows={4}
                         required
                       />
@@ -301,11 +339,11 @@ export default function UpdateServicePage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700 mb-2">
-                          Category *
+{t('category')} *
                         </label>
                         <Select value={service.categoryId} onValueChange={handleCategoryChange}>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select service category" />
+                            <SelectValue placeholder={t('selectServiceCategory')} />
                           </SelectTrigger>
                           <SelectContent>
                             {categories.map((category) => (
@@ -328,7 +366,7 @@ export default function UpdateServicePage() {
                         />
                         <label htmlFor="isMobileService" className="text-sm font-medium text-gray-700 flex items-center">
                           <MapPin className="w-4 h-4 mr-1" />
-                          Mobile Service (I come to customer)
+{t('mobileServiceDescription')}
                         </label>
                       </div>
                     </div>
@@ -340,7 +378,7 @@ export default function UpdateServicePage() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Upload className="w-5 h-5" />
-                      Service Images
+{t('serviceImages')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -354,20 +392,20 @@ export default function UpdateServicePage() {
                       <div className="text-center text-sm text-gray-600 mb-4">
                         <div className="flex items-center justify-center gap-2">
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-wrench-accent"></div>
-                          Uploading images...
+{t('uploadingImages')}
                         </div>
                       </div>
                     )}
                     
                     {service.images && service.images.length > 0 && (
                       <div className="mt-4">
-                        <p className="text-sm text-gray-600 mb-2">{service.images.length} image(s) uploaded</p>
+                        <p className="text-sm text-gray-600 mb-2">{t('imagesUploadedCount', { count: service.images.length })}</p>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                           {service.images.map((imageUrl, index) => (
                             <div key={index} className="relative group">
                               <img
                                 src={imageUrl}
-                                alt={`Service image ${index + 1}`}
+                                alt={t('serviceImageAlt', { index: index + 1 })}
                                 className="w-full h-32 object-cover rounded-lg border"
                               />
                               <button
@@ -392,30 +430,43 @@ export default function UpdateServicePage() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      Pricing & Duration
+{t('pricingDuration')}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">
-                        Service Price (AED) *
-                      </label>
-                      <Input
-                        type="number"
-                        id="price"
-                        name="price"
-                        value={service.price.toString()}
-                        onChange={handleChange}
-                        placeholder="0"
-                        min="0"
-                        step="0.01"
-                        required
-                      />
+                  <CardContent className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">
+                          {t('servicePrice')} *
+                        </label>
+                        <Input
+                          type="number"
+                          id="price"
+                          name="price"
+                          value={service.price.toString()}
+                          onChange={handleChange}
+                          placeholder="0"
+                          min="0"
+                          step="0.01"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="currency" className="block text-sm font-medium text-gray-700 mb-2">
+                          {t('currency')} *
+                        </label>
+                        <CurrencySelector
+                          value={service.currency || 'AED'}
+                          onChange={handleCurrencyChange}
+                          placeholder={t('selectCurrency')}
+                          className="w-full"
+                        />
+                      </div>
                     </div>
 
                     <div>
                       <label htmlFor="durationMinutes" className="block text-sm font-medium text-gray-700 mb-2">
-                        Duration (minutes) *
+{t('durationMinutes')} *
                       </label>
                       <Input
                         type="number"
@@ -441,19 +492,19 @@ export default function UpdateServicePage() {
                 {/* Preview */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-sm">Preview</CardTitle>
+                    <CardTitle className="text-sm">{t('preview')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2 text-sm">
                       <h3 className="font-medium">{service.title}</h3>
                       <p className="text-green-600 font-bold">
-                        AED {service.price.toLocaleString()}
+                        {formatPrice(service.price, service.currency || 'AED')}
                       </p>
                       <p className="text-gray-600">
-                        Duration: {formatDuration(service.durationMinutes)}
+{t('duration')}: {formatDuration(service.durationMinutes)}
                       </p>
                       {service.isMobileService && (
-                        <p className="text-blue-600 text-xs">Mobile Service Available</p>
+                        <p className="text-blue-600 text-xs">{t('mobileServiceAvailable')}</p>
                       )}
                     </div>
                   </CardContent>
@@ -466,7 +517,7 @@ export default function UpdateServicePage() {
                   className="w-full"
                   leftIcon={<Save className="w-4 h-4" />}
                 >
-                  {isSubmitting ? 'Updating Service...' : isUploadingImages ? 'Uploading Images...' : 'Update Service'}
+{isSubmitting ? t('updatingService') : isUploadingImages ? t('uploadingImagesBtn') : t('updateService')}
                 </Button>
               </div>
             </div>
@@ -478,17 +529,17 @@ export default function UpdateServicePage() {
       <Dialog open={!!imageToRemove} onOpenChange={() => setImageToRemove(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Remove Image</DialogTitle>
+            <DialogTitle>{t('removeImage')}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to remove this image? This action cannot be undone.
+              {t('removeImageConfirmation')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setImageToRemove(null)}>
-              Cancel
+{t('cancel')}
             </Button>
             <Button variant="destructive" onClick={removeImage}>
-              Remove Image
+{t('removeImage')}
             </Button>
           </DialogFooter>
         </DialogContent>

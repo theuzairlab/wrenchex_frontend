@@ -5,6 +5,8 @@ import { Activity, BarChart3, MessageSquare, Package, Users, Store, Calendar } f
 import { Button } from "../ui/Button";
 import { Card, CardContent } from "../ui/Card";
 import Link from "next/link";
+import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { apiClient } from '@/lib/api/client';
 
 interface PlatformStats {
@@ -22,6 +24,9 @@ interface PlatformStats {
 // Admin Dashboard Content
 export function AdminDashboard({ User }: { User: any}) {
   const user = User();
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
+  const t = useTranslations('adminDashboard');
   const [stats, setStats] = useState<PlatformStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,11 +45,11 @@ export function AdminDashboard({ User }: { User: any}) {
       if (response.success && response.data) {
         setStats(response.data.stats);
       } else {
-        setError(response.error?.message || 'Failed to fetch platform statistics');
+        setError(response.error?.message || t('fetchPlatformStatisticsFailed'));
       }
     } catch (err: any) {
       console.error('Error fetching stats:', err);
-      setError(err.message || 'Failed to fetch platform statistics');
+      setError(err.message || t('fetchPlatformStatisticsFailed'));
     } finally {
       setLoading(false);
     }
@@ -64,20 +69,20 @@ export function AdminDashboard({ User }: { User: any}) {
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-lg p-6 border border-red-200">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Admin Dashboard 🛡️
+          {t('adminDashboard')} 🛡️
         </h2>
         <p className="text-gray-600 mb-4">
-          Monitor platform performance, manage users, and oversee marketplace operations.
+          {t('monitorPlatformPerformanceDescription')}
         </p>
         <div className="flex flex-col sm:flex-row gap-3">
-          <Link href="/admin/analytics">
+          <Link href={`/${currentLocale}/admin/analytics`}>
             <Button variant="primary" leftIcon={<BarChart3 className="h-4 w-4" />}>
-              Platform Analytics
+              {t('platformAnalytics')}
             </Button>
           </Link>
-          <Link href="/admin/users">
+          <Link href={`/${currentLocale}/admin/users`}>
             <Button variant="secondary" leftIcon={<Users className="h-4 w-4" />}>
-              Manage Users
+              {t('manageUsers')}
             </Button>
           </Link>
         </div>
@@ -89,11 +94,11 @@ export function AdminDashboard({ User }: { User: any}) {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Users</p>
+                <p className="text-sm font-medium text-gray-600">{t('totalUsers')}</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {loading ? '...' : stats ? formatNumber(stats.users.total) : '0'}
                 </p>
-                <p className="text-sm text-green-600">+5.2% this month</p>
+                <p className="text-sm text-green-600">{t('growthThisMonth')}</p>
               </div>
               <Users className="h-8 w-8 text-blue-600" />
             </div>
@@ -104,12 +109,12 @@ export function AdminDashboard({ User }: { User: any}) {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Active Sellers</p>
+                <p className="text-sm font-medium text-gray-600">{t('activeSellers')}</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {loading ? '...' : stats ? formatNumber(stats.sellers.total) : '0'}
                 </p>
                 <p className="text-sm text-blue-600">
-                  {loading ? '...' : stats ? `${Math.round((stats.sellers.total / Math.max(stats.users.total, 1)) * 100)}% of users` : '0% of users'}
+                  {loading ? '...' : stats ? t('percentageOfUsers', { percentage: Math.round((stats.sellers.total / Math.max(stats.users.total, 1)) * 100) }) : t('zeroPercentageOfUsers')}
                 </p>
               </div>
               <Store className="h-8 w-8 text-green-600" />
@@ -121,12 +126,12 @@ export function AdminDashboard({ User }: { User: any}) {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Listings</p>
+                <p className="text-sm font-medium text-gray-600">{t('totalListings')}</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {loading ? '...' : stats ? formatNumber(stats.products.total + stats.services.total) : '0'}
                 </p>
                 <p className="text-sm text-purple-600">
-                  {loading ? '...' : stats ? `${stats.products.total} products, ${stats.services.total} services` : '0 products, 0 services'}
+                  {loading ? '...' : stats ? t('productsAndServices', { products: stats.products.total, services: stats.services.total }) : t('zeroProductsAndServices')}
                 </p>
               </div>
               <Package className="h-8 w-8 text-purple-600" />
@@ -138,12 +143,12 @@ export function AdminDashboard({ User }: { User: any}) {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Active Chats</p>
+                <p className="text-sm font-medium text-gray-600">{t('activeChats')}</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {loading ? '...' : stats ? formatNumber(stats.chats.active) : '0'}
                 </p>
                 <p className="text-sm text-green-600">
-                  {loading ? '...' : stats ? `${Math.round((stats.chats.active / Math.max(stats.chats.total, 1)) * 100)}% of total` : '0% of total'}
+                  {loading ? '...' : stats ? t('percentageOfTotal', { percentage: Math.round((stats.chats.active / Math.max(stats.chats.total, 1)) * 100) }) : t('zeroPercentageOfTotal')}
                 </p>
               </div>
               <MessageSquare className="h-8 w-8 text-green-600" />
@@ -157,11 +162,11 @@ export function AdminDashboard({ User }: { User: any}) {
         <Card className="cursor-pointer hover:shadow-md transition-shadow">
           <CardContent className="p-6 text-center">
             <Users className="h-12 w-12 text-blue-600 mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-900 mb-2">User Management</h3>
-            <p className="text-sm text-gray-600 mb-4">Manage users, sellers, and permissions</p>
-            <Link href="/admin/users">
+            <h3 className="font-semibold text-gray-900 mb-2">{t('userManagement')}</h3>
+            <p className="text-sm text-gray-600 mb-4">{t('manageUsersSellersAndPermissions')}</p>
+            <Link href={`/${currentLocale}/admin/users`}>
               <Button variant="outline" className="w-full">
-                Manage Users
+                {t('manageUsers')}
               </Button>
             </Link>
           </CardContent>
@@ -170,11 +175,11 @@ export function AdminDashboard({ User }: { User: any}) {
         <Card className="cursor-pointer hover:shadow-md transition-shadow">
           <CardContent className="p-6 text-center">
             <Store className="h-12 w-12 text-green-600 mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-900 mb-2">Seller Management</h3>
-            <p className="text-sm text-gray-600 mb-4">Review and approve seller applications</p>
-            <Link href="/admin/sellers">
+            <h3 className="font-semibold text-gray-900 mb-2">{t('sellerManagement')}</h3>
+            <p className="text-sm text-gray-600 mb-4">{t('reviewAndApproveSellerApplications')}</p>
+            <Link href={`/${currentLocale}/admin/sellers`}>
               <Button variant="outline" className="w-full">
-                Manage Sellers
+                {t('manageSellers')}
               </Button>
             </Link>
           </CardContent>
@@ -183,11 +188,11 @@ export function AdminDashboard({ User }: { User: any}) {
         <Card className="cursor-pointer hover:shadow-md transition-shadow">
           <CardContent className="p-6 text-center">
             <BarChart3 className="h-12 w-12 text-purple-600 mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-900 mb-2">Analytics</h3>
-            <p className="text-sm text-gray-600 mb-4">View detailed platform analytics</p>
-            <Link href="/admin/analytics">
+            <h3 className="font-semibold text-gray-900 mb-2">{t('analytics')}</h3>
+            <p className="text-sm text-gray-600 mb-4">{t('viewDetailedPlatformAnalytics')}</p>
+            <Link href={`/${currentLocale}/admin/analytics`}>
               <Button variant="outline" className="w-full">
-                View Analytics
+                {t('viewAnalytics')}
               </Button>
             </Link>
           </CardContent>
@@ -199,11 +204,11 @@ export function AdminDashboard({ User }: { User: any}) {
         <Card className="cursor-pointer hover:shadow-md transition-shadow">
           <CardContent className="p-6 text-center">
             <Calendar className="h-12 w-12 text-orange-600 mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-900 mb-2">Appointments</h3>
-            <p className="text-sm text-gray-600 mb-4">Monitor platform appointments</p>
-            <Link href="/admin/appointments">
+            <h3 className="font-semibold text-gray-900 mb-2">{t('appointments')}</h3>
+            <p className="text-sm text-gray-600 mb-4">{t('monitorPlatformAppointments')}</p>
+            <Link href={`/${currentLocale}/admin/appointments`}>
               <Button variant="outline" className="w-full">
-                View Appointments
+                {t('viewAppointments')}
               </Button>
             </Link>
           </CardContent>
@@ -212,11 +217,11 @@ export function AdminDashboard({ User }: { User: any}) {
         <Card className="cursor-pointer hover:shadow-md transition-shadow">
           <CardContent className="p-6 text-center">
             <MessageSquare className="h-12 w-12 text-indigo-600 mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-900 mb-2">Chat Moderation</h3>
-            <p className="text-sm text-gray-600 mb-4">Monitor and moderate conversations</p>
-            <Link href="/admin/chats">
+            <h3 className="font-semibold text-gray-900 mb-2">{t('chatModeration')}</h3>
+            <p className="text-sm text-gray-600 mb-4">{t('monitorAndModerateConversations')}</p>
+            <Link href={`/${currentLocale}/admin/chats`}>
               <Button variant="outline" className="w-full">
-                Moderate Chats
+                {t('moderateChats')}
               </Button>
             </Link>
           </CardContent>
@@ -225,10 +230,10 @@ export function AdminDashboard({ User }: { User: any}) {
         <Card className="cursor-pointer hover:shadow-md transition-shadow">
           <CardContent className="p-6 text-center">
             <Activity className="h-12 w-12 text-red-600 mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-900 mb-2">System Health</h3>
-            <p className="text-sm text-gray-600 mb-4">Monitor system performance</p>
+            <h3 className="font-semibold text-gray-900 mb-2">{t('systemHealth')}</h3>
+            <p className="text-sm text-gray-600 mb-4">{t('monitorSystemPerformance')}</p>
             <Button variant="outline" className="w-full">
-              System Status
+              {t('systemStatus')}
             </Button>
           </CardContent>
         </Card>
@@ -238,26 +243,26 @@ export function AdminDashboard({ User }: { User: any}) {
       {stats && (
         <Card>
           <CardContent className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Platform Overview</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('quickPlatformOverview')}</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
               <div className="p-3 bg-blue-50 rounded-lg">
                 <div className="text-xl font-bold text-blue-600">{stats.appointments.total}</div>
-                <div className="text-sm text-blue-600">Total Appointments</div>
+                <div className="text-sm text-blue-600">{t('totalAppointments')}</div>
               </div>
               
               <div className="p-3 bg-green-50 rounded-lg">
                 <div className="text-xl font-bold text-green-600">{stats.chats.total}</div>
-                <div className="text-sm text-green-600">Total Conversations</div>
+                <div className="text-sm text-green-600">{t('totalConversations')}</div>
               </div>
               
               <div className="p-3 bg-purple-50 rounded-lg">
                 <div className="text-xl font-bold text-purple-600">{stats.products.total}</div>
-                <div className="text-sm text-purple-600">Products Listed</div>
+                <div className="text-sm text-purple-600">{t('productsListed')}</div>
               </div>
               
               <div className="p-3 bg-orange-50 rounded-lg">
                 <div className="text-xl font-bold text-orange-600">{stats.services.total}</div>
-                <div className="text-sm text-orange-600">Services Offered</div>
+                <div className="text-sm text-orange-600">{t('servicesOffered')}</div>
               </div>
             </div>
           </CardContent>
@@ -270,7 +275,7 @@ export function AdminDashboard({ User }: { User: any}) {
             <div className="text-center">
               <p className="text-red-600 mb-4">{error}</p>
               <Button onClick={fetchStats} variant="outline">
-                Try Again
+                {t('tryAgain')}
               </Button>
             </div>
           </CardContent>

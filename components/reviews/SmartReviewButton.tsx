@@ -10,6 +10,7 @@ import { useAuthModal } from '@/components/auth';
 import ReviewForm from './ReviewForm';
 import { Star, MessageCircle, Calendar, ShoppingBag, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 
 interface SmartReviewButtonProps {
   entityType: 'product' | 'service' | 'seller' | 'appointment' | 'chat';
@@ -38,44 +39,25 @@ export default function SmartReviewButton({
   const [showEligibilityModal, setShowEligibilityModal] = useState(false);
   const [isCheckingEligibility, setIsCheckingEligibility] = useState(false);
   const [eligibilityMessage, setEligibilityMessage] = useState('');
+  const t = useTranslations('common.smartReview');
 
   const getEligibilityMessage = (entityType: string): string => {
     const messages = {
-      product: {
-        title: '💬 Start a conversation first!',
-        message: 'To review this product, you need to chat with the seller first. Start a conversation by asking questions about the product, and after exchanging 5+ messages, you\'ll be able to leave a review.',
-        action: 'Start chatting with the seller to unlock review access'
-      },
-      service: {
-        title: '📅 Book and complete the service first!',
-        message: 'To review this service, you need to book an appointment and complete the service. After your appointment is marked as completed, you\'ll have 60 days to leave a review.',
-        action: 'Book this service to unlock review access'
-      },
-      seller: {
-        title: '🛍️ Interact with the shop first!',
-        message: 'To review this shop, you need to have some interaction first. You can either chat about products or book a service. After any meaningful interaction, you\'ll be able to rate the overall shop experience.',
-        action: 'Chat about products or book services to unlock review access'
-      },
-      appointment: {
-        title: '✅ Complete your appointment first!',
-        message: 'You can only review appointments that have been completed. Once your appointment is finished, you\'ll be able to rate the service experience.',
-        action: 'Complete your appointment to unlock review access'
-      },
-      chat: {
-        title: '💬 Have more conversation first!',
-        message: 'To review the chat experience, you need to have exchanged at least 5 messages with the seller. Continue your conversation to unlock review access.',
-        action: 'Exchange more messages to unlock review access'
-      }
+      product: t('productReviewMessage'),
+      service: t('serviceReviewMessage'),
+      seller: t('shopReviewMessage'),
+      appointment: t('appointmentReviewMessage'),
+      chat: t('chatReviewMessage')
     };
 
-    return messages[entityType as keyof typeof messages]?.message || 'You need to interact with this item first before leaving a review.';
+    return messages[entityType as keyof typeof messages] || t('defaultMessage');
   };
 
   const handleReviewClick = async () => {
     // Check if user is authenticated
     if (!isAuthenticated) {
       openAuthModal('login');
-      toast.error('Please log in to write a review');
+      toast.error(t('pleaseLoginToReview'));
       return;
     }
 
@@ -105,9 +87,9 @@ export default function SmartReviewButton({
   };
 
   const getButtonText = () => {
-    if (isCheckingEligibility) return 'Checking...';
-    if (!isAuthenticated) return 'Login to Review';
-    return 'Write a Review';
+    if (isCheckingEligibility) return t('checking');
+    if (!isAuthenticated) return t('loginToReview');
+    return t('writeReview');
   };
 
   const getButtonIcon = () => {
@@ -130,37 +112,37 @@ export default function SmartReviewButton({
   const getActionSteps = (type: string) => {
     const steps = {
       product: [
-        'Click "Chat with Seller" button',
-        'Ask questions about the product',
-        'Exchange at least 5 messages',
-        'Review button will be unlocked'
+        t('productReviewAction'),
+        t('productReviewMessage'),
+        t('productReviewAction'),
+        t('productReviewAction')
       ],
       service: [
-        'Click "Book This Service" button',
-        'Schedule your appointment',
-        'Complete the service',
-        'Review within 60 days'
+        t('serviceReviewAction'),
+        t('serviceReviewAction'),
+        t('serviceReviewAction'),
+        t('serviceReviewAction')
       ],
       seller: [
-        'Chat about any product, OR',
-        'Book any service from this shop',
-        'Complete the interaction',
-        'Review the overall shop experience'
+        t('shopReviewAction'),
+        t('shopReviewAction'),
+        t('shopReviewAction'),
+        t('shopReviewAction')
       ],
       appointment: [
-        'Wait for your appointment',
-        'Complete the service',
-        'Review button will appear',
-        'Share your experience'
+        t('appointmentReviewAction'),
+        t('appointmentReviewAction'),
+        t('appointmentReviewAction'),
+        t('appointmentReviewAction')
       ],
       chat: [
-        'Continue your conversation',
-        'Exchange at least 5 messages',
-        'Ask questions or discuss details',
-        'Review the communication experience'
+        t('chatReviewAction'),
+        t('chatReviewAction'),
+        t('chatReviewAction'),
+        t('chatReviewAction')
       ]
     };
-    return steps[type as keyof typeof steps] || ['Interact with this item first', 'Complete the required actions', 'Return to leave a review'];
+    return steps[type as keyof typeof steps] || [t('defaultMessage'), t('defaultMessage'), t('defaultMessage')];
   };
 
   return (
@@ -202,7 +184,7 @@ export default function SmartReviewButton({
               <div className="text-center mb-6">
                 {getRequirementIcon(entityType)}
                 <h3 className="text-lg font-semibold text-gray-900 mt-3 mb-2">
-                  Review Not Available Yet
+                  {t('writeReview')}
                 </h3>
                 <p className="text-sm text-gray-600">
                   {eligibilityMessage}
@@ -226,7 +208,7 @@ export default function SmartReviewButton({
 
               {/* Action Steps */}
               <div className="space-y-3 mb-6">
-                <h4 className="font-medium text-gray-900">How to unlock reviews:</h4>
+                <h4 className="font-medium text-gray-900">{t('writeReview')}</h4>
                 <ol className="space-y-2">
                   {getActionSteps(entityType).map((step, index) => (
                     <li key={index} className="flex items-start gap-3 text-sm text-gray-600">
@@ -245,7 +227,7 @@ export default function SmartReviewButton({
                 className="w-full"
                 variant="outline"
               >
-                Got it!
+{t('writeReview')}
               </Button>
             </CardContent>
           </Card>

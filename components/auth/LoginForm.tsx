@@ -9,8 +9,9 @@ import { Input } from '@/components/ui/Input';
 import { useAuthStore } from '@/lib/stores/auth';
 import { loginSchema, type LoginFormData } from '@/lib/validations/auth';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { GoogleLoginButton } from './GoogleLoginButton';
+import { useTranslations } from 'next-intl';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -22,6 +23,9 @@ export function LoginForm({ onSuccess, onSwitchToRegister, redirectTo = '/dashbo
   const [showPassword, setShowPassword] = useState(false);
   const { login, isLoading, error, clearError, isAuthenticated, user } = useAuthStore();
   const router = useRouter();
+  const t = useTranslations('common.auth');
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
 
   const {
     register,
@@ -48,11 +52,11 @@ export function LoginForm({ onSuccess, onSwitchToRegister, redirectTo = '/dashbo
       await login(data.email, data.password);
       
       // Show success message
-      toast.success('Login successful! Welcome back.');
+      toast.success(t('loginSuccessful'));
       
       // Check if email needs verification
       if (user && !user.isVerified) {
-        toast.info('Please verify your email address to access all features.');
+        toast.info(t('verifyEmail'));
       }
       
       // Handle redirect based on user role and source
@@ -64,7 +68,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister, redirectTo = '/dashbo
       console.error('Login error:', err);
       
       // Show user-friendly error message
-      const errorMessage = err?.message || 'Login failed. Please check your credentials and try again.';
+      const errorMessage = err?.message || t('loginFailed');
       toast.error(errorMessage);
       
       setError('root', {
@@ -97,7 +101,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister, redirectTo = '/dashbo
     <div className="space-y-6">
       {/* Description */}
       <div className="text-center">
-        <p className="text-wrench-text-secondary">Sign in to your account to continue</p>
+        <p className="text-wrench-text-secondary">{t('signInToAccount')}</p>
       </div>
 
       {/* Error Message */}
@@ -113,14 +117,14 @@ export function LoginForm({ onSuccess, onSwitchToRegister, redirectTo = '/dashbo
         {/* Email */}
         <div className="space-y-2">
           <label htmlFor="email" className="text-sm font-medium text-wrench-text-primary">
-            Email Address
+            {t('emailAddress')}
           </label>
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-wrench-text-secondary" />
             <Input
               id="email"
               type="email"
-              placeholder="Enter your email"
+              placeholder={t('enterEmail')}
               className="pl-10"
               {...register('email')}
             />
@@ -133,21 +137,21 @@ export function LoginForm({ onSuccess, onSwitchToRegister, redirectTo = '/dashbo
         {/* Password */}
         <div className="space-y-2">
           <label htmlFor="password" className="text-sm font-medium text-wrench-text-primary">
-            Password
+            {t('password')}
           </label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-wrench-text-secondary" />
             <Input
               id="password"
               type={showPassword ? 'text' : 'password'}
-              placeholder="Enter your password"
+              placeholder={t('enterPassword')}
               className="pl-10 pr-10"
               {...register('password')}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-wrench-text-secondary hover:text-wrench-text-primary"
+              className={`absolute ${currentLocale === 'ar' ? 'left-3' : 'right-3'} top-1/2 transform -translate-y-1/2 text-wrench-text-secondary hover:text-wrench-text-primary ${showPassword ? 'text-wrench-text-primary' : 'text-wrench-text-secondary'}`}
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
@@ -166,10 +170,10 @@ export function LoginForm({ onSuccess, onSwitchToRegister, redirectTo = '/dashbo
           {isSubmitting || isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Signing In...
+              {t('signingIn')}
             </>
           ) : (
-            'Sign In'
+            t('signIn')
           )}
         </Button>
       </form>
@@ -180,7 +184,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister, redirectTo = '/dashbo
           <div className="w-full border-t border-gray-200" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white px-2 text-wrench-text-secondary">Or</span>
+          <span className="bg-white px-2 text-wrench-text-secondary">{t('or')}</span>
         </div>
       </div>
 
@@ -188,19 +192,19 @@ export function LoginForm({ onSuccess, onSwitchToRegister, redirectTo = '/dashbo
       <GoogleLoginButton
         onSuccess={onSuccess}
         redirectTo={redirectTo}
-        text="Continue with Google"
+        text={t('continueWithGoogle')}
       />
 
       {/* Footer */}
       <div className="text-center space-y-4">
         <p className="text-sm text-wrench-text-secondary">
-          Don't have an account?{' '}
+          {t('dontHaveAccount')}{' '}
           <button
             type="button"
             onClick={onSwitchToRegister}
             className="text-wrench-accent hover:text-wrench-accent-hover font-medium"
           >
-            Sign up here
+            {t('signUpHere')}
           </button>
         </p>
       </div>

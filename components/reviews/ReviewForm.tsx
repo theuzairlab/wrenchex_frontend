@@ -10,6 +10,7 @@ import { apiClient } from '@/lib/api/client';
 import { CreateReviewData } from '@/types';
 import { toast } from 'sonner';
 import { Star, Send, Camera, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface ReviewFormProps {
   entityType: 'product' | 'service' | 'seller' | 'appointment' | 'chat';
@@ -36,6 +37,7 @@ export default function ReviewForm({
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
+  const t = useTranslations('common.reviews');
 
   const handleImageUpload = async (files: File[]) => {
     if (files.length === 0) return [];
@@ -62,7 +64,7 @@ export default function ReviewForm({
       return urls.filter(url => url); // Filter out empty URLs
     } catch (error) {
       console.error('Failed to upload images:', error);
-      toast.error('Failed to upload images');
+      toast.error(t('failedToUploadImages'));
       return [];
     } finally {
       setIsUploadingImages(false);
@@ -71,7 +73,7 @@ export default function ReviewForm({
 
   const handleSubmit = async () => {
     if (rating === 0) {
-      toast.error('Please select a rating');
+      toast.error(t('selectRating'));
       return;
     }
 
@@ -96,39 +98,41 @@ export default function ReviewForm({
       const response = await apiClient.createReview(reviewData);
 
       if (response.success) {
-        toast.success('Review submitted successfully!');
+        toast.success(t('reviewSubmittedSuccessfully'));
         onReviewSubmitted?.();
       } else {
-        toast.error(response.error?.message || 'Failed to submit review');
+        toast.error(response.error?.message || t('reviewSubmittedSuccessfully'));
       }
     } catch (error) {
       console.error('Failed to submit review:', error);
-      toast.error('Failed to submit review');
+      toast.error(t('reviewSubmittedSuccessfully'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const getRatingText = (rating: number): string => {
-    const texts = {
-      1: 'Very Poor',
-      2: 'Poor',
-      3: 'Average',
-      4: 'Good',
-      5: 'Excellent'
+    const keyMap: Record<number, string> = {
+      1: 'veryPoor',
+      2: 'poor',
+      3: 'average',
+      4: 'good',
+      5: 'excellent',
     };
-    return texts[rating as keyof typeof texts] || '';
+    const key = keyMap[rating];
+    return key ? t(`ratingLabels.${key}`) : '';
   };
 
   const getEntityTypeText = (type: string): string => {
-    const texts = {
+    const keyMap: Record<string, string> = {
       product: 'product',
       service: 'service',
       seller: 'shop',
       appointment: 'appointment',
       chat: 'experience'
     };
-    return texts[type as keyof typeof texts] || 'item';
+    const key = keyMap[type];
+    return key ? t(`entityTypes.${key}`) : t('entityTypes.item');
   };
 
   return (
@@ -136,7 +140,7 @@ export default function ReviewForm({
       <CardHeader>
         <CardTitle className="flex items-center gap-3">
           <Star className="h-5 w-5 text-yellow-500" />
-          Rate Your {getEntityTypeText(entityType)}
+          {t('rateYourExperience')} {getEntityTypeText(entityType)}
         </CardTitle>
         <div className="flex items-center gap-3 mt-2">
           {entityImage && (
@@ -157,7 +161,7 @@ export default function ReviewForm({
         {/* Star Rating */}
         <div className="text-center">
           <p className="text-sm font-medium text-gray-700 mb-3">
-            How was your experience?
+            {t('rateYourExperience')}
           </p>
           <div className="flex justify-center gap-1 mb-2">
             {[1, 2, 3, 4, 5].map((star) => (
@@ -188,40 +192,40 @@ export default function ReviewForm({
         {/* Review Title */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Review Title (Optional)
+            {t('reviewTitle')} ({t('optional')})
           </label>
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Summarize your experience..."
+            placeholder={t('enterReviewTitle')}
             maxLength={100}
           />
           <p className="text-xs text-gray-500 mt-1">
-            {title.length}/100 characters
+            {title.length}/100 {t('characters')}
           </p>
         </div>
 
         {/* Comment */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Your Review (Optional)
+            {t('writeYourReview')} ({t('optional')})
           </label>
           <Textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder="Tell others about your experience..."
+            placeholder={t('shareYourExperience')}
             rows={4}
             maxLength={500}
           />
           <p className="text-xs text-gray-500 mt-1">
-            {comment.length}/500 characters
+            {comment.length}/500 {t('characters')}
           </p>
         </div>
 
         {/* Image Upload */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Add Photos (Optional)
+            {t('addPhotos')} ({t('optional')})
           </label>
           <div className="space-y-3">
             <FileUpload
@@ -233,7 +237,7 @@ export default function ReviewForm({
               // disabled={isUploadingImages}
             />
             <p className="text-xs text-gray-500">
-              Upload up to 5 photos (max 5MB each)
+              {t('uploadUpTo5Photos')}
             </p>
             
             {/* Image Preview */}
@@ -271,7 +275,7 @@ export default function ReviewForm({
               disabled={isSubmitting || isUploadingImages}
               className="flex-1"
             >
-              Cancel
+              {t('cancel')}
             </Button>
           )}
           <Button
@@ -281,9 +285,9 @@ export default function ReviewForm({
           >
             <div className="flex items-center gap-2">
               <Send className="h-4 w-4" />
-              {isSubmitting ? 'Submitting Review...' : 
-               isUploadingImages ? 'Uploading Images...' : 
-               'Submit Review'}
+              {isSubmitting ? t('submitReview') : 
+               isUploadingImages ? t('submitReview') : 
+               t('submitReview')}
             </div>
           </Button>
         </div>

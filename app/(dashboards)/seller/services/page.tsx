@@ -8,6 +8,7 @@ import { apiClient } from '@/lib/api/client';
 import SellerServiceDashboard from '@/components/seller/SellerServiceDashboard';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 
 interface ServicesData {
   services: any;
@@ -17,6 +18,13 @@ interface ServicesData {
 export default function SellerServicesPage() {
   const { user } = useAuthStore();
   const searchParams = useSearchParams();
+  const t = useTranslations('sellerServicesPage');
+  const tAuth = useTranslations('common.auth');
+
+  // Detect current locale
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  const currentLocale = pathname.includes('/ar/') ? 'ar' : 'en';
+
   const [data, setData] = useState<ServicesData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +40,7 @@ export default function SellerServicesPage() {
 
   useEffect(() => {
     loadServicesData();
-  }, [searchParams]);
+  }, [searchParams, currentLocale]);
 
   const loadServicesData = async () => {
     try {
@@ -51,7 +59,7 @@ export default function SellerServicesPage() {
       console.log('Processed filters for API:', filters);
 
       // Remove undefined values
-      Object.keys(filters).forEach(key => 
+      Object.keys(filters).forEach(key =>
         filters[key as keyof typeof filters] === undefined && delete filters[key as keyof typeof filters]
       );
 
@@ -66,18 +74,18 @@ export default function SellerServicesPage() {
 
       if (servicesResponse.success && categoriesResponse.success) {
         // Handle both direct array and wrapped in categories property
-        const categoriesData = Array.isArray(categoriesResponse.data) 
-          ? categoriesResponse.data 
+        const categoriesData = Array.isArray(categoriesResponse.data)
+          ? categoriesResponse.data
           : (categoriesResponse.data as any)?.categories || [];
-        
+
         // Handle services data - it might be an array directly
-        const servicesData = Array.isArray(servicesResponse.data) 
-          ? servicesResponse.data 
+        const servicesData = Array.isArray(servicesResponse.data)
+          ? servicesResponse.data
           : servicesResponse.data;
-        
+
         console.log('Processed services data:', servicesData);
         console.log('Processed categories data:', categoriesData);
-        
+
         setData({
           services: servicesData,
           categories: categoriesData
@@ -90,14 +98,14 @@ export default function SellerServicesPage() {
     } catch (error: any) {
       console.error('Error fetching seller services data:', error);
       setError('Failed to load services data');
-      toast.error('Failed to load services data');
+      toast.error(tAuth('failedToLoadServicesData'));
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-          <ProtectedRoute requiredRole="SELLER">
+    <ProtectedRoute requiredRole="SELLER">
       <div className="min-h-screen bg-wrench-bg-primary">
         {/* Header */}
         <div className="bg-white border-b border-gray-200">
@@ -105,10 +113,10 @@ export default function SellerServicesPage() {
             <div className="flex justify-between items-center">
               <div>
                 <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
-                  Service Management
+                  {t('serviceManagement')}
                 </h1>
                 <p className="text-gray-600 mt-1">
-                  Manage your automotive services, bookings, and customer appointments
+                  {t('manageServicesDescription')}
                 </p>
               </div>
             </div>
@@ -118,22 +126,22 @@ export default function SellerServicesPage() {
         {/* Main Content */}
         <div className="container-responsive py-8">
           {isLoading ? (
-            <LoadingSpinner size="lg" text="Loading services dashboard..." />
+            <LoadingSpinner size="lg" text={t('loadingServicesDashboard')} />
           ) : error ? (
             <div className="text-center py-12">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Unable to load services dashboard
+                {t('unableToLoadServicesDashboard')}
               </h3>
               <p className="text-gray-600 mb-4">{error}</p>
-              <button 
+              <button
                 onClick={loadServicesData}
                 className="px-4 py-2 bg-wrench-accent text-black rounded-lg hover:bg-wrench-accent-hover transition-colors"
               >
-                Try Again
+                {t('tryAgain')}
               </button>
             </div>
           ) : (
-                        <SellerServiceDashboard
+            <SellerServiceDashboard
               services={data?.services || null}
               categories={data?.categories || []}
               currentFilters={currentFilters}

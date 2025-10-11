@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { apiClient } from '@/lib/api/client';
 import type { Service } from '@/types';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
@@ -11,12 +12,19 @@ import { Star, MapPin, Store, Tag, Clock, ChevronLeft, ChevronRight, Wrench, Mes
 import { GlowingEffect } from '../ui/glowing-effect';
 import { WishlistIcon } from '../ui/WishlistIcon';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
+import { formatPrice } from '@/lib/utils';
 
 export function TopServices() {
   const [services, setServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
+  const tServices = useTranslations('common.services');
+  const tCommon = useTranslations('common');
+  const tSearch = useTranslations('common.search');
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
 
   useEffect(() => {
     let mounted = true;
@@ -33,7 +41,7 @@ export function TopServices() {
         const items = response?.data?.services || response?.data || [];
         if (mounted) setServices(Array.isArray(items) ? items : []);
       } catch (err: any) {
-        if (mounted) setError(err?.message || 'Failed to load top services');
+        if (mounted) setError(err?.message || tServices('loading'));
       } finally {
         if (mounted) setIsLoading(false);
       }
@@ -48,14 +56,6 @@ export function TopServices() {
     if (!el) return;
     const amount = Math.min(320, el.clientWidth * 0.8);
     el.scrollBy({ left: direction === 'left' ? -amount : amount, behavior: 'smooth' });
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-AE', {
-      style: 'currency',
-      currency: 'AED',
-      minimumFractionDigits: 0,
-    }).format(price);
   };
 
   const formatDuration = (minutes: number) => {
@@ -80,10 +80,10 @@ export function TopServices() {
         {/* Header */}
         <div className="text-center mb-8 sm:mb-12">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-wrench-text-primary mb-2">
-            Top Services
+            {tServices('heroTitle')}
           </h2>
           <p className="text-wrench-text-secondary text-sm sm:text-base">
-            Discover our highest-rated services with excellent reviews
+            {tServices('heroSubtitle')}
           </p>
         </div>
 
@@ -100,7 +100,7 @@ export function TopServices() {
             {/* Navigation Arrows */}
             <button
               type="button"
-              aria-label="Scroll left"
+              aria-label={tCommon('aria.scrollLeft')}
               onClick={() => scrollByAmount('left')}
               className="flex absolute left-0 -top-6 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-white border border-gray-200 shadow-wrench-card hover:shadow-wrench-hover"
             >
@@ -108,7 +108,7 @@ export function TopServices() {
             </button>
             <button
               type="button"
-              aria-label="Scroll right"
+              aria-label={tCommon('aria.scrollRight')}
               onClick={() => scrollByAmount('right')}
               className="flex absolute right-0 -top-6 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-white border border-gray-200 shadow-wrench-card hover:shadow-wrench-hover"
             >
@@ -144,7 +144,7 @@ export function TopServices() {
                           {service.isMobileService && (
                             <Badge className=" bg-wrench-accent text-wrench-nav-dark">
                               <Wrench className="h-3 w-3 mr-1" />
-                              Mobile
+                              {tServices('mobileBadge')}
                             </Badge>
                           )}
                           </div>
@@ -166,29 +166,29 @@ export function TopServices() {
                       </CardHeader>
 
                       <CardContent className="pt-2">
-                        <Link href={`/services/${service.id}`}>
+                        <Link href={`/${currentLocale}/services/${service.id}`}>
                           <Button variant="link" className="font-semibold p-0 text-gray-900 mb-2 line-clamp-2">
                             {service.title}
                           </Button>
                         </Link>
 
                         <p className="text-sm text-gray-600 mb-2">
-                          by {service.seller.shopName}
+                          {tSearch('by')} {service.seller.shopName}
                         </p>
 
                         <div className="flex items-center justify-between">
                           <span className="text-lg font-bold text-wrench-orange-600">
-                            {formatPrice(service.price)}
+                            {formatPrice(service.price, service.currency || 'AED', currentLocale)}
                           </span>
 
                           <div className="flex space-x-2">
-                            <Link href={`/services/${service.id}`} className="w-full">
+                            <Link href={`/${currentLocale}/services/${service.id}`} className="w-full">
                               <Button 
                                 size="sm" 
                                 className="w-full"
                               >
                                 <MessageCircle className="h-4 w-4 mr-2" />
-                                Book Now
+                                {tServices('bookNow')}
                               </Button>
                             </Link>
                           </div>
@@ -227,7 +227,7 @@ export function TopServices() {
                             </span>
                           </div>
                           <div className="text-xs text-gray-500">
-                            {service.isMobileService ? 'Mobile' : 'Shop'}
+                            {service.isMobileService ? tServices('mobileBadge') : tServices('shopBadge')}
                           </div>
                         </div>
                       </CardContent>
@@ -243,14 +243,14 @@ export function TopServices() {
         {!isLoading && services.length > 0 && (
           <div className="text-center mt-8 sm:mt-12">
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link href="/services">
+              <Link href={`/${currentLocale}/services`}>
                 <Button className="bg-wrench-accent text-wrench-text-primary hover:bg-wrench-accent-hover px-6 py-3">
-                  View All Services
+                  {tServices('browseAllServices', { default: 'View All Services' })}
                 </Button>
               </Link>
-              <Link href="/services?sortBy=rating">
+              <Link href={`/${currentLocale}/services?sortBy=rating`}>
                 <Button variant="outline" className="border-wrench-accent text-wrench-accent hover:bg-wrench-accent hover:text-black px-6 py-3">
-                  Top Rated Services
+                  {tServices('topRatedServices', { default: 'Top Rated Services' })}
                 </Button>
               </Link>
             </div>

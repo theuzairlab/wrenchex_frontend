@@ -1,6 +1,17 @@
 import { useState, useEffect, useCallback } from 'react';
 import { LocationService, LocationData } from '@/lib/services/locationService';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
+
+// Translation helper for location hook
+const getLocationTranslation = (key: string): string => {
+  const translations: Record<string, string> = {
+    'locationDetectedSuccessfully': 'Location detected successfully!',
+    'couldNotGetLocation': 'Could not get your location. Showing all available items.',
+    'locationUpdatedSuccessfully': 'Location updated successfully!',
+    'couldNotUpdateLocation': 'Could not update your location.',
+  };
+  return translations[key] || key;
+};
 
 interface UseLocationOptions {
   immediate?: boolean; // Request location immediately
@@ -47,11 +58,11 @@ export function useLocation(options: UseLocationOptions = {}): UseLocationReturn
       if (locationData) {
         setLocation(locationData);
         setPermission('granted');
-        toast.success('Location detected successfully!');
+        toast.success(getLocationTranslation('locationDetectedSuccessfully'));
       } else {
         setError('Unable to get your location');
         setPermission('denied');
-        toast.error('Could not get your location. Showing all available items.');
+        toast.error(getLocationTranslation('couldNotGetLocation'));
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to get location';
@@ -77,7 +88,7 @@ export function useLocation(options: UseLocationOptions = {}): UseLocationReturn
       if (locationData) {
         setLocation(locationData);
         setPermission('granted');
-        toast.success('Location updated successfully!');
+        toast.success(getLocationTranslation('locationUpdatedSuccessfully'));
       } else {
         // Fallback to IP location
         const ipLocation = await LocationService.getIPLocation();
@@ -87,7 +98,7 @@ export function useLocation(options: UseLocationOptions = {}): UseLocationReturn
           toast('Using approximate location based on your IP address.');
         } else {
           setError('Unable to update location');
-          toast.error('Could not update your location.');
+          toast.error(getLocationTranslation('couldNotUpdateLocation'));
         }
       }
     } catch (err) {

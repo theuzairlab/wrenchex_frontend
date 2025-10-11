@@ -1,13 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { MessageCircle, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/lib/stores/auth';
 import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
 import { useAuthModal } from '@/components/auth';
+import { useTranslations } from 'next-intl';
 
 interface ChatWithSellerButtonProps {
   productId: string;
@@ -27,7 +28,10 @@ export function ChatWithSellerButton({
   const [isStartingChat, setIsStartingChat] = useState(false);
   const { user, isAuthenticated } = useAuthStore();
   const router = useRouter();
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
   const { openAuthModal } = useAuthModal();
+  const t = useTranslations('chatWithSeller');
 
   const handleStartChat = async () => {
     if (!isAuthenticated) {
@@ -37,7 +41,7 @@ export function ChatWithSellerButton({
     }
 
     if (user?.id === sellerId) {
-      toast.error('You cannot chat with yourself');
+      toast.error(t('cannotChatWithYourself'));
       return;
     }
 
@@ -46,23 +50,23 @@ export function ChatWithSellerButton({
     try {
       const response = await apiClient.startProductChat({
         productId: productId,
-        message: 'Hi! I\'m interested in this product.'
+        message: t('initialMessage')
       });
       
       if (response.success && response.data) {
-        toast.success('Chat started successfully!');
+        toast.success(t('chatStartedSuccessfully'));
         // Ensure we have a valid chat ID
         const chatId = (response.data as any).chat?.id || response.data.id;
         if (chatId) {
-          router.push(`/buyer/chats/${chatId}`);
+          router.push(`/${currentLocale}/buyer/chats/${chatId}`);
         } else {
           console.error('No chat ID received from API:', response.data);
-          toast.error('Chat started but could not navigate to chat');
+          toast.error(t('chatStartedButCannotNavigate'));
         }
       }
     } catch (error: any) {
       console.error('Failed to start chat:', error);
-      toast.error(error.message || 'Failed to start chat');
+      toast.error(error.message || t('failedToStartChat'));
     } finally {
       setIsStartingChat(false);
     }
@@ -70,7 +74,7 @@ export function ChatWithSellerButton({
 
   const handleCall = () => {
     if (!sellerPhone) {
-      toast.error('Phone number not available');
+      toast.error(t('phoneNumberNotAvailable'));
       return;
     }
     
@@ -87,7 +91,7 @@ export function ChatWithSellerButton({
         className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
       >
         <MessageCircle size={18} />
-        {isStartingChat ? 'Starting...' : 'Chat with Seller'}
+{isStartingChat ? t('starting') : t('chatWithSeller')}
       </Button>
 
       {/* Call Button - only show if phone is available and seller allows it */}
@@ -98,7 +102,7 @@ export function ChatWithSellerButton({
           className="bg-green-600 hover:bg-green-700 text-white border-green-600 hover:border-green-700 font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2 min-w-[100px]"
         >
           <Phone size={18} />
-          Call
+{t('call')}
         </Button>
       )}
     </div>

@@ -17,6 +17,9 @@ export interface FileUploadProps extends React.HTMLAttributes<HTMLDivElement> {
   onUpload?: (files: File[]) => void;
   maxFiles?: number;
   maxSize?: number; // in bytes
+  dragDropText?: string;
+  maxFilesText?: string;
+  maxFileSizeText?: string;
 }
 
 const FileUploadComponent: ForwardRefRenderFunction<HTMLDivElement, FileUploadProps> = 
@@ -29,6 +32,9 @@ const FileUploadComponent: ForwardRefRenderFunction<HTMLDivElement, FileUploadPr
     className,
     maxFiles = 5,
     maxSize = 5 * 1024 * 1024, // 5MB default
+    dragDropText = "Drag and drop files or click to upload",
+    maxFilesText = "Max {maxFiles} files",
+    maxFileSizeText = "{maxSize}MB each",
     ...props
   }, 
   ref
@@ -109,10 +115,10 @@ const FileUploadComponent: ForwardRefRenderFunction<HTMLDivElement, FileUploadPr
         <div className="flex flex-col items-center">
           <Upload className="h-10 w-10 text-gray-400 mb-4" />
           <p className="text-sm text-gray-600">
-            Drag and drop files or click to upload
+            {dragDropText}
           </p>
           <p className="text-xs text-gray-500 mt-1">
-            Max {maxFiles} files, {maxSize / 1024 / 1024}MB each
+            {maxFilesText.replace('{maxFiles}', maxFiles.toString())}, {maxFileSizeText.replace('{maxSize}', (maxSize / 1024 / 1024).toString())}
           </p>
         </div>
       </div>

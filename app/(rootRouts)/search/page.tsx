@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, usePathname } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -11,8 +11,13 @@ import { Search, Grid, List, MessageCircle, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { LocationFilter } from '@/components/location/LocationFilter';
 import LocationSearch from '@/components/services/LocationSearch';
+import { useTranslations } from 'next-intl';
+import { formatPrice } from '@/lib/utils';
 
 export default function SearchPage() {
+  const t = useTranslations('common.search');
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -32,7 +37,7 @@ export default function SearchPage() {
       setSearchQuery(initialQuery);
       handleSearch(initialQuery);
     }
-  }, [initialQuery]);
+  }, [initialQuery, currentLocale]);
 
   const handleSearch = async (query: string = searchQuery) => {
     if (!query.trim()) return;
@@ -110,7 +115,7 @@ export default function SearchPage() {
     <div className="container mx-auto px-4 py-8">
       {/* Search Header */}
       <div className="mb-8 pt-20">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Search Products</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">{t('title')}</h1>
         
         {/* Enhanced Search Section with Location */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
@@ -124,7 +129,7 @@ export default function SearchPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Search for auto parts, tools, accessories..."
+                  placeholder={t('placeholder')}
                   className="pl-9 pr-3 py-2 text-sm"
                 />
               </div>
@@ -142,7 +147,7 @@ export default function SearchPage() {
                     handleSearch();
                   }
                 }}
-                placeholder="Enter city or area"
+                placeholder={t('enterCity')}
                 className="h-10 text-sm"
               />
             </div>
@@ -153,7 +158,7 @@ export default function SearchPage() {
               disabled={loading}
               className="bg-wrench-accent hover:bg-wrench-accent-hover text-white px-6"
             >
-              {loading ? 'Searching...' : 'Search'}
+              {loading ? t('searching') : t('search')}
             </Button>
 
             {/* Location Filter Toggle */}
@@ -164,7 +169,7 @@ export default function SearchPage() {
               className="min-w-[120px]"
             >
               <MapPin className="h-4 w-4 mr-1" />
-              {location && coordinates ? 'Distance ✓' : 'Distance'}
+              {location && coordinates ? t('distanceChecked') : t('distance')}
             </Button>
           </div>
 
@@ -185,7 +190,7 @@ export default function SearchPage() {
 
         <div className="flex items-center justify-between">
           <p className="text-gray-600">
-            {products.length > 0 && `Found ${products.length} products`}
+            {products.length > 0 && t('foundCount', { count: products.length })}
           </p>
           
           <div className="flex items-center gap-2">
@@ -210,18 +215,18 @@ export default function SearchPage() {
       {/* Search Results */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <div className="text-gray-500">Searching products...</div>
+          <div className="text-gray-500">{t('searchingProducts')}</div>
         </div>
       ) : products.length === 0 ? (
         <Card className="p-8 text-center">
           <Search className="mx-auto mb-4 text-gray-400" size={48} />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            {searchQuery ? 'No products found' : 'Start searching'}
+            {searchQuery ? t('noProducts') : t('startSearching')}
           </h3>
           <p className="text-gray-600">
             {searchQuery 
-              ? `Try different keywords for "${searchQuery}"`
-              : 'Enter keywords to find products'
+              ? t('tryDifferent', { query: searchQuery })
+              : t('enterKeywords')
             }
           </p>
         </Card>
@@ -245,7 +250,7 @@ export default function SearchPage() {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    No Image
+                    {t('noImage')}
                   </div>
                 )}
               </div>
@@ -265,11 +270,11 @@ export default function SearchPage() {
                 <div className="flex items-center justify-between mt-3">
                   <div>
                     <span className="text-lg font-bold text-wrench-accent">
-                      AED {product.price.toFixed(2)}
+                      {formatPrice(product.price, product.currency || 'AED', currentLocale)}
                     </span>
                     {product.seller && (
                       <p className="text-xs text-gray-500">
-                        by {product.seller.shopName}
+                        {t('by')} {product.seller.shopName}
                       </p>
                     )}
                   </div>
@@ -279,7 +284,7 @@ export default function SearchPage() {
                   <Link href={`/products/${product.id}`} className="w-full">
                     <Button size="sm" className="w-full">
                       <MessageCircle className="h-4 w-4 mr-2" />
-                      Let's Chat
+                      {t('letsChat')}
                     </Button>
                   </Link>
                 </div>

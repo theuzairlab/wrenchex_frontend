@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { SellerAvailability, SetAvailabilityData } from '@/types';
 import { apiClient } from '@/lib/api/client';
 import { Clock, Save, RefreshCw } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface WeeklyScheduleProps {
   schedule: SellerAvailability[];
@@ -14,6 +16,9 @@ interface WeeklyScheduleProps {
 }
 
 export function WeeklySchedule({ schedule, onScheduleUpdate }: WeeklyScheduleProps) {
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
+  const t = useTranslations('weeklySchedule');
   const [isLoading, setIsLoading] = useState(false);
   const [localSchedule, setLocalSchedule] = useState<SetAvailabilityData[]>(() => {
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -28,7 +33,15 @@ export function WeeklySchedule({ schedule, onScheduleUpdate }: WeeklySchedulePro
     });
   });
 
-  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const dayNames = [
+    t('days.sunday'),
+    t('days.monday'),
+    t('days.tuesday'),
+    t('days.wednesday'),
+    t('days.thursday'),
+    t('days.friday'),
+    t('days.saturday')
+  ];
 
   const updateDaySchedule = (dayOfWeek: number, field: keyof SetAvailabilityData, value: any) => {
     setLocalSchedule(prev => prev.map(day => 
@@ -42,12 +55,12 @@ export function WeeklySchedule({ schedule, onScheduleUpdate }: WeeklySchedulePro
       const response = await apiClient.setWeeklyAvailability({ weeklySchedule: localSchedule });
       if (response.success) {
         onScheduleUpdate();
-        alert('Schedule updated successfully!');
+        alert(t('scheduleUpdatedSuccessfully'));
       } else {
-        alert('Failed to update schedule: ' + (response.error?.message || 'Unknown error'));
+        alert(t('failedToUpdateSchedule') + ': ' + (response.error?.message || t('unknownError')));
       }
     } catch (error: any) {
-      alert('Failed to update schedule: ' + error.message);
+      alert(t('failedToUpdateSchedule') + ': ' + error.message);
     } finally {
       setIsLoading(false);
     }
@@ -59,7 +72,7 @@ export function WeeklySchedule({ schedule, onScheduleUpdate }: WeeklySchedulePro
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5" />
-            Weekly Schedule
+            {t('weeklySchedule')}
           </CardTitle>
           <Button
             onClick={saveSchedule}
@@ -71,7 +84,7 @@ export function WeeklySchedule({ schedule, onScheduleUpdate }: WeeklySchedulePro
             ) : (
               <Save className="h-4 w-4" />
             )}
-            Save Schedule
+            {t('saveSchedule')}
           </Button>
         </div>
       </CardHeader>
@@ -92,13 +105,13 @@ export function WeeklySchedule({ schedule, onScheduleUpdate }: WeeklySchedulePro
                   onChange={(e) => updateDaySchedule(day.dayOfWeek, 'isAvailable', e.target.checked)}
                   className="w-4 h-4 text-wrench-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-wrench-orange-500"
                 />
-                <span className="text-sm text-gray-600">Available</span>
+                <span className="text-sm text-gray-600">{t('available')}</span>
               </div>
 
               {day.isAvailable && (
                 <>
                   <div className="flex items-center gap-2">
-                    <label className="text-sm text-gray-600">From:</label>
+                    <label className="text-sm text-gray-600">{t('from')}:</label>
                     <Input
                       type="time"
                       value={day.startTime}
@@ -108,7 +121,7 @@ export function WeeklySchedule({ schedule, onScheduleUpdate }: WeeklySchedulePro
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <label className="text-sm text-gray-600">To:</label>
+                    <label className="text-sm text-gray-600">{t('to')}:</label>
                     <Input
                       type="time"
                       value={day.endTime}
@@ -120,19 +133,19 @@ export function WeeklySchedule({ schedule, onScheduleUpdate }: WeeklySchedulePro
               )}
 
               {!day.isAvailable && (
-                <span className="text-sm text-gray-500 italic">Not available on this day</span>
+                <span className="text-sm text-gray-500 italic">{t('notAvailableOnThisDay')}</span>
               )}
             </div>
           ))}
         </div>
 
         <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <h4 className="font-medium text-blue-800 mb-2">Schedule Tips</h4>
+          <h4 className="font-medium text-blue-800 mb-2">{t('scheduleTips')}</h4>
           <ul className="text-sm text-blue-700 space-y-1">
-            <li>• Set your regular working hours for each day of the week</li>
-            <li>• Uncheck days when you're not available for appointments</li>
-            <li>• Customers will only see available time slots during your working hours</li>
-            <li>• You can add specific time off periods in the Time Off tab</li>
+            <li>• {t('tip1')}</li>
+            <li>• {t('tip2')}</li>
+            <li>• {t('tip3')}</li>
+            <li>• {t('tip4')}</li>
           </ul>
         </div>
       </CardContent>

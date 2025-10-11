@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
 import { MapPin, Navigation, Search, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface LocationSuggestion {
   id: string;
@@ -36,6 +37,7 @@ export default function LocationSearch({
   
   const searchRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const t = useTranslations('common.auth');
 
   // Pakistani cities and areas for suggestions
   const pakistaniLocations = [
@@ -175,7 +177,7 @@ export default function LocationSearch({
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert('Geolocation is not supported by this browser.');
+      alert(t('geolocationNotSupported'));
       return;
     }
 
@@ -205,7 +207,7 @@ export default function LocationSearch({
       },
       (error) => {
         console.error('Error getting location:', error);
-        alert('Unable to get your current location. Please check your location permissions.');
+        alert(t('unableToGetCurrentLocation'));
         setIsGettingLocation(false);
       },
       {

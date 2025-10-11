@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { 
@@ -25,9 +25,10 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
-import { cn } from '@/lib/utils';
+import { cn, formatPrice } from '@/lib/utils';
 import { ProductSearchResult, Product, Category, UpdateProductData } from '@/types';
 import { apiClient } from '@/lib/api/client';
+import { useTranslations } from 'next-intl';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 
@@ -82,23 +83,25 @@ interface ProductTableRowProps {
 
 const ProductTableRow = ({ product, onEdit, onDelete, onToggleStatus }: ProductTableRowProps) => {
   const primaryImage = product.images?.[0] || product.productImages?.[0]?.url;
-  
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
+  const t = useTranslations('sellerProductDashboard');
   const dropdownItems = [
     {
       id: 'view',
-      label: 'View Product',
+      label: t('viewProduct'),
       icon: <Eye className="h-4 w-4" />,
-      onClick: () => window.open(`/products/${product.id}`, '_blank'),
+      onClick: () => window.open(`/${currentLocale}/products/${product.id}`, '_blank'),
     },
     {
       id: 'edit',
-      label: 'Edit Product',
+      label: t('editProduct'),
       icon: <Edit className="h-4 w-4" />,
       onClick: () => onEdit(product),
     },
     {
       id: 'toggle',
-      label: product.isActive ? 'Deactivate' : 'Activate',
+      label: product.isActive ? t('deactivate') : t('activate'),
       icon: product.isActive ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />,
       onClick: () => onToggleStatus(product),
     },
@@ -109,7 +112,7 @@ const ProductTableRow = ({ product, onEdit, onDelete, onToggleStatus }: ProductT
     },
     {
       id: 'delete',
-      label: 'Delete Product',
+      label: t('deleteProduct'),
       icon: <Trash2 className="h-4 w-4" />,
       onClick: () => onDelete(product),
       danger: true,
@@ -151,7 +154,7 @@ const ProductTableRow = ({ product, onEdit, onDelete, onToggleStatus }: ProductT
       </td>
       
       <td className="px-6 py-4 text-sm font-medium text-gray-900">
-        AED {product.price.toLocaleString()}
+        {formatPrice(product.price, product.currency || 'AED')}
       </td>
       
       <td className="px-6 py-4 text-sm text-gray-900">
@@ -200,6 +203,9 @@ const ProductTableRow = ({ product, onEdit, onDelete, onToggleStatus }: ProductT
 
 const SellerProductDashboard = ({ products, categories, currentFilters, onProductsUpdate }: SellerProductDashboardProps) => {
   const router = useRouter();
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
+  const t = useTranslations('sellerProductDashboard');
   const [searchQuery, setSearchQuery] = useState(currentFilters.search || '');
   const [selectedCategory, setSelectedCategory] = useState(currentFilters.category || '');
   const [selectedStatus, setSelectedStatus] = useState(currentFilters.status || '');
@@ -225,19 +231,19 @@ const SellerProductDashboard = ({ products, categories, currentFilters, onProduc
     if (selectedCategory) params.set('category', selectedCategory);
     if (selectedStatus) params.set('status', selectedStatus);
     
-    router.push(`/seller/products?${params.toString()}`);
+    router.push(`/${currentLocale}/seller/products?${params.toString()}`);
   };
 
   const clearFilters = () => {
     setSearchQuery('');
     setSelectedCategory('');
     setSelectedStatus('');
-    router.push('/seller/products');
+    router.push(`/${currentLocale}/seller/products`);
   };
 
   // Product actions
   const handleEditProduct = (product: Product) => {
-    router.push(`/seller/products/update/${product.id}`);
+    router.push(`/${currentLocale}/seller/products/update/${product.id}`);
   };
 
   const handleDeleteProduct = async (product: Product) => {
@@ -258,17 +264,17 @@ const SellerProductDashboard = ({ products, categories, currentFilters, onProduc
             onProductsUpdate(updatedProducts);
           }
           
-          toast.success('Product Permanently Deleted', {
+          toast.success(t('productPermanentlyDeleted'), {
             description: `"${product.title}" has been completely removed from the database`
           });
         } else {
-          toast.error('Failed to delete product', {
-            description: response.error?.message || 'Unknown error occurred'
+          toast.error(t('deleteProductFailed'), {
+            description: response.error?.message || t('unknownErrorOccurred')
           });
         }
       } catch (error: any) {
-        toast.error('Failed to delete product', {
-          description: error.message || 'An unexpected error occurred'
+        toast.error(t('deleteProductFailed'), {
+          description: error.message || t('unexpectedErrorOccurred')
         });
       }
     }
@@ -294,19 +300,19 @@ const handleToggleStatus = async (product: Product) => {
       }
 
       // Show success toast
-      toast.success('Product Status Updated', {
+      toast.success(t('productStatusUpdated'), {
         description: response.data?.message || `"${product.title}" is now ${!product.isActive ? 'active' : 'inactive'}`
       });
     } else {
       // Handle API error
-      toast.error('Failed to Update Product Status', {
-        description: response.error?.message || 'Unknown error occurred'
+      toast.error(t('updateProductStatusFailed'), {
+        description: response.error?.message || t('unknownErrorOccurred')
       });
     }
   } catch (error: any) {
     // Handle unexpected errors
-    toast.error('Update Failed', {
-      description: error.message || 'An unexpected error occurred'
+    toast.error(t('updateFailed'), {
+      description: error.message || t('unexpectedErrorOccurred')
     });
   }
 };
@@ -321,25 +327,25 @@ const handleToggleStatus = async (product: Product) => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <ProductStatsCard
-          title="Total Products"
+          title={t('totalProducts')}
           value={stats.totalProducts}
           icon={<Package className="h-6 w-6 text-wrench-accent" />}
         />
         <ProductStatsCard
-          title="Active Products"
+          title={t('activeProducts')}
           value={stats.activeProducts}
-          change="+5% from last month"
+change={t('changeFromLastMonth')}
           changeType="positive"
           icon={<CheckCircle className="h-6 w-6 text-green-600" />}
         />
         <ProductStatsCard
-          title="Inactive Products"
+          title={t('inactiveProducts')}
           value={stats.totalProducts - stats.activeProducts}
           icon={<AlertCircle className="h-6 w-6 text-red-600" />}
         />
         <ProductStatsCard
-          title="Average Price"
-          value={`AED ${stats.averagePrice.toLocaleString()}`}
+          title={t('averagePrice')}
+          value={formatPrice(stats.averagePrice, 'AED')}
           icon={<BarChart3 className="h-6 w-6 text-blue-600" />}
         />
       </div>
@@ -349,18 +355,16 @@ const handleToggleStatus = async (product: Product) => {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Filter className="h-5 w-5" />
-            <span>Search & Filter Products</span>
+            <span>{t('searchFilterProducts')}</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Search Products
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('searchProducts')}</label>
               <Input
                 type="text"
-                placeholder="Search by name, SKU, or description..."
+                placeholder={t('searchByNameSkuDesc')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
@@ -368,15 +372,13 @@ const handleToggleStatus = async (product: Product) => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Category
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('category')}</label>
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-wrench-accent focus:border-wrench-accent"
               >
-                <option value="">All Categories</option>
+                <option value="">{t('allCategories')}</option>
                 {categories && Array.isArray(categories) && categories.map(category => (
                   <option key={category.id} value={category.id}>
                     {category.name}
@@ -386,17 +388,15 @@ const handleToggleStatus = async (product: Product) => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Status
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('status')}</label>
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-wrench-accent focus:border-wrench-accent"
               >
-                <option value="">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value="">{t('allStatus')}</option>
+                <option value="active">{t('active')}</option>
+                <option value="inactive">{t('inactive')}</option>
 
               </select>
             </div>
@@ -404,10 +404,10 @@ const handleToggleStatus = async (product: Product) => {
             <div className="flex items-end space-x-2">
               <Button onClick={handleSearch} className="flex-1">
                 <Search className="h-4 w-4 mr-2" />
-                Search
+                {t('search')}
               </Button>
               <Button variant="outline" onClick={clearFilters}>
-                Clear
+                {t('clear')}
               </Button>
             </div>
           </div>
@@ -419,15 +419,15 @@ const handleToggleStatus = async (product: Product) => {
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Your Products</CardTitle>
+              <CardTitle>{t('yourProducts')}</CardTitle>
               <CardDescription>
-                {products ? `${products.pagination.total} products found` : 'Loading products...'}
+                {products ? t('productsFound', {count: products.pagination.total}) : t('loadingProducts')}
               </CardDescription>
             </div>
-            <Link href="/seller/products/add">
+            <Link href={`/${currentLocale}/seller/products/add`}>
             <Button className="whitespace-nowrap">
               <Plus className="h-4 w-4 mr-2" />
-              Add New Product
+{t('addNewProduct')}
             </Button>
           </Link>
           </div>
@@ -438,24 +438,12 @@ const handleToggleStatus = async (product: Product) => {
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Product
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Category
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Price
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Created
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('product')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('category')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('price')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('status')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('created')}</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{t('actions')}</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -474,25 +462,23 @@ const handleToggleStatus = async (product: Product) => {
           ) : products ? (
             <div className="text-center py-12">
               <Package className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                No products found
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('noProductsFound')}</h3>
               <p className="text-gray-600 mb-6">
                 {Object.values(currentFilters).some(Boolean) 
-                  ? "Try adjusting your search criteria or filters."
-                  : "Start by adding your first product to the marketplace."
+                  ? t('tryAdjustingFilters')
+                  : t('startByAddingFirstProduct')
                 }
               </p>
               <div className="flex justify-center space-x-3">
-                <Link href="/seller/products/add">
+            <Link href={`/${currentLocale}/seller/products/add`}>
                   <Button>
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Your First Product
+                    {t('addYourFirstProduct')}
                   </Button>
                 </Link>
                 {Object.values(currentFilters).some(Boolean) && (
                   <Button variant="outline" onClick={clearFilters}>
-                    Clear Filters
+                    {t('clearFilters')}
                   </Button>
                 )}
               </div>
@@ -500,7 +486,7 @@ const handleToggleStatus = async (product: Product) => {
           ) : (
             <div className="text-center py-12">
               <div className="animate-spin h-8 w-8 border-2 border-wrench-accent border-t-transparent rounded-full mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading your products...</p>
+              <p className="text-gray-600">{t('loadingYourProducts')}</p>
             </div>
           )}
         </CardContent>
@@ -510,8 +496,7 @@ const handleToggleStatus = async (product: Product) => {
       {products && products.pagination.pages > 1 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-600">
-            Showing page {products.pagination.page} of {products.pagination.pages} 
-            ({products.pagination.total} total products)
+            {t('paginationSummary', {page: products.pagination.page, pages: products.pagination.pages, total: products.pagination.total})}
           </div>
           
           <div className="flex space-x-2">
@@ -525,7 +510,7 @@ const handleToggleStatus = async (product: Product) => {
                   router.push(`/seller/products?${params.toString()}`);
                 }}
               >
-                Previous
+                {t('previous')}
               </Button>
             )}
             
@@ -539,7 +524,7 @@ const handleToggleStatus = async (product: Product) => {
                   router.push(`/seller/products?${params.toString()}`);
                 }}
               >
-                Next
+                {t('next')}
               </Button>
             )}
           </div>

@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
+import { useTranslations } from 'next-intl';
+import { usePathname } from 'next/navigation';
 import { 
   Package, 
   Search,  
@@ -63,7 +65,10 @@ interface ProductsResponse {
 export default function AdminProductsPage() {
   const role = useUserRole();
   const { isLoading, isAuthenticated } = useAuthStore();
-
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
+  const t = useTranslations('adminProducts');
+  const tCurrency = useTranslations('common.currency');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -100,11 +105,11 @@ export default function AdminProductsPage() {
         setProducts(response.data.products);
         setPagination(response.data.pagination);
       } else {
-        setError(response.error?.message || 'Failed to fetch products');
+        setError(response.error?.message || t('fetchProductsFailed'));
       }
     } catch (err: any) {
       console.error('Error fetching products:', err);
-      setError(err.message || 'Failed to fetch products');
+      setError(err.message || t('fetchProductsFailed'));
     } finally {
       setLoading(false);
     }
@@ -123,17 +128,17 @@ export default function AdminProductsPage() {
 
   const getStatusBadge = (isActive: boolean, isFlagged: boolean) => {
     if (isFlagged) {
-      return <Badge className="bg-red-100 text-red-800">Flagged</Badge>;
+      return <Badge className="bg-red-100 text-red-800">{t('flagged')}</Badge>;
     }
     return isActive ? (
-      <Badge className="bg-green-100 text-green-800">Active</Badge>
+      <Badge className="bg-green-100 text-green-800">{t('active')}</Badge>
     ) : (
-      <Badge className="bg-gray-100 text-gray-800">Inactive</Badge>
+      <Badge className="bg-gray-100 text-gray-800">{t('inactive')}</Badge>
     );
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString(currentLocale === 'ar' ? 'ar-AE' : 'en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -141,9 +146,9 @@ export default function AdminProductsPage() {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(currentLocale === 'ar' ? 'ar-AE' : 'en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'AED'
     }).format(amount);
   };
 
@@ -153,7 +158,7 @@ export default function AdminProductsPage() {
       <div className="flex items-center justify-center py-12">
         <div className="flex flex-col items-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-wrench-accent"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">{t('loading')}</p>
         </div>
       </div>
     );
@@ -164,8 +169,8 @@ export default function AdminProductsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Product Management</h1>
-          <p className="text-gray-600">Monitor and manage all platform products</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('productManagement')}</h1>
+          <p className="text-gray-600">{t('monitorAndManageAllPlatformProducts')}</p>
         </div>
         <Button 
           onClick={fetchProducts} 
@@ -173,7 +178,7 @@ export default function AdminProductsPage() {
           leftIcon={<RefreshCw className="h-4 w-4" />}
           disabled={loading}
         >
-          Refresh
+          {t('refresh')}
         </Button>
       </div>
 
@@ -184,13 +189,13 @@ export default function AdminProductsPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Search Products
+                  {t('searchProducts')}
                 </label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
                     type="text"
-                    placeholder="Search by title, description..."
+                    placeholder={t('searchPlaceholder')}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className="pl-10"
@@ -200,7 +205,7 @@ export default function AdminProductsPage() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Status Filter
+                  {t('statusFilter')}
                 </label>
                 <select
                   value={statusFilter}
@@ -210,16 +215,16 @@ export default function AdminProductsPage() {
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wrench-accent focus:border-transparent"
                 >
-                  <option value="">All Statuses</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="flagged">Flagged</option>
+                  <option value="">{t('allStatuses')}</option>
+                  <option value="active">{t('active')}</option>
+                  <option value="inactive">{t('inactive')}</option>
+                  <option value="flagged">{t('flagged')}</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category Filter
+                  {t('categoryFilter')}
                 </label>
                 <select
                   value={categoryFilter}
@@ -229,7 +234,7 @@ export default function AdminProductsPage() {
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wrench-accent focus:border-transparent"
                 >
-                  <option value="">All Categories</option>
+                  <option value="">{t('allCategories')}</option>
                   {/* Categories would be populated from API */}
                 </select>
               </div>
@@ -237,7 +242,7 @@ export default function AdminProductsPage() {
               <div className="flex items-end">
                 <Button type="submit" variant="primary" className="w-full">
                   <Search className="h-4 w-4 mr-2" />
-                  Search
+                  {t('search')}
                 </Button>
               </div>
             </div>
@@ -250,7 +255,7 @@ export default function AdminProductsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
-            Products ({pagination.total})
+            {t('products', { count: pagination.total })}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -258,20 +263,20 @@ export default function AdminProductsPage() {
             <div className="flex items-center justify-center py-8">
               <div className="flex flex-col items-center space-y-2">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-wrench-accent"></div>
-                <p className="text-gray-600">Loading products...</p>
+                <p className="text-gray-600">{t('loadingProducts')}</p>
               </div>
             </div>
           ) : error ? (
             <div className="text-center py-8">
               <p className="text-red-600 mb-4">{error}</p>
               <Button onClick={fetchProducts} variant="outline">
-                Try Again
+                {t('tryAgain')}
               </Button>
             </div>
           ) : products.length === 0 ? (
             <div className="text-center py-8">
               <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">No products found</p>
+              <p className="text-gray-600">{t('noProductsFound')}</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -286,7 +291,7 @@ export default function AdminProductsPage() {
                         <h3 className="font-medium text-gray-900">{product.title}</h3>
                         {getStatusBadge(product.isActive, product.isFlagged)}
                         {product.isFeatured && (
-                          <Badge className="bg-yellow-100 text-yellow-800">Featured</Badge>
+                          <Badge className="bg-yellow-100 text-yellow-800">{t('featured')}</Badge>
                         )}
                       </div>
                       
@@ -298,7 +303,7 @@ export default function AdminProductsPage() {
                         <div className="flex items-center gap-2">
                           <Store className="h-4 w-4 text-gray-500" />
                           <div>
-                            <p className="font-medium text-gray-700">Seller</p>
+                            <p className="font-medium text-gray-700">{t('seller')}</p>
                             <p className="text-gray-600">{product.seller.shopName}</p>
                             <p className="text-xs text-gray-500">
                               {product.seller.city}, {product.seller.area}
@@ -309,18 +314,18 @@ export default function AdminProductsPage() {
                         <div className="flex items-center gap-2">
                           <Tag className="h-4 w-4 text-gray-500" />
                           <div>
-                            <p className="font-medium text-gray-700">Category</p>
+                            <p className="font-medium text-gray-700">{t('category')}</p>
                             <p className="text-gray-600">{product.category.name}</p>
                           </div>
                         </div>
                         
                         <div className="flex items-center gap-2">
                           <div>
-                            <p className="font-medium text-gray-700">Price</p>
-                            <p className="text-gray-600">AED {formatCurrency(product.price)}</p>
+                            <p className="font-medium text-gray-700">{t('price')}</p>
+                            <p className="text-gray-600">{tCurrency('aed')} {product.price}</p>
                             {product.originalPrice && (
                               <p className="text-xs text-gray-500 line-through">
-                                {formatCurrency(product.originalPrice)}
+                                {tCurrency('aed')} {product.originalPrice}
                               </p>
                             )}
                           </div>
@@ -329,29 +334,29 @@ export default function AdminProductsPage() {
                         <div className="flex items-center gap-2">
                           <Package className="h-4 w-4 text-gray-500" />
                           <div>
-                            <p className="font-medium text-gray-700">Stats</p>
+                            <p className="font-medium text-gray-700">{t('stats')}</p>
                             <p className="text-gray-600">
                               ⭐ {product.ratingAverage?.toFixed(1) || '0'} ({product.ratingCount})
                             </p>
                             <p className="text-xs text-gray-500">
-                              {product.viewCount || 0} views
+                              {t('views', { count: product.ratingCount || 0 })}
                             </p>
                           </div>
                         </div>
                       </div>
 
                       <div className="mt-3 text-xs text-gray-500">
-                        Created: {formatDate(product.createdAt)} | 
-                        Updated: {formatDate(product.updatedAt)}
+                        {t('created')}: {formatDate(product.createdAt)} | 
+                        {t('updated')}: {formatDate(product.updatedAt)}
                       </div>
                     </div>
                     
                     <div className="flex flex-col gap-2 min-w-fit">
                       <Button variant="outline" size="sm" leftIcon={<Eye className="h-4 w-4" />}>
-                        View
+                        {t('view')}
                       </Button>
                       <Button variant="outline" size="sm" leftIcon={<Edit className="h-4 w-4" />}>
-                        Edit
+                        {t('edit')}
                       </Button>
                       <Button 
                         variant="outline" 
@@ -359,7 +364,7 @@ export default function AdminProductsPage() {
                         leftIcon={<Trash2 className="h-4 w-4" />}
                         className="text-red-600 border-red-200 hover:bg-red-50"
                       >
-                        Delete
+                        {t('delete')}
                       </Button>
                     </div>
                   </div>
@@ -376,9 +381,11 @@ export default function AdminProductsPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-600">
-                Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
-                {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
-                {pagination.total} products
+                {t('showingResults', { 
+                  start: ((pagination.page - 1) * pagination.limit) + 1,
+                  end: Math.min(pagination.page * pagination.limit, pagination.total),
+                  total: pagination.total
+                })}
               </div>
               
               <div className="flex items-center gap-2">
@@ -389,11 +396,11 @@ export default function AdminProductsPage() {
                   disabled={currentPage === 1}
                 >
                   <ChevronLeft className="h-4 w-4" />
-                  Previous
+                  {t('previous')}
                 </Button>
                 
                 <span className="text-sm text-gray-600">
-                  Page {currentPage} of {pagination.pages}
+                  {t('pageOf', { current: currentPage, total: pagination.pages })}
                 </span>
                 
                 <Button
@@ -402,7 +409,7 @@ export default function AdminProductsPage() {
                   onClick={() => setCurrentPage(currentPage + 1)}
                   disabled={currentPage === pagination.pages}
                 >
-                  Next
+                  {t('next')}
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>

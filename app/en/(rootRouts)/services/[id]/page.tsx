@@ -1,0 +1,1 @@
+export { default } from '@/app/(rootRouts)/services/[id]/page';

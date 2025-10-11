@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { apiClient } from '@/lib/api/client';
 import type { Product } from '@/types';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
@@ -11,13 +12,19 @@ import { Star, MapPin, Store, Tag, ChevronLeft, ChevronRight, MessageCircle, Hea
 import { GlowingEffect } from '../ui/glowing-effect';
 import { WishlistIcon } from '../ui/WishlistIcon';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
+import { formatPrice } from '@/lib/utils';
 
 export function FeaturedProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
-
+  const tProducts = useTranslations('common.products');
+  const tCommon = useTranslations('common');
+  const tSearch = useTranslations('common.search');
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -33,13 +40,13 @@ export function FeaturedProducts() {
         const items = response?.data?.products || response?.data || [];
         if (mounted) setProducts(Array.isArray(items) ? items : []);
       } catch (err: any) {
-        if (mounted) setError(err?.message || 'Failed to load featured products');
+        if (mounted) setError(err?.message || tProducts('unableToLoad'));
       } finally {
         if (mounted) setIsLoading(false);
       }
     })();
     return () => { mounted = false; };
-  }, []);
+  }, [currentLocale]);
 
   const featuredProducts = useMemo(() => products.slice(0, 12), [products]);
 
@@ -50,13 +57,7 @@ export function FeaturedProducts() {
     el.scrollBy({ left: direction === 'left' ? -amount : amount, behavior: 'smooth' });
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-AE', {
-      style: 'currency',
-      currency: 'AED',
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
+  // const formatPrice = (price: number) => `${tCommon('currency.aed')} ${price.toLocaleString()}`;
 
   const getImageUrl = (product: Product) => {
     if (product.productImages && product.productImages.length > 0) {
@@ -74,10 +75,10 @@ export function FeaturedProducts() {
         {/* Header */}
         <div className="text-center mb-8 sm:mb-12">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-wrench-text-primary mb-2">
-            Featured Products
+            {tProducts('featuredProducts')}
           </h2>
           <p className="text-wrench-text-secondary text-sm sm:text-base">
-            Discover our top-rated products with the best reviews
+            {tProducts('discoverOurTopRatedProductsWithTheBestReviews')}
           </p>
         </div>
 
@@ -94,7 +95,7 @@ export function FeaturedProducts() {
             {/* Navigation Arrows */}
             <button
               type="button"
-              aria-label="Scroll left"
+              aria-label={tCommon('aria.scrollLeft', { default: 'Scroll left' })}
               onClick={() => scrollByAmount('left')}
               className="flex absolute left-0 -top-6 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-white border border-gray-200 shadow-wrench-card hover:shadow-wrench-hover"
             >
@@ -102,7 +103,7 @@ export function FeaturedProducts() {
             </button>
             <button
               type="button"
-              aria-label="Scroll right"
+              aria-label={tCommon('aria.scrollRight', { default: 'Scroll right' })}
               onClick={() => scrollByAmount('right')}
               className="flex absolute right-0 -top-6 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-white border border-gray-200 shadow-wrench-card hover:shadow-wrench-hover"
             >
@@ -141,6 +142,7 @@ export function FeaturedProducts() {
                               type="product"
                               title={product.title}
                               price={product.price}
+                            currency={product.currency}
                               image={product.images?.[0] || ''}
                               category={product.category?.name}
                               sellerName={product.seller.shopName}
@@ -151,29 +153,29 @@ export function FeaturedProducts() {
                       </CardHeader>
 
                       <CardContent className="pt-2">
-                        <Link href={`/products/${product.id}`}>
+                        <Link href={`/${currentLocale}/products/${product.id}`}>
                           <Button variant="link" className="font-semibold p-0 text-gray-900 mb-2 line-clamp-2">
                             {product.title}
                           </Button>
                         </Link>
 
                         <p className="text-sm text-gray-600 mb-2">
-                          by {product.seller.shopName}
+                          {tSearch('by')} {product.seller.shopName}
                         </p>
 
                         <div className="flex items-center justify-between">
                           <span className="text-lg font-bold text-wrench-orange-600">
-                            {formatPrice(product.price)}
+                            {formatPrice(product.price, product.currency || 'AED', currentLocale)}
                           </span>
 
                           <div className="flex space-x-2">
-                            <Link href={`/products/${product.id}`} className="w-full">
+                            <Link href={`/${currentLocale}/products/${product.id}`} className="w-full">
                               <Button
                                 size="sm"
                                 className="w-full"
                               >
                                 <MessageCircle className="h-4 w-4 mr-2" />
-                                Let's Chat
+                                {tSearch('letsChat')}
                               </Button>
                             </Link>
                           </div>
@@ -219,14 +221,14 @@ export function FeaturedProducts() {
         {!isLoading && products.length > 0 && (
           <div className="text-center mt-8 sm:mt-12">
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link href="/products">
+              <Link href={`/${currentLocale}/products`}>
                 <Button className="bg-wrench-accent text-wrench-text-primary hover:bg-wrench-accent-hover px-6 py-3">
-                  View All Products
+                  {tProducts('viewAllProducts')}
                 </Button>
               </Link>
-              <Link href="/products?sortBy=rating">
+              <Link href={`/${currentLocale}/products?sortBy=rating`}>
                 <Button variant="outline" className="border-wrench-accent text-wrench-accent hover:bg-wrench-accent-hover hover:text-black px-6 py-3">
-                  Top Rated Products
+                  {tProducts('topRatedProducts')}
                 </Button>
               </Link>
             </div>

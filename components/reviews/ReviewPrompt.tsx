@@ -7,6 +7,7 @@ import { Modal } from '@/components/ui/Modal';
 import { apiClient } from '@/lib/api/client';
 import ReviewForm from './ReviewForm';
 import { Star, ThumbsUp, Clock, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface ReviewPromptProps {
   entityType: 'product' | 'service' | 'seller' | 'appointment' | 'chat';
@@ -29,6 +30,7 @@ export default function ReviewPrompt({
   onClose,
   onReviewSubmitted
 }: ReviewPromptProps) {
+  const t = useTranslations('common');
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [canReview, setCanReview] = useState<boolean | null>(null);
   const [isCheckingEligibility, setIsCheckingEligibility] = useState(false);
@@ -64,21 +66,21 @@ export default function ReviewPrompt({
     switch (triggerType) {
       case 'chat_completion':
         return {
-          title: '🎉 Great! How was your experience?',
-          subtitle: 'Help others by sharing your thoughts about this product and seller',
-          cta: 'Rate & Review'
+          title: t('reviews.greatHowWasExperience'),
+          subtitle: t('reviews.helpOthersShareThoughts'),
+          cta: t('reviews.rateAndReview')
         };
       case 'appointment_completion':
         return {
-          title: '✅ Service Completed!',
-          subtitle: 'Share your experience to help others find great services',
-          cta: 'Rate Service'
+          title: t('reviews.serviceCompleted'),
+          subtitle: t('reviews.shareExperienceHelpOthers'),
+          cta: t('reviews.rateService')
         };
       default:
         return {
-          title: '⭐ Share Your Experience',
-          subtitle: 'Your review helps others make better decisions',
-          cta: 'Write Review'
+          title: t('reviews.shareYourExperienceTitle'),
+          subtitle: t('reviews.shareYourExperienceSubtitle'),
+          cta: t('reviews.writeReview')
         };
     }
   };
@@ -145,15 +147,15 @@ export default function ReviewPrompt({
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <ThumbsUp className="h-4 w-4 text-green-500" />
-              Help other customers make informed decisions
+              {t('reviews.helpCustomers')}
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Star className="h-4 w-4 text-yellow-500" />
-              Share your honest experience and feedback
+              {t('reviews.shareHonestExperience')}
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Clock className="h-4 w-4 text-blue-500" />
-              Takes less than 2 minutes
+              {t('reviews.takesLessThan2Minutes')}
             </div>
           </div>
 
@@ -168,7 +170,7 @@ export default function ReviewPrompt({
               className="w-full bg-yellow-500 hover:bg-yellow-600 text-white"
             >
               <Star className="h-4 w-4 mr-2" />
-              {isCheckingEligibility ? 'Checking...' : triggerMessage.cta}
+              {isCheckingEligibility ? t('reviews.checking') : triggerMessage.cta}
             </Button>
             
             <div className="grid grid-cols-2 gap-2">
@@ -178,14 +180,14 @@ export default function ReviewPrompt({
                 className="text-sm"
               >
                 <Clock className="h-3 w-3 mr-1" />
-                Later
+                {t('reviews.later')}
               </Button>
               <Button
                 variant="ghost"
                 onClick={onClose}
                 className="text-sm text-gray-500"
               >
-                Not Now
+                {t('reviews.notNow')}
               </Button>
             </div>
           </div>
@@ -193,7 +195,7 @@ export default function ReviewPrompt({
           {canReview === false && (
             <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-sm text-yellow-800">
-                You need to have more interaction with this {entityType} before you can leave a review.
+                {t('reviews.moreInteractionNeeded', { entityType })}
               </p>
             </div>
           )}

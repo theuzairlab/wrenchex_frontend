@@ -17,6 +17,7 @@ import {
   Bell,
   BarChart3,
   Plus,
+  Languages,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import GlobalSearch from '@/components/search/GlobalSearch';
@@ -28,6 +29,8 @@ import { cn } from '@/lib/utils';
 import { ChatDropdown } from './ChatDropdown';
 import { useAuthModal } from '@/components/auth';
 import { HoverBorderGradient } from '../ui/hover-border-gradient';
+import LanguageSwitcher from '@/components/navigation/LanguageSwitcher';
+import { useTranslations } from 'next-intl';
 
 interface NavbarProps {
   className?: string;
@@ -48,6 +51,7 @@ const Navbar = ({ className }: NavbarProps) => {
   const [unreadChatCount, setUnreadChatCount] = useState(0);
   const chatButtonRef = useRef<HTMLButtonElement | null>(null);
   const { openAuthModal } = useAuthModal();
+  const t = useTranslations('common.nav');
 
   const role = useUserRole();
   const wishlistCount = getWishlistCount();
@@ -147,20 +151,23 @@ const Navbar = ({ className }: NavbarProps) => {
     setIsMobileMenuOpen(false);
   };
 
+  // Get current locale for href generation
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
+  
   // Navigation links for different user roles
   const navigationLinks = [
     {
-      href: '/',
-      label: 'Home',
+      href: `/${currentLocale}`,
+      label: t('home'),
     },
     {
-      href: '/products',
-      label: 'Products',
+      href: `/${currentLocale}/products`,
+      label: t('products'),
       icon: <Package className="h-4 w-4" />
     },
     {
-      href: '/services',
-      label: 'Services',
+      href: `/${currentLocale}/services`,
+      label: t('services'),
       icon: <Wrench className="h-4 w-4" />
     },
   ];
@@ -169,26 +176,27 @@ const Navbar = ({ className }: NavbarProps) => {
     if (!isAuthenticated) return [];
 
     const baseLinks = [
-      { href: '/dashboard', label: 'Dashboard', icon: BarChart3 },
+      { href: `/${currentLocale}/dashboard`, label: t('dashboard'), icon: BarChart3 },
     ];
 
     switch (role) {
       case 'BUYER':
         return [
           ...baseLinks,
-          { href: '/wishlist', label: 'Favorites', icon: Heart },
+          { href: `/${currentLocale}/wishlist`, label: t('favorites'), icon: Heart },
         ];
       case 'SELLER':
         return [
           ...baseLinks,
-          { href: '/seller/products', label: 'My Products', icon: Package },
+          { href: `/${currentLocale}/seller/products`, label: t('myProducts'), icon: Package },
+          { href: `/${currentLocale}/seller/translations`, label: t('translations'), icon: Languages },
         ];
       case 'ADMIN':
         return [
           ...baseLinks,
-          { href: '/admin/users', label: 'Users', icon: User },
-          { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
-          { href: '/admin/settings', label: 'Settings', icon: Settings },
+          { href: `/${currentLocale}/admin/users`, label: t('users'), icon: User },
+          { href: `/${currentLocale}/admin/analytics`, label: t('analytics'), icon: BarChart3 },
+          { href: `/${currentLocale}/admin/settings`, label: t('settings'), icon: Settings },
         ];
       default:
         return baseLinks;
@@ -233,7 +241,7 @@ const Navbar = ({ className }: NavbarProps) => {
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2 flex-shrink-0">
+          <Link href={`/${currentLocale}`} className="flex items-center space-x-2 flex-shrink-0">
             <div className="w-8 h-8 bg-wrench-accent rounded-lg flex items-center justify-center">
               <Wrench className="h-5 w-5 text-black" />
             </div>
@@ -261,6 +269,8 @@ const Navbar = ({ className }: NavbarProps) => {
 
           {/* Desktop Actions */}
           <div className="hidden lg:flex items-center space-x-2">
+            {/* Language Switcher */}
+            <LanguageSwitcher />
             {/* Search Button */}
             <div className="relative" ref={searchDropdownRef}>
               <Button
@@ -276,7 +286,7 @@ const Navbar = ({ className }: NavbarProps) => {
               {isSearchDropdownOpen && (
                 <div className="absolute top-full right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-50 w-96 p-4" onMouseDown={(e) => e.stopPropagation()}>
                   <GlobalSearch
-                    placeholder="Search products, services, or brands..."
+                    placeholder={t('searchPlaceholder')}
                     className="w-full"
                     showFilters={true}
                     onSearch={() => setIsSearchDropdownOpen(false)}
@@ -324,7 +334,7 @@ const Navbar = ({ className }: NavbarProps) => {
                   </div>
                 )}
 
-                <Link href="/wishlist">
+                <Link href={`/${currentLocale}/wishlist`}>
                   <Button variant="ghost" size="sm" className="!rounded-full relative hover:bg-gray-100/50">
                     <Heart className="h-4 w-4" />
                     {wishlistCount > 0 && (
@@ -351,9 +361,9 @@ const Navbar = ({ className }: NavbarProps) => {
                     <div className="absolute right-0 mt-2 w-56 bg-white/95 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 py-1 z-50">
                       <div className="px-4 py-2 border-b border-gray-100">
                         <p className="text-sm font-medium text-gray-900">
-                          {isLoading ? 'Loading...' : (user?.firstName && user?.lastName) ? `${user.firstName} ${user.lastName}` : 'User'}
+                          {isLoading ? t('loading') : (user?.firstName && user?.lastName) ? `${user.firstName} ${user.lastName}` : t('user')}
                         </p>
-                        <p className="text-sm text-gray-500">{user?.email || 'Loading email...'}</p>
+                        <p className="text-sm text-gray-500">{user?.email || t('loading')}</p>
                         <span className={cn(
                           "inline-block px-2 py-1 rounded-full text-xs font-medium mt-1",
                           role === 'ADMIN' && "bg-red-100 text-red-700",
@@ -384,7 +394,7 @@ const Navbar = ({ className }: NavbarProps) => {
                         className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50/50"
                       >
                         <LogOut className="h-4 w-4 mr-3" />
-                        Sign Out
+                        {t('signOut')}
                       </button>
                     </div>
                   )}
@@ -392,7 +402,7 @@ const Navbar = ({ className }: NavbarProps) => {
               </>
             ) : (
               <div className="flex items-center space-x-2">
-                <Link href="/wishlist">
+                <Link href={`/${currentLocale}/wishlist`}>
                   <Button variant="ghost" size="sm" className="!rounded-full relative hover:bg-gray-100/50">
                     <Heart className="h-4 w-4" />
                     {wishlistCount > 0 && (
@@ -409,7 +419,7 @@ const Navbar = ({ className }: NavbarProps) => {
                   className="!rounded-full"
                   onClick={() => handleOpenAuthModal('login')}
                 >
-                  Login
+                  {t('login')}
                 </Button>
                 <HoverBorderGradient
                   containerClassName="rounded-full"
@@ -418,7 +428,7 @@ const Navbar = ({ className }: NavbarProps) => {
                   onClick={() => handleOpenAuthModal('seller-register')}
                 >
                   <Plus className="h-4 w-4 mr-3" />
-                  Sell
+                  {t('sell')}
                 </HoverBorderGradient>
               </div>
             )}
@@ -463,7 +473,7 @@ const Navbar = ({ className }: NavbarProps) => {
         {isSearchDropdownOpen && (
           <div ref={mobileSearchDropdownRef} className="lg:hidden absolute left-1/2 -translate-x-1/2 top-full mt-3 p-4 bg-white/95 backdrop-blur-md rounded-xl border border-gray-200/50 shadow-lg w-[92vw] max-w-[640px] z-[60]">
             <GlobalSearch
-              placeholder="Search products..."
+              placeholder={t('searchProducts')}
               className="w-full"
               autoFocus={true}
               showFilters={false}
@@ -516,7 +526,7 @@ const Navbar = ({ className }: NavbarProps) => {
                     {(role === 'BUYER' || role === 'SELLER') && (
                       <div className="px-4 py-2 border-b border-gray-100/50">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-700">Chats</span>
+                          <span className="text-sm text-gray-700">{t('chats')}</span>
                           {unreadChatCount > 0 && (
                             <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center font-bold">
                               {unreadChatCount > 99 ? '99+' : unreadChatCount}
@@ -524,12 +534,12 @@ const Navbar = ({ className }: NavbarProps) => {
                           )}
                         </div>
                         <Link
-                          href={role === 'SELLER' ? '/seller/chats' : '/buyer/chats'}
+                          href={role === 'SELLER' ? `/${currentLocale}/seller/chats` : `/${currentLocale}/buyer/chats`}
                           className="flex items-center mt-2 text-sm text-wrench-orange-600 hover:text-wrench-orange-700"
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
                           <MessageCircle className="h-4 w-4 mr-2" />
-                          View All Conversations
+                          {t('viewAllConversations')}
                         </Link>
                       </div>
                     )}
@@ -553,7 +563,7 @@ const Navbar = ({ className }: NavbarProps) => {
                       className="flex items-center w-full px-3 py-2 rounded-lg text-red-600 hover:bg-red-50/50"
                     >
                       <LogOut className="h-4 w-4 mr-3" />
-                      Sign Out
+                      {t('signOut')}
                     </button>
                   </div>
                 </div>
@@ -564,7 +574,7 @@ const Navbar = ({ className }: NavbarProps) => {
                     className="w-full justify-center !rounded-full"
                     onClick={() => handleOpenAuthModal('login')}
                   >
-                    Login
+                    {t('login')}
                   </Button>
                   <HoverBorderGradient
                     containerClassName="!rounded-full"
@@ -573,7 +583,7 @@ const Navbar = ({ className }: NavbarProps) => {
                     onClick={() => handleOpenAuthModal('seller-register')}
                   >
                     <Plus className="h-4 w-4 mr-3" />
-                    Sell
+                    {t('sell')}
                   </HoverBorderGradient>
                 </div>
               )}

@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { SellerAppointment } from '@/types';
@@ -14,6 +16,9 @@ interface RecentAppointmentsProps {
 
 export function RecentAppointments({ appointments, onRefresh }: RecentAppointmentsProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
+  const t = useTranslations('recentAppointments');
 
   const handleRefresh = async () => {
     if (onRefresh) {
@@ -78,7 +83,7 @@ export function RecentAppointments({ appointments, onRefresh }: RecentAppointmen
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            Recent Appointments
+{t('recentAppointments')}
           </CardTitle>
           <Button
             variant="outline"
@@ -88,7 +93,7 @@ export function RecentAppointments({ appointments, onRefresh }: RecentAppointmen
             className="gap-2"
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Refresh
+{t('refresh')}
           </Button>
         </div>
       </CardHeader>
@@ -148,11 +153,11 @@ export function RecentAppointments({ appointments, onRefresh }: RecentAppointmen
                     {formatCurrency(appointment.totalAmount)}
                   </p>
                   <p className="text-sm text-gray-500">
-                    Service: {formatCurrency(appointment.service.price)}
+{t('service')}: {formatCurrency(appointment.service.price)}
                   </p>
-                  <Link href={`/seller/appointments/${appointment.id}`}>
+                  <Link href={`/${currentLocale}/seller/appointments/${appointment.id}`}>
                     <Button variant="outline" size="sm" className="mt-2">
-                      View Details
+{t('viewDetails')}
                     </Button>
                   </Link>
                 </div>
@@ -161,9 +166,9 @@ export function RecentAppointments({ appointments, onRefresh }: RecentAppointmen
 
             {/* View All Appointments Link */}
             <div className="pt-4 border-t">
-              <Link href="/seller/appointments">
+              <Link href={`/${currentLocale}/seller/appointments`}>
                 <Button variant="outline" className="w-full">
-                  View All Appointments
+{t('viewAllAppointments')}
                 </Button>
               </Link>
             </div>
@@ -171,9 +176,9 @@ export function RecentAppointments({ appointments, onRefresh }: RecentAppointmen
         ) : (
           <div className="text-center py-8">
             <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 mb-2">No recent appointments</p>
+            <p className="text-gray-600 mb-2">{t('noRecentAppointments')}</p>
             <p className="text-sm text-gray-500">
-              Your scheduled services will appear here.
+              {t('scheduledServicesWillAppearHere')}
             </p>
           </div>
         )}

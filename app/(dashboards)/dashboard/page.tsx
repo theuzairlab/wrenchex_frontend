@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useUser, useUserRole } from '@/lib/stores/auth';
 import { useAuthStore } from '@/lib/stores/auth';
@@ -58,6 +59,8 @@ interface SellerDashboardData {
 
 
 export default function DashboardPage() {
+  const tNav = useTranslations('common.nav');
+  const tDash = useTranslations('common.dashboard');
   const role = useUserRole();
   const user = useUser();
   const { isLoading, isAuthenticated } = useAuthStore();
@@ -138,11 +141,11 @@ export default function DashboardPage() {
   // Show loading state while user data is being fetched
   if (isLoading || !isAuthenticated) {
     return (
-      <DashboardLayout title="Loading..." description="Please wait...">
+      <DashboardLayout title={tNav('loading')} description="">
         <div className="flex items-center justify-center py-12">
           <div className="flex flex-col items-center space-y-4">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-wrench-accent"></div>
-            <p className="text-gray-600">Loading dashboard...</p>
+            <p className="text-gray-600">{tNav('loading')}</p>
           </div>
         </div>
       </DashboardLayout>
@@ -152,15 +155,15 @@ export default function DashboardPage() {
   // Show error state if user data is missing
   if (!user) {
     return (
-      <DashboardLayout title="Error" description="Unable to load user data">
+      <DashboardLayout title={tDash('error', { default: 'Error' })} description={tDash('noDashboardDataAvailable')}>
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <p className="text-gray-600 mb-4">Unable to load user information</p>
+            <p className="text-gray-600 mb-4">{tDash('noDashboardDataAvailable')}</p>
             <button
               onClick={() => window.location.reload()}
               className="px-4 py-2 bg-wrench-accent text-black rounded-lg hover:bg-wrench-accent-hover"
             >
-              Refresh Page
+              {tDash('tryAgain')}
             </button>
           </div>
         </div>
@@ -203,13 +206,13 @@ export default function DashboardPage() {
     const currentRole = role || user?.role;
     switch (currentRole) {
       case 'BUYER':
-        return 'Dashboard';
+        return tDash('dashboard');
       case 'SELLER':
-        return 'Seller Dashboard';
+        return tDash('sellerDashboard');
       case 'ADMIN':
-        return 'Admin Dashboard';
+        return tDash('adminDashboard');
       default:
-        return 'Dashboard';
+        return tDash('dashboard');
     }
   };
 
@@ -217,13 +220,13 @@ export default function DashboardPage() {
     const currentRole = role || user?.role;
     switch (currentRole) {
       case 'BUYER':
-        return 'Manage your orders, favorites, and account settings';
+        return tDash('manageOrdersFavorites');
       case 'SELLER':
-        return 'Manage your business, products, and customer relationships';
+        return tDash('manageBusinessProducts');
       case 'ADMIN':
-        return 'Oversee platform operations and user management';
+        return tDash('overseePlatformOperations');
       default:
-        return 'Welcome to your dashboard';
+        return tDash('welcomeToDashboard');
     }
   };
 

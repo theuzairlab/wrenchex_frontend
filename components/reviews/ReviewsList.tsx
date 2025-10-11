@@ -9,6 +9,7 @@ import { Review } from '@/types';
 import { toast } from 'sonner';
 import { Star, MoreVertical, ThumbsUp, Camera, Verified } from 'lucide-react';
 import { format } from 'date-fns';
+import { useTranslations } from 'next-intl';
 
 interface ReviewsListProps {
   entityType?: 'product' | 'service' | 'seller' | 'appointment' | 'chat';
@@ -27,6 +28,7 @@ export default function ReviewsList({
   sortBy = 'newest',
   ratingFilter
 }: ReviewsListProps) {
+  const t = useTranslations('common');
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -66,7 +68,7 @@ export default function ReviewsList({
       }
     } catch (error) {
       console.error('Failed to load reviews:', error);
-      toast.error('Failed to load reviews');
+      toast.error(t('reviews.failedToLoadReviews', { default: 'Failed to load reviews' }));
     } finally {
       setIsLoading(false);
     }
@@ -98,7 +100,7 @@ export default function ReviewsList({
       }
     } catch (error) {
       console.error('Failed to mark review as helpful:', error);
-      toast.error('Failed to mark review as helpful');
+      toast.error(t('reviews.failedToMarkHelpful', { default: 'Failed to mark review as helpful' }));
     }
   };
 
@@ -167,8 +169,8 @@ export default function ReviewsList({
     return (
       <div className="text-center py-12">
         <Star className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">No reviews yet</h3>
-        <p className="text-gray-600">Be the first to leave a review!</p>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('reviews.noReviewsYet')}</h3>
+        <p className="text-gray-600">{t('reviews.beFirstToReview')}</p>
       </div>
     );
   }
@@ -199,7 +201,7 @@ export default function ReviewsList({
                           {review.reviewer.firstName} {review.reviewer.lastName}
                         </h4>
                         {review.isVerified && (
-                          <div title="Verified Purchase">
+                          <div title={t('reviews.verifiedPurchase', { default: 'Verified Purchase' })}>
                             <Verified className="h-4 w-4 text-blue-500" />
                           </div>
                         )}
@@ -215,7 +217,7 @@ export default function ReviewsList({
                       {/* Entity Badge (only show if not filtering by specific entity) */}
                       {!entityType && (
                         <Badge variant="outline" className="text-xs">
-                          {entityInfo.type}: {entityInfo.name}
+                          {t(`reviews.entity.${entityInfo.type.toLowerCase()}`, { default: entityInfo.type })}: {entityInfo.name}
                         </Badge>
                       )}
                     </div>
@@ -271,7 +273,7 @@ export default function ReviewsList({
                       onClick={() => handleHelpfulVote(review.id)}
                     >
                       <ThumbsUp className={`h-3 w-3 mr-1 ${isHelpful ? 'fill-current' : ''}`} />
-                      Helpful {review.helpfulCount > 0 && `(${review.helpfulCount})`}
+                      {t('reviews.helpful')} {review.helpfulCount > 0 && `(${review.helpfulCount})`}
                     </Button>
                   </div>
                 </div>
@@ -289,7 +291,7 @@ export default function ReviewsList({
             onClick={loadMore}
             disabled={isLoading}
           >
-            {isLoading ? 'Loading...' : 'Load More Reviews'}
+            {isLoading ? t('nav.loading') : t('reviews.loadMoreReviews')}
           </Button>
         </div>
       )}

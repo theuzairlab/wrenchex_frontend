@@ -9,13 +9,53 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Format currency values
+ * Format currency values with proper currency info
  */
-export function formatPrice(price: number, currency: string = 'USD'): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currency,
-  }).format(price);
+export function formatPrice(price: number, currency: string = 'AED'): string {
+  // Currency symbol mapping
+  const currencySymbols: Record<string, string> = {
+    'AED': 'د.إ',
+    'USD': '$',
+    'PKR': '₨',
+    'EUR': '€',
+    'GBP': '£',
+    'SAR': 'ر.س',
+    'KWD': 'د.ك',
+    'QAR': 'ر.ق',
+    'BHD': 'د.ب',
+    'OMR': 'ر.ع',
+    'JOD': 'د.ا',
+    'LBP': 'ل.ل',
+    'EGP': 'ج.م',
+    'INR': '₹',
+    'BDT': '৳',
+    'LKR': '₨',
+    'NPR': '₨',
+    'AFN': '؋',
+    'CAD': 'C$',
+    'AUD': 'A$',
+    'NZD': 'NZ$',
+    'SGD': 'S$',
+    'MYR': 'RM',
+    'THB': '฿',
+    'PHP': '₱',
+    'IDR': 'Rp',
+    'VND': '₫',
+    'KRW': '₩',
+    'JPY': '¥',
+    'CNY': '¥',
+    'ZAR': 'R',
+    'NGN': '₦',
+    'KES': 'KSh'
+  };
+
+  const symbol = currencySymbols[currency] || currency;
+  const formattedPrice = price.toLocaleString('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  });
+
+  return `${symbol} ${formattedPrice}`;
 }
 
 /**

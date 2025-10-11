@@ -8,6 +8,9 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
+import { useTranslations } from 'next-intl';
+import { formatPrice } from '@/lib/utils';
+import { usePathname } from 'next/navigation';
 import { 
   Store, 
   Search, 
@@ -24,6 +27,7 @@ interface Service {
   title: string;
   description: string;
   price: number;
+  currency?: string;
   durationMinutes: number;
   isMobileService: boolean;
   isActive: boolean;
@@ -49,6 +53,9 @@ interface Service {
 export default function AdminServicesPage() {
   const role = useUserRole();
   const { isLoading, isAuthenticated } = useAuthStore();
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
+  const t = useTranslations('adminServices');
 
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,11 +95,11 @@ export default function AdminServicesPage() {
           pages: response.data.totalPages
         });
       } else {
-        setError(response.error?.message || 'Failed to fetch services');
+        setError(response.error?.message || t('fetchServicesFailed'));
       }
     } catch (err: any) {
       console.error('Error fetching services:', err);
-      setError(err.message || 'Failed to fetch services');
+      setError(err.message || t('fetchServicesFailed'));
     } finally {
       setLoading(false);
     }
@@ -106,14 +113,14 @@ export default function AdminServicesPage() {
 
   const getStatusBadge = (isActive: boolean) => {
     return isActive ? (
-      <Badge className="bg-green-100 text-green-800">Active</Badge>
+      <Badge className="bg-green-100 text-green-800">{t('active')}</Badge>
     ) : (
-      <Badge className="bg-gray-100 text-gray-800">Inactive</Badge>
+      <Badge className="bg-gray-100 text-gray-800">{t('inactive')}</Badge>
     );
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString(currentLocale === 'ar' ? 'ar-AE' : 'en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -121,9 +128,9 @@ export default function AdminServicesPage() {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(currentLocale === 'ar' ? 'ar-AE' : 'en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'AED'
     }).format(amount);
   };
 
@@ -141,7 +148,7 @@ export default function AdminServicesPage() {
       <div className="flex items-center justify-center py-12">
         <div className="flex flex-col items-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-wrench-accent"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">{t('loading')}</p>
         </div>
       </div>
     );
@@ -152,8 +159,8 @@ export default function AdminServicesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Service Management</h1>
-          <p className="text-gray-600">Monitor and manage all platform services</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('serviceManagement')}</h1>
+          <p className="text-gray-600">{t('monitorAndManageAllPlatformServices')}</p>
         </div>
         <Button 
           onClick={fetchServices} 
@@ -161,7 +168,7 @@ export default function AdminServicesPage() {
           leftIcon={<RefreshCw className="h-4 w-4" />}
           disabled={loading}
         >
-          Refresh
+          {t('refresh')}
         </Button>
       </div>
 
@@ -170,21 +177,21 @@ export default function AdminServicesPage() {
         <CardContent className="p-6">
           <form onSubmit={handleSearch} className="max-w-md">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Search Services
+              {t('searchServices')}
             </label>
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
                   type="text"
-                  placeholder="Search by title, description..."
+                  placeholder={t('searchPlaceholder')}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="pl-10"
                 />
               </div>
               <Button type="submit" variant="primary">
-                Search
+                {t('search')}
               </Button>
             </div>
           </form>
@@ -196,7 +203,7 @@ export default function AdminServicesPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Store className="h-5 w-5" />
-            Services ({services.length})
+            {t('services', { count: services.length })}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -204,20 +211,20 @@ export default function AdminServicesPage() {
             <div className="flex items-center justify-center py-8">
               <div className="flex flex-col items-center space-y-2">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-wrench-accent"></div>
-                <p className="text-gray-600">Loading services...</p>
+                <p className="text-gray-600">{t('loadingServices')}</p>
               </div>
             </div>
           ) : error ? (
             <div className="text-center py-8">
               <p className="text-red-600 mb-4">{error}</p>
               <Button onClick={fetchServices} variant="outline">
-                Try Again
+                {t('tryAgain')}
               </Button>
             </div>
           ) : services.length === 0 ? (
             <div className="text-center py-8">
               <Store className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">No services found</p>
+              <p className="text-gray-600">{t('noServicesFound')}</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -232,7 +239,7 @@ export default function AdminServicesPage() {
                         <h3 className="font-medium text-gray-900">{service.title}</h3>
                         {getStatusBadge(service.isActive)}
                         {service.isMobileService && (
-                          <Badge className="bg-blue-100 text-blue-800">Mobile Service</Badge>
+                          <Badge className="bg-blue-100 text-blue-800">{t('mobileService')}</Badge>
                         )}
                       </div>
                       
@@ -244,7 +251,7 @@ export default function AdminServicesPage() {
                         <div className="flex items-center gap-2">
                           <Store className="h-4 w-4 text-gray-500" />
                           <div>
-                            <p className="font-medium text-gray-700">Provider</p>
+                            <p className="font-medium text-gray-700">{t('provider')}</p>
                             <p className="text-gray-600">{service.seller.shopName}</p>
                             <p className="text-xs text-gray-500">
                               {service.seller.city}, {service.seller.area}
@@ -255,22 +262,22 @@ export default function AdminServicesPage() {
                         <div className="flex items-center gap-2">
                           <MapPin className="h-4 w-4 text-gray-500" />
                           <div>
-                            <p className="font-medium text-gray-700">Category</p>
+                            <p className="font-medium text-gray-700">{t('category')}</p>
                             <p className="text-gray-600">{service.category.name}</p>
                           </div>
                         </div>
                         
                         <div className="flex items-center gap-2">
                           <div>
-                            <p className="font-medium text-gray-700">Price</p>
-                            <p className="text-gray-600">AED {formatCurrency(service.price)}</p>
+                            <p className="font-medium text-gray-700">{t('price')}</p>
+                            <p className="text-gray-600">{formatPrice(service.price, service.currency || 'AED')}</p>
                           </div>
                         </div>
                         
                         <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4 text-gray-500" />
                           <div>
-                            <p className="font-medium text-gray-700">Duration</p>
+                            <p className="font-medium text-gray-700">{t('duration')}</p>
                             <p className="text-gray-600">{formatDuration(service.durationMinutes)}</p>
                             <p className="text-xs text-gray-500">
                               ⭐ {service.ratingAverage?.toFixed(1) || '0'} ({service.ratingCount})
@@ -280,17 +287,17 @@ export default function AdminServicesPage() {
                       </div>
 
                       <div className="mt-3 text-xs text-gray-500">
-                        Created: {formatDate(service.createdAt)} | 
-                        Updated: {formatDate(service.updatedAt)}
+                        {t('created')}: {formatDate(service.createdAt)} | 
+                        {t('updated')}: {formatDate(service.updatedAt)}
                       </div>
                     </div>
                     
                     <div className="flex flex-col gap-2 min-w-fit">
                       <Button variant="outline" size="sm" leftIcon={<Eye className="h-4 w-4" />}>
-                        View
+                        {t('view')}
                       </Button>
                       <Button variant="outline" size="sm" leftIcon={<Edit className="h-4 w-4" />}>
-                        Edit
+                        {t('edit')}
                       </Button>
                       <Button 
                         variant="outline" 
@@ -298,7 +305,7 @@ export default function AdminServicesPage() {
                         leftIcon={<Trash2 className="h-4 w-4" />}
                         className="text-red-600 border-red-200 hover:bg-red-50"
                       >
-                        Delete
+                        {t('delete')}
                       </Button>
                     </div>
                   </div>

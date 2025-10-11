@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { SellerAvailability, SellerTimeOff } from '@/types';
 import { Calendar, RefreshCw, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface AvailabilityCalendarProps {
   schedule: SellerAvailability[];
@@ -13,6 +15,9 @@ interface AvailabilityCalendarProps {
 }
 
 export function AvailabilityCalendar({ schedule, timeOff, onRefresh }: AvailabilityCalendarProps) {
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
+  const t = useTranslations('availabilityCalendar');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -101,11 +106,15 @@ export function AvailabilityCalendar({ schedule, timeOff, onRefresh }: Availabil
   };
 
   const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    t('months.january'), t('months.february'), t('months.march'), t('months.april'), 
+    t('months.may'), t('months.june'), t('months.july'), t('months.august'), 
+    t('months.september'), t('months.october'), t('months.november'), t('months.december')
   ];
 
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const dayNames = [
+    t('days.sun'), t('days.mon'), t('days.tue'), t('days.wed'), 
+    t('days.thu'), t('days.fri'), t('days.sat')
+  ];
   const days = getDaysInMonth(currentDate);
   const monthYear = `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
 
@@ -115,7 +124,7 @@ export function AvailabilityCalendar({ schedule, timeOff, onRefresh }: Availabil
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            Availability Calendar
+            {t('availabilityCalendar')}
           </CardTitle>
           <div className="flex items-center gap-2">
             <Button
@@ -126,7 +135,7 @@ export function AvailabilityCalendar({ schedule, timeOff, onRefresh }: Availabil
               className="gap-2"
             >
               <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              Refresh
+              {t('refresh')}
             </Button>
           </div>
         </div>
@@ -141,7 +150,7 @@ export function AvailabilityCalendar({ schedule, timeOff, onRefresh }: Availabil
             className="gap-2"
           >
             <ChevronLeft className="h-4 w-4" />
-            Previous
+            {t('previous')}
           </Button>
           
           <h3 className="text-lg font-semibold text-gray-900">
@@ -154,7 +163,7 @@ export function AvailabilityCalendar({ schedule, timeOff, onRefresh }: Availabil
             onClick={nextMonth}
             className="gap-2"
           >
-            Next
+            {t('next')}
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
@@ -211,7 +220,7 @@ export function AvailabilityCalendar({ schedule, timeOff, onRefresh }: Availabil
                   </div>
                 )}
                 {availability.status === 'timeoff' && (
-                  <div className="text-xs mt-1">Off</div>
+                  <div className="text-xs mt-1">{t('off')}</div>
                 )}
               </div>
             );
@@ -222,34 +231,34 @@ export function AvailabilityCalendar({ schedule, timeOff, onRefresh }: Availabil
         <div className="flex flex-wrap gap-4 text-sm">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-green-100 border border-green-200 rounded"></div>
-            <span>Available</span>
+            <span>{t('available')}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-red-100 border border-red-200 rounded"></div>
-            <span>Time Off</span>
+            <span>{t('timeOff')}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-gray-100 border border-gray-200 rounded"></div>
-            <span>Not Available</span>
+            <span>{t('notAvailable')}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 border-2 border-wrench-orange-500 rounded"></div>
-            <span>Today</span>
+            <span>{t('today')}</span>
           </div>
         </div>
 
         {/* Summary Stats */}
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <h4 className="font-medium text-gray-900 mb-3">This Month Summary</h4>
+          <h4 className="font-medium text-gray-900 mb-3">{t('thisMonthSummary')}</h4>
           <div className="grid grid-cols-3 gap-4 text-sm">
             <div>
-              <span className="text-gray-600">Available Days:</span>
+              <span className="text-gray-600">{t('availableDays')}:</span>
               <div className="font-medium text-green-600">
                 {days.filter(day => day && getAvailabilityForDate(day).status === 'available').length}
               </div>
             </div>
             <div>
-              <span className="text-gray-600">Time Off Days:</span>
+              <span className="text-gray-600">{t('timeOffDays')}:</span>
               <div className="font-medium text-red-600">
                 {(() => {
                   const timeOffDays = days.filter(day => day && getAvailabilityForDate(day).status === 'timeoff').length;
@@ -260,7 +269,7 @@ export function AvailabilityCalendar({ schedule, timeOff, onRefresh }: Availabil
               </div>
             </div>
             <div>
-              <span className="text-gray-600">Unavailable Days:</span>
+              <span className="text-gray-600">{t('unavailableDays')}:</span>
               <div className="font-medium text-gray-600">
                 {days.filter(day => day && getAvailabilityForDate(day).status === 'unavailable').length}
               </div>

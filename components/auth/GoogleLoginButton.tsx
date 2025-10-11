@@ -6,6 +6,7 @@ import { useAuthStore } from '@/lib/stores/auth';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface GoogleLoginButtonProps {
   onSuccess?: () => void;
@@ -28,6 +29,7 @@ export function GoogleLoginButton({
 }: GoogleLoginButtonProps) {
   const { googleLogin, isLoading } = useAuthStore();
   const router = useRouter();
+  const t = useTranslations('common.auth');
 
   const handleSuccess = async (credentialResponse: CredentialResponse) => {
     try {
@@ -41,7 +43,7 @@ export function GoogleLoginButton({
       await googleLogin(credentialResponse.credential);
       
       // Show success message
-      toast.success('Google login successful! Welcome to WrenchEX.');
+      toast.success(t('googleLoginSuccessful'));
       
       // Handle redirect based on user role and source
       const redirectPath = getRedirectPath();
@@ -51,7 +53,7 @@ export function GoogleLoginButton({
     } catch (error: any) {
       console.error('GoogleLoginButton: Google login failed:', error);
       
-      const errorMessage = error?.message || 'Google login failed. Please try again.';
+      const errorMessage = error?.message || t('googleLoginFailed');
       toast.error(errorMessage);
       
       onError?.(errorMessage);

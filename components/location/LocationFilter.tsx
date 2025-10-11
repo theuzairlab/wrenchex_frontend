@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/Input';
 import { useLocationContext } from '@/lib/contexts/LocationContext';
 import { LocationService } from '@/lib/services/locationService';
 import { LocationPermissionModal } from './LocationPermissionModal';
+import { useTranslations } from 'next-intl';
+import { usePathname } from 'next/navigation';
 
 interface LocationFilterProps {
   currentLocation?: string;
@@ -34,6 +36,10 @@ export function LocationFilter({
   const [customLocation, setCustomLocation] = useState(currentLocation || '');
   const [radius, setRadius] = useState(currentRadius);
   const [showPermissionModal, setShowPermissionModal] = useState(false);
+  
+  const t = useTranslations('locationFilter');
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
 
   // Quick distance options
   const distanceOptions = LocationService.getDistanceOptions();
@@ -50,7 +56,7 @@ export function LocationFilter({
     if (location) {
       const locationString = location.city && location.area 
         ? `${location.area}, ${location.city}`
-        : location.city || 'Current Location';
+        : location.city || t('currentLocation');
       
       setCustomLocation(locationString);
       onLocationChange(locationString, {
@@ -91,7 +97,7 @@ export function LocationFilter({
     if (newLocation) {
       const locationString = newLocation.city && newLocation.area 
         ? `${newLocation.area}, ${newLocation.city}`
-        : newLocation.city || 'Current Location';
+        : newLocation.city || t('currentLocation');
       
       setCustomLocation(locationString);
       onLocationChange(locationString, {
@@ -111,7 +117,7 @@ export function LocationFilter({
       {/* Location Input */}
       <div className="space-y-2">
         <label className="text-sm font-medium text-gray-700">
-          Location
+          {t('location')}
         </label>
         <form onSubmit={handleLocationSubmit} className="flex gap-2">
           <div className="flex-1 relative">
@@ -120,7 +126,7 @@ export function LocationFilter({
               type="text"
               value={customLocation}
               onChange={(e) => setCustomLocation(e.target.value)}
-              placeholder="Enter city, area, or address"
+              placeholder={t('enterCityAreaOrAddress')}
               className="pl-10 pr-10"
             />
             {customLocation && (
@@ -134,7 +140,7 @@ export function LocationFilter({
             )}
           </div>
           <Button type="submit" variant="outline" size="sm">
-            Apply
+            {t('apply')}
           </Button>
         </form>
       </div>
@@ -149,7 +155,7 @@ export function LocationFilter({
           className="text-xs"
         >
           <Navigation className="h-3 w-3 mr-1" />
-          {loading ? 'Getting Location...' : location ? 'Use Current Location' : 'Enable Location'}
+          {loading ? t('gettingLocation') : location ? t('useCurrentLocation') : t('enableLocation')}
         </Button>
         
         <Button
@@ -159,17 +165,17 @@ export function LocationFilter({
           className="text-xs"
         >
           <Sliders className="h-3 w-3 mr-1" />
-          Distance
+          {t('distance')}
         </Button>
       </div>
 
       {/* Current Location Display */}
       {location && (
         <div className="text-xs text-gray-600 bg-blue-50 rounded p-2">
-          <span className="font-medium">Your location:</span> {' '}
+          <span className="font-medium">{t('yourLocation')}:</span> {' '}
           {location.city && location.area 
             ? `${location.area}, ${location.city}`
-            : location.city || 'Unknown'
+            : location.city || t('unknown')
           }
         </div>
       )}
@@ -178,7 +184,7 @@ export function LocationFilter({
       {showAdvanced && (
         <div className="space-y-3 border-t pt-3">
           <label className="text-sm font-medium text-gray-700">
-            Search Within
+            {t('searchWithin')}
           </label>
           
           {/* Quick Distance Buttons */}
@@ -199,8 +205,8 @@ export function LocationFilter({
           {/* Custom Distance Slider */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Custom Distance</span>
-              <span className="text-sm font-medium">{radius} km</span>
+              <span className="text-sm text-gray-600">{t('customDistance')}</span>
+              <span className="text-sm font-medium">{radius} {t('km')}</span>
             </div>
             <input
               type="range"
@@ -211,8 +217,8 @@ export function LocationFilter({
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
             />
             <div className="flex justify-between text-xs text-gray-500">
-              <span>1 km</span>
-              <span>100 km</span>
+              <span>1 {t('km')}</span>
+              <span>100 {t('km')}</span>
             </div>
           </div>
         </div>
@@ -223,12 +229,12 @@ export function LocationFilter({
         <div className="bg-green-50 border border-green-200 rounded-lg p-3">
           <div className="flex items-center justify-between">
             <div className="text-sm">
-              <span className="font-medium text-green-800">Active Location Filter:</span>
+              <span className="font-medium text-green-800">{t('activeLocationFilter')}:</span>
               <div className="text-green-700 mt-1">
                 {currentLocation && (
                   <div>📍 {currentLocation}</div>
                 )}
-                <div>📏 Within {radius} km</div>
+                <div>📏 {t('within')} {radius} {t('km')}</div>
               </div>
             </div>
             <Button

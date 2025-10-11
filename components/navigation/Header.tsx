@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { 
   Search, 
   Bell, 
@@ -15,7 +15,8 @@ import {
   Settings,
   Heart,
   Package,
-  BarChart3
+  BarChart3,
+  Languages
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -24,12 +25,14 @@ import { useWebSocket } from '@/hooks/useWebSocket';
 import { apiClient } from '@/lib/api/client';
 import { cn } from '@/lib/utils';
 import { ChatDropdown } from './ChatDropdown';
+import { useTranslations } from 'next-intl';
 
 interface HeaderProps {
   className?: string;
 }
 
 export function Header({ className }: HeaderProps) {
+  const t = useTranslations('common');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -44,6 +47,8 @@ export function Header({ className }: HeaderProps) {
   const { logout, isAuthenticated, isLoading } = useAuthStore();
   const { isConnected } = useWebSocket();
   const router = useRouter();
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
 
   // Debug logging for header
   console.log('Header Debug:', { 
@@ -69,7 +74,7 @@ export function Header({ className }: HeaderProps) {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      router.push(`/${currentLocale}/search?q=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery('');
       setIsSearchOpen(false);
     }
@@ -184,28 +189,29 @@ export function Header({ className }: HeaderProps) {
     if (!isAuthenticated) return [];
 
     const baseLinks = [
-      { href: '/dashboard', label: 'Dashboard', icon: BarChart3 },
+      { href: `/${currentLocale}/dashboard`, label: t('nav.dashboard'), icon: BarChart3 },
     ];
 
     switch (role) {
       case 'BUYER':
         return [
           ...baseLinks,
-          { href: '/buyer/chats', label: 'My Chats', icon: MessageCircle },
+          { href: `/${currentLocale}/buyer/chats`, label: t('nav.chats'), icon: MessageCircle },
         ];
       case 'SELLER':
         return [
           ...baseLinks,
-          { href: '/seller/products', label: 'My Products', icon: Package },
-          { href: '/seller/chats', label: 'My Chats', icon: MessageCircle },
-          { href: '/seller/analytics', label: 'Analytics', icon: BarChart3 },
+          { href: `/${currentLocale}/seller/products`, label: t('nav.myProducts'), icon: Package },
+          { href: `/${currentLocale}/seller/chats`, label: t('nav.chats'), icon: MessageCircle },
+          { href: `/${currentLocale}/seller/translations`, label: t('nav.translations'), icon: Languages },
+          { href: `/${currentLocale}/seller/analytics`, label: t('nav.analytics'), icon: BarChart3 },
         ];
       case 'ADMIN':
         return [
           ...baseLinks,
-          { href: '/admin/users', label: 'Users', icon: User },
-          { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
-          { href: '/admin/settings', label: 'Settings', icon: Settings },
+          { href: `/${currentLocale}/admin/users`, label: t('nav.users'), icon: User },
+          { href: `/${currentLocale}/admin/analytics`, label: t('nav.analytics'), icon: BarChart3 },
+          { href: `/${currentLocale}/admin/settings`, label: t('nav.settings'), icon: Settings },
         ];
       default:
         return baseLinks;
@@ -222,12 +228,12 @@ export function Header({ className }: HeaderProps) {
       <div className="container-responsive">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2 flex-shrink-0">
+          <Link href={`/${currentLocale}`} className="flex items-center space-x-2 flex-shrink-0">
             <div className="w-10 h-10 bg-wrench-accent rounded-lg flex items-center justify-center">
               <Wrench className="h-6 w-6 text-black" />
             </div>
             <span className="text-xl font-bold text-black hidden sm:block">
-              WrenchEX
+              {t('appName')}
             </span>
           </Link>
 
@@ -237,7 +243,7 @@ export function Header({ className }: HeaderProps) {
               <div className="relative">
                 <Input
                   type="text"
-                  placeholder="Search auto parts, services..."
+                  placeholder={t('nav.searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 pr-4"
@@ -302,7 +308,7 @@ export function Header({ className }: HeaderProps) {
                       <User className="h-4 w-4" />
                     </div>
                     <span className="hidden lg:block">
-                      {isLoading ? 'Loading...' : (user?.firstName && user?.lastName) ? `${user.firstName} ${user.lastName}` : 'User'}
+                      {isLoading ? t('nav.loading') : (user?.firstName && user?.lastName) ? `${user.firstName} ${user.lastName}` : t('nav.user')}
                     </span>
                   </Button>
 
@@ -311,9 +317,9 @@ export function Header({ className }: HeaderProps) {
                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
                       <div className="px-4 py-2 border-b border-gray-100">
                         <p className="text-sm font-medium text-gray-900">
-                          {isLoading ? 'Loading...' : (user?.firstName && user?.lastName) ? `${user.firstName} ${user.lastName}` : 'User'}
+                          {isLoading ? t('nav.loading') : (user?.firstName && user?.lastName) ? `${user.firstName} ${user.lastName}` : t('nav.user')}
                         </p>
-                        <p className="text-sm text-gray-500">{user?.email || 'Loading email...'}</p>
+                        <p className="text-sm text-gray-500">{user?.email || t('nav.loading')}</p>
                         <span className={cn(
                           "inline-block px-2 py-1 rounded-full text-xs font-medium mt-1",
                           role === 'ADMIN' && "bg-red-100 text-red-700",
@@ -321,7 +327,7 @@ export function Header({ className }: HeaderProps) {
                           role === 'BUYER' && "bg-blue-100 text-blue-700",
                           !role && "bg-gray-100 text-gray-700"
                         )}>
-                          {role?.toLowerCase() || 'loading...'}
+                          {role?.toLowerCase() || t('nav.loading')}
                         </span>
                       </div>
 
@@ -344,7 +350,7 @@ export function Header({ className }: HeaderProps) {
                         className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                       >
                         <LogOut className="h-4 w-4 mr-3" />
-                        Sign Out
+                        {t('nav.signOut')}
                       </button>
                     </div>
                   )}
@@ -360,11 +366,11 @@ export function Header({ className }: HeaderProps) {
                     window.location.href = '/';
                   }}
                 >
-                  Sign In
+                  {t('auth.signIn')}
                 </Button>
-                <Link href="/auth/register">
+                <Link href={`/${currentLocale}/auth/register`}>
                   <Button variant="primary" size="sm">
-                    Get Started
+                    {t('nav.getStarted')}
                   </Button>
                 </Link>
               </>
@@ -392,7 +398,7 @@ export function Header({ className }: HeaderProps) {
             <form onSubmit={handleSearch}>
               <Input
                 type="text"
-                placeholder="Search auto parts, services..."
+                placeholder={t('nav.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 leftIcon={<Search className="h-5 w-5 text-gray-400" />}
@@ -416,17 +422,17 @@ export function Header({ className }: HeaderProps) {
               }}
             >
               <Search className="h-5 w-5 mr-3" />
-              Search
+              {t('search.search')}
             </Button>
 
             {/* Browse Categories */}
-            <Link href="/categories">
+              <Link href={`/${currentLocale}/categories`}>
               <Button
                 variant="ghost"
                 className="w-full justify-start"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Browse Categories
+                  {t('nav.browseCategories')}
               </Button>
             </Link>
 
@@ -457,21 +463,21 @@ export function Header({ className }: HeaderProps) {
                 {/* Notifications */}
                 <Button variant="ghost" className="w-full justify-start">
                   <Bell className="h-5 w-5 mr-3" />
-                  Notifications
+                  {t('nav.notifications')}
                   <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                     3
                   </span>
                 </Button>
 
                 {/* Settings */}
-                <Link href="/settings">
+                <Link href={`/${currentLocale}/settings`}>
                   <Button
                     variant="ghost"
                     className="w-full justify-start"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <Settings className="h-5 w-5 mr-3" />
-                    Settings
+                    {t('nav.settings')}
                   </Button>
                 </Link>
 
@@ -482,7 +488,7 @@ export function Header({ className }: HeaderProps) {
                   onClick={handleLogout}
                 >
                   <LogOut className="h-5 w-5 mr-3" />
-                  Sign Out
+                  {t('nav.signOut')}
                 </Button>
               </>
             ) : (
@@ -492,19 +498,19 @@ export function Header({ className }: HeaderProps) {
                   className="w-full justify-start"
                   onClick={() => {
                     // Trigger auth modal instead of redirecting to login page
-                    window.location.href = '/';
+                    window.location.href = `/${currentLocale}`;
                     setIsMobileMenuOpen(false);
                   }}
                 >
-                  Sign In
+                  {t('auth.signIn')}
                 </Button>
-                <Link href="/auth/register">
+                <Link href={`/${currentLocale}/auth/register`}>
                   <Button
                     variant="primary"
                     className="w-full justify-start"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    Get Started
+                    {t('nav.getStarted')}
                   </Button>
                 </Link>
               </>

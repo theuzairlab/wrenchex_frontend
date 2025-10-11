@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { useAuthStore } from '@/lib/stores/auth';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ArrowLeft } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export default function UpdateProductPage() {
     const router = useRouter();
@@ -24,6 +25,7 @@ export default function UpdateProductPage() {
     const { token } = useAuthStore();
     const [imageToRemove, setImageToRemove] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
+    const t = useTranslations('common.auth');
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -39,7 +41,7 @@ export default function UpdateProductPage() {
                     console.log('Product data loaded:', productData);
                     setProduct(productData);
                 } else {
-                    toast.error('Failed to load product', {
+                    toast.error(t('failedToLoadProduct'), {
                         description: productResponse.error?.message || 'Product not found'
                     });
                 }
@@ -50,7 +52,7 @@ export default function UpdateProductPage() {
                     setCategories(categoriesData || []);
                 }
             } catch (error) {
-                toast.error('Failed to load product data', {
+                toast.error(t('failedToLoadProduct'), {
                     description: error instanceof Error ? error.message : 'An unexpected error occurred'
                 });
             } finally {
@@ -76,7 +78,7 @@ export default function UpdateProductPage() {
             });
 
             if (response.success) {
-                toast.success('Product updated successfully', {
+                toast.success(t('productUpdatedSuccessfully'), {
                     description: `${product.title} has been updated`
                 });
                 router.push('/seller/products');
@@ -84,7 +86,7 @@ export default function UpdateProductPage() {
                 throw new Error(response.error?.message || 'Failed to update product');
             }
         } catch (error) {
-            toast.error('Update Failed', {
+            toast.error(t('updateFailed'), {
                 description: error instanceof Error ? error.message : 'An unexpected error occurred'
             });
         } finally {
@@ -175,7 +177,7 @@ export default function UpdateProductPage() {
                 } : null);
 
                 // Success toast
-                toast.success('Images Uploaded', {
+                toast.success(t('imagesUploaded'), {
                     description: `${uploadedUrls.length} image(s) uploaded successfully`
                 });
 
@@ -183,7 +185,7 @@ export default function UpdateProductPage() {
                 // Comprehensive error logging and toast
                 console.error('Full image upload error:', error);
 
-                toast.error('Image Upload Failed', {
+                toast.error(t('imageUploadFailed'), {
                     description: error instanceof Error
                         ? error.message
                         : 'An unexpected error occurred during image upload'
@@ -203,7 +205,7 @@ export default function UpdateProductPage() {
         images: prev.images?.filter(img => img !== imageToRemove)
       } : null);
       
-      toast.success('Image Removed', {
+      toast.success(t('imageRemoved'), {
         description: 'The image has been removed from the product'
       });
       

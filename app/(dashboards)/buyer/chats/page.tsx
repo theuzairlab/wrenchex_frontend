@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { MessageCircle, Clock, User } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -17,6 +18,10 @@ function ChatsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuthStore();
   const router = useRouter();
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
+  const t = useTranslations('buyerChats');
+  const tCurrency = useTranslations('common.currency');
 
   useEffect(() => {
     loadChats();
@@ -32,14 +37,14 @@ function ChatsPage() {
       }
     } catch (error: any) {
       console.error('Failed to load chats:', error);
-      toast.error(error.message || 'Failed to load chats');
+      toast.error(error.message || t('loadChatsFailed'));
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleChatClick = (chatId: string) => {
-    router.push(`/buyer/chats/${chatId}`);
+    router.push(`/${currentLocale}/buyer/chats/${chatId}`);
   };
 
   if (isLoading) {
@@ -48,7 +53,7 @@ function ChatsPage() {
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto">
             <div className="flex items-center justify-center h-64">
-              <div className="text-gray-500">Loading your chats...</div>
+              <div className="text-gray-500">{t('loadingChats')}</div>
             </div>
           </div>
         </div>
@@ -63,10 +68,10 @@ function ChatsPage() {
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
               <MessageCircle className="text-blue-600" />
-              Your Chats
+{t('yourChats')}
             </h1>
             <p className="text-gray-600">
-              Manage your conversations with sellers and buyers
+{t('manageConversations')}
             </p>
           </div>
 
@@ -74,16 +79,16 @@ function ChatsPage() {
             <Card className="p-8 text-center">
               <MessageCircle className="mx-auto mb-4 text-gray-400" size={48} />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                No chats yet
+{t('noChatsYet')}
               </h3>
               <p className="text-gray-600 mb-4">
-                Start chatting with sellers about products you're interested in!
+{t('startChattingWithSellers')}
               </p>
               <Button 
-                onClick={() => router.push('/products')}
+                onClick={() => router.push(`/${currentLocale}/products`)}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
-                Browse Products
+{t('browseProducts')}
               </Button>
             </Card>
           ) : (
@@ -123,19 +128,19 @@ function ChatsPage() {
                               {chat.product.title}
                             </h3>
                             <p className="text-sm text-gray-600">
-                              {user?.id === chat.sellerId ? 'Buyer' : 'Seller'}:{' '}
+                              {user?.id === chat.sellerId ? t('buyer') : t('seller')}:{' '}
                               {otherParticipant.firstName} {otherParticipant.lastName}
                             </p>
                           </div>
                           
                           <div className="flex items-center gap-2 ml-4">
-                            {hasUnread && (
-                              <span className="bg-blue-600 text-white text-xs font-medium px-2 py-1 rounded-full">
-                                {chat.unreadCount}
-                              </span>
-                            )}
+                            <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                              hasUnread ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              {chat.unreadCount} {t('unreadMessages')}
+                            </span>
                             <span className="text-lg font-bold text-green-600">
-                              ${chat.product.price.toFixed(2)}
+                              {tCurrency('aed')} {chat.product.price.toFixed(2)}
                             </span>
                           </div>
                         </div>
@@ -144,7 +149,7 @@ function ChatsPage() {
                         {lastMessage ? (
                           <div className="mt-2">
                             <p className="text-sm text-gray-700 truncate">
-                              {lastMessage.senderId === user?.id ? 'You: ' : ''}
+                              {lastMessage.senderId === user?.id ? t('you') + ': ' : ''}
                               {lastMessage.messageType === 'PRICE_OFFER' && '💰 '}
                               {lastMessage.message}
                             </p>
@@ -156,7 +161,7 @@ function ChatsPage() {
                             </div>
                           </div>
                         ) : (
-                          <p className="text-sm text-gray-500 mt-2">No messages yet</p>
+                          <p className="text-sm text-gray-500 mt-2">{t('noMessagesYet')}</p>
                         )}
                       </div>
                     </div>

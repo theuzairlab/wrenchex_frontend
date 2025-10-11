@@ -17,6 +17,9 @@ import {
   X,
   Clock
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { formatPrice } from '@/lib/utils';
+import { usePathname } from 'next/navigation';
 
 interface TimeSlot {
   startTime: string;
@@ -39,6 +42,7 @@ export default function ServiceBookingModal({
 }: ServiceBookingModalProps) {
   const { isAuthenticated } = useAuthStore();
   const { openAuthModal } = useAuthModal();
+  const t = useTranslations('common.serviceBooking');
   
   // Booking form state
   const [selectedDate, setSelectedDate] = useState('');
@@ -48,6 +52,9 @@ export default function ServiceBookingModal({
   const [notes, setNotes] = useState('');
   const [serviceLocation, setServiceLocation] = useState('');
   const [isBooking, setIsBooking] = useState(false);
+
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
 
   // Get minimum date (today)
   const today = new Date();
@@ -84,7 +91,7 @@ export default function ServiceBookingModal({
       }
     } catch (error) {
       console.error('Failed to load time slots:', error);
-      toast.error('Failed to load available time slots');
+      toast.error(t('failedToLoadSlots'));
     } finally {
       setLoadingSlots(false);
     }
@@ -97,7 +104,7 @@ export default function ServiceBookingModal({
     }
 
     if (!selectedDate || !selectedTimeSlot) {
-      toast.error('Please select date and time');
+      toast.error(t('pleaseSelectDateAndTime'));
       return;
     }
 
@@ -117,7 +124,7 @@ export default function ServiceBookingModal({
       // Guard: if selected date is today, ensure slot is in the future
       const now = new Date();
       if (scheduledTimeStart <= now) {
-        toast.error('Please pick a time later today. Past time slots are not available.');
+        toast.error(t('pleaseSelectDateAndTime'));
         setIsBooking(false);
         return;
       }
@@ -135,7 +142,7 @@ export default function ServiceBookingModal({
       const response = await apiClient.createAppointment(appointmentData);
 
       if (response.success) {
-        toast.success('Appointment booked successfully!');
+        toast.success(t('appointmentBookedSuccessfully'));
         onBookingSuccess();
         onClose();
         // Reset form
@@ -144,26 +151,18 @@ export default function ServiceBookingModal({
         setNotes('');
         setServiceLocation('');
       } else {
-        toast.error(response.error?.message || 'Failed to book appointment');
+        toast.error(response.error?.message || t('failedToBookAppointment'));
       }
     } catch (error: any) {
       console.error('Failed to book appointment:', error);
-      const message = typeof error?.message === 'string' ? error.message : 'Failed to book appointment';
+      const message = typeof error?.message === 'string' ? error.message : t('failedToBookAppointment');
       const friendly = message.includes('scheduledDate')
-        ? 'Selected time must be in the future. Please choose a later slot.'
+        ? t('pleaseSelectDateAndTime')
         : message;
       toast.error(friendly);
     } finally {
       setIsBooking(false);
     }
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'AED',
-      minimumFractionDigits: 0,
-    }).format(price);
   };
 
   if (!isOpen) return null;
@@ -190,15 +189,15 @@ export default function ServiceBookingModal({
             </Button>
             
             <div className="text-4xl font-bold mb-2 text-black">
-              {formatPrice(service.price)}
+              {formatPrice(service.price, service.currency || 'AED', currentLocale)}
             </div>
-            <div className="text-black/70">per service</div>
+            <div className="text-black/70">{t('price')}</div>
           </CardHeader>
           
           <CardContent className="space-y-6 p-6">
             {/* Date Selection */}
             <div>
-              <label className="block text-black font-medium mb-2">Select Date</label>
+              <label className="block text-black font-medium mb-2">{t('selectDate')}</label>
               <Input
                 type="date"
                 value={selectedDate}
@@ -211,7 +210,7 @@ export default function ServiceBookingModal({
             {/* Time Slots */}
             {selectedDate && (
               <div>
-                <label className="block text-black font-medium mb-2">Available Times</label>
+                <label className="block text-black font-medium mb-2">{t('availableSlots')}</label>
                 {loadingSlots ? (
                   <div className="text-center py-4">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-wrench-accent mx-auto"></div>
@@ -237,7 +236,7 @@ export default function ServiceBookingModal({
                   </div>
                 ) : (
                   <p className="text-gray-500 text-sm text-center py-4">
-                    No available slots for this date
+{t('noSlotsAvailable')}
                   </p>
                 )}
               </div>
@@ -246,9 +245,9 @@ export default function ServiceBookingModal({
             {/* Mobile Service Location */}
             {service.isMobileService && (
               <div>
-                <label className="block text-black font-medium mb-2">Service Location</label>
+                <label className="block text-black font-medium mb-2">{t('serviceLocation')}</label>
                 <Textarea
-                  placeholder="Enter your address for mobile service"
+                  placeholder={t('enterLocation')}
                   value={serviceLocation}
                   onChange={(e) => setServiceLocation(e.target.value)}
                   rows={3}
@@ -259,9 +258,9 @@ export default function ServiceBookingModal({
 
             {/* Notes */}
             <div>
-              <label className="block text-black font-medium mb-2">Special Requests</label>
+              <label className="block text-black font-medium mb-2">{t('notes')}</label>
               <Textarea
-                placeholder="Any specific requirements or notes"
+                placeholder={t('addNotes')}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
@@ -272,23 +271,23 @@ export default function ServiceBookingModal({
             {/* Booking Summary */}
             {selectedDate && selectedTimeSlot && (
               <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-semibold mb-2 text-black">Booking Summary</h4>
+                <h4 className="font-semibold mb-2 text-black">{t('bookingConfirmation')}</h4>
                 <div className="space-y-1 text-sm text-gray-700">
                   <div className="flex justify-between">
-                    <span>Service:</span>
+                    <span>{t('serviceDetails')}:</span>
                     <span className="text-black font-medium">{service.title}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Date:</span>
+                    <span>{t('date')}:</span>
                     <span className="text-black font-medium">{new Date(selectedDate).toLocaleDateString()}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Time:</span>
+                    <span>{t('time')}:</span>
                     <span className="text-black font-medium">{selectedTimeSlot.startTime} - {selectedTimeSlot.endTime}</span>
                   </div>
                   <div className="flex justify-between font-semibold text-black pt-2 border-t border-gray-200">
-                    <span>Total:</span>
-                    <span>{formatPrice(service.price)}</span>
+                    <span>{t('totalAmount')}:</span>
+                    <span>{formatPrice(service.price, service.currency || 'AED')}</span>
                   </div>
                 </div>
               </div>
@@ -304,10 +303,10 @@ export default function ServiceBookingModal({
                 {isBooking ? (
                   <div className="flex items-center gap-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black"></div>
-                    Booking...
+{t('booking')}
                   </div>
                 ) : (
-                  'Confirm Booking'
+t('bookNow')
                 )}
               </Button>
               <Button
@@ -315,7 +314,7 @@ export default function ServiceBookingModal({
                 onClick={onClose}
                 className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
               >
-                Back
+{t('close')}
               </Button>
             </div>
           </CardContent>

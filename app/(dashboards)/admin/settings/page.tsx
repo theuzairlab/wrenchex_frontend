@@ -13,9 +13,14 @@ import {
   Bell, 
   CreditCard,
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { usePathname } from 'next/navigation';
 
 export default function AdminSettingsPage() {
   const { isLoading, isAuthenticated } = useAuthStore();
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
+  const t = useTranslations('adminSettings');
 
   const [settings, setSettings] = useState({
     platform: {
@@ -54,7 +59,7 @@ export default function AdminSettingsPage() {
     // Simulate API call
     setTimeout(() => {
       setIsSaving(false);
-      alert('Settings saved successfully! (Demo mode)');
+      alert(t('settingsSavedSuccessfully'));
     }, 1000);
   };
 
@@ -73,7 +78,7 @@ export default function AdminSettingsPage() {
       <div className="flex items-center justify-center py-12">
         <div className="flex flex-col items-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-wrench-accent"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">{t('loading')}</p>
         </div>
       </div>
     );
@@ -84,8 +89,8 @@ export default function AdminSettingsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Platform Settings</h1>
-          <p className="text-gray-600">Configure platform-wide settings and preferences</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('platformSettings')}</h1>
+          <p className="text-gray-600">{t('configurePlatformSettings')}</p>
         </div>
         <Button 
           onClick={handleSave} 
@@ -93,7 +98,7 @@ export default function AdminSettingsPage() {
           leftIcon={<Save className="h-4 w-4" />}
           disabled={isSaving}
         >
-          {isSaving ? 'Saving...' : 'Save Settings'}
+{isSaving ? t('saving') : t('saveSettings')}
         </Button>
       </div>
 
@@ -102,90 +107,88 @@ export default function AdminSettingsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Globe className="h-5 w-5" />
-            Platform Configuration
+{t('platformConfiguration')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Platform Name
+{t('platformName')}
               </label>
               <Input
                 value={settings.platform.name}
                 onChange={(e) => updateSetting('platform', 'name', e.target.value)}
-                placeholder="Platform name"
+                placeholder={t('platformNamePlaceholder')}
               />
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Domain
+{t('domain')}
               </label>
               <Input
                 value={settings.platform.domain}
                 onChange={(e) => updateSetting('platform', 'domain', e.target.value)}
-                placeholder="Domain"
+                placeholder={t('domainPlaceholder')}
               />
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Support Email
+                {t('supportEmail')}
               </label>
               <Input
                 type="email"
                 value={settings.platform.supportEmail}
                 onChange={(e) => updateSetting('platform', 'supportEmail', e.target.value)}
-                placeholder="support@example.com"
+                placeholder={t('supportEmailPlaceholder')}
               />
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Timezone
+                {t('timezone')}
               </label>
               <select
                 value={settings.platform.timezone}
                 onChange={(e) => updateSetting('platform', 'timezone', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wrench-accent focus:border-transparent"
               >
-                <option value="UTC+5">UTC+5 (Pakistan)</option>
-                <option value="UTC+0">UTC+0 (GMT)</option>
-                <option value="UTC-5">UTC-5 (EST)</option>
-                <option value="UTC-8">UTC-8 (PST)</option>
+                <option value="UTC+5">{t('timezoneUTC5')}</option>
+                <option value="UTC+0">{t('timezoneUTC0')}</option>
+                <option value="UTC-5">{t('timezoneUTC5EST')}</option>
+                <option value="UTC-8">{t('timezoneUTC8PST')}</option>
               </select>
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Language
+                {t('language')}
               </label>
               <select
                 value={settings.platform.language}
                 onChange={(e) => updateSetting('platform', 'language', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wrench-accent focus:border-transparent"
               >
-                <option value="English">English</option>
-                <option value="Urdu">Urdu</option>
-                <option value="Arabic">Arabic</option>
+                <option value="English">{t('english')}</option>
+                <option value="Urdu">{t('urdu')}</option>
+                <option value="Arabic">{t('arabic')}</option>
               </select>
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Currency
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('currency')}</label>
               <select
                 value={settings.platform.currency}
                 onChange={(e) => updateSetting('platform', 'currency', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wrench-accent focus:border-transparent"
               >
-                <option value="AED">AED (د.إ)</option>
-                <option value="USD">USD ($)</option>
-                <option value="PKR">PKR (₨)</option>
-                <option value="EUR">EUR (€)</option>
-                <option value="GBP">GBP (£)</option>
+                <option value="AED">{t('currencyAED')}</option>
+                <option value="USD">{t('currencyUSD')}</option>
+                <option value="PKR">{t('currencyPKR')}</option>
+                <option value="EUR">{t('currencyEUR')}</option>
+                <option value="GBP">{t('currencyGBP')}</option>
               </select>
             </div>
           </div>
@@ -197,7 +200,7 @@ export default function AdminSettingsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5" />
-            Security Settings
+            {t('securitySettings')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -210,9 +213,7 @@ export default function AdminSettingsPage() {
                 onChange={(e) => updateSetting('security', 'requireEmailVerification', e.target.checked)}
                 className="h-4 w-4 text-wrench-accent focus:ring-wrench-accent border-gray-300 rounded"
               />
-              <label htmlFor="emailVerification" className="ml-2 text-sm text-gray-700">
-                Require Email Verification
-              </label>
+              <label htmlFor="emailVerification" className="ml-2 text-sm text-gray-700">{t('requireEmailVerification')}</label>
             </div>
             
             <div className="flex items-center">
@@ -223,15 +224,11 @@ export default function AdminSettingsPage() {
                 onChange={(e) => updateSetting('security', 'requirePhoneVerification', e.target.checked)}
                 className="h-4 w-4 text-wrench-accent focus:ring-wrench-accent border-gray-300 rounded"
               />
-              <label htmlFor="phoneVerification" className="ml-2 text-sm text-gray-700">
-                Require Phone Verification
-              </label>
+              <label htmlFor="phoneVerification" className="ml-2 text-sm text-gray-700">{t('requirePhoneVerification')}</label>
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Max Login Attempts
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('maxLoginAttempts')}</label>
               <Input
                 type="number"
                 value={settings.security.maxLoginAttempts}
@@ -242,9 +239,7 @@ export default function AdminSettingsPage() {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Session Timeout (hours)
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('sessionTimeoutHours')}</label>
               <Input
                 type="number"
                 value={settings.security.sessionTimeout}
@@ -262,9 +257,7 @@ export default function AdminSettingsPage() {
                 onChange={(e) => updateSetting('security', 'twoFactorAuth', e.target.checked)}
                 className="h-4 w-4 text-wrench-accent focus:ring-wrench-accent border-gray-300 rounded"
               />
-              <label htmlFor="twoFactorAuth" className="ml-2 text-sm text-gray-700">
-                Enable Two-Factor Authentication
-              </label>
+              <label htmlFor="twoFactorAuth" className="ml-2 text-sm text-gray-700">{t('enableTwoFactorAuth')}</label>
             </div>
           </div>
         </CardContent>
@@ -275,7 +268,7 @@ export default function AdminSettingsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Bell className="h-5 w-5" />
-            Notification Settings
+            {t('notificationSettings')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -288,9 +281,7 @@ export default function AdminSettingsPage() {
                 onChange={(e) => updateSetting('notifications', 'emailNotifications', e.target.checked)}
                 className="h-4 w-4 text-wrench-accent focus:ring-wrench-accent border-gray-300 rounded"
               />
-              <label htmlFor="emailNotifications" className="ml-2 text-sm text-gray-700">
-                Email Notifications
-              </label>
+              <label htmlFor="emailNotifications" className="ml-2 text-sm text-gray-700">{t('emailNotifications')}</label>
             </div>
             
             <div className="flex items-center">
@@ -301,9 +292,7 @@ export default function AdminSettingsPage() {
                 onChange={(e) => updateSetting('notifications', 'smsNotifications', e.target.checked)}
                 className="h-4 w-4 text-wrench-accent focus:ring-wrench-accent border-gray-300 rounded"
               />
-              <label htmlFor="smsNotifications" className="ml-2 text-sm text-gray-700">
-                SMS Notifications
-              </label>
+              <label htmlFor="smsNotifications" className="ml-2 text-sm text-gray-700">{t('smsNotifications')}</label>
             </div>
             
             <div className="flex items-center">
@@ -314,9 +303,7 @@ export default function AdminSettingsPage() {
                 onChange={(e) => updateSetting('notifications', 'pushNotifications', e.target.checked)}
                 className="h-4 w-4 text-wrench-accent focus:ring-wrench-accent border-gray-300 rounded"
               />
-              <label htmlFor="pushNotifications" className="ml-2 text-sm text-gray-700">
-                Push Notifications
-              </label>
+              <label htmlFor="pushNotifications" className="ml-2 text-sm text-gray-700">{t('pushNotifications')}</label>
             </div>
             
             <div className="flex items-center">
@@ -327,9 +314,7 @@ export default function AdminSettingsPage() {
                 onChange={(e) => updateSetting('notifications', 'adminAlerts', e.target.checked)}
                 className="h-4 w-4 text-wrench-accent focus:ring-wrench-accent border-gray-300 rounded"
               />
-              <label htmlFor="adminAlerts" className="ml-2 text-sm text-gray-700">
-                Admin Alerts
-              </label>
+              <label htmlFor="adminAlerts" className="ml-2 text-sm text-gray-700">{t('adminAlerts')}</label>
             </div>
           </div>
         </CardContent>
@@ -340,15 +325,13 @@ export default function AdminSettingsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CreditCard className="h-5 w-5" />
-            Business Settings
+            {t('businessSettings')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Commission Rate (%)
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('commissionRate')}</label>
               <Input
                 type="number"
                 step="0.1"
@@ -360,9 +343,7 @@ export default function AdminSettingsPage() {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Minimum Withdrawal Amount
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('minWithdrawalAmount')}</label>
               <Input
                 type="number"
                 step="0.01"
@@ -380,9 +361,7 @@ export default function AdminSettingsPage() {
                 onChange={(e) => updateSetting('business', 'autoApproveSellers', e.target.checked)}
                 className="h-4 w-4 text-wrench-accent focus:ring-wrench-accent border-gray-300 rounded"
               />
-              <label htmlFor="autoApproveSellers" className="ml-2 text-sm text-gray-700">
-                Auto-approve Seller Applications
-              </label>
+              <label htmlFor="autoApproveSellers" className="ml-2 text-sm text-gray-700">{t('autoApproveSellers')}</label>
             </div>
             
             <div className="flex items-center">
@@ -393,9 +372,7 @@ export default function AdminSettingsPage() {
                 onChange={(e) => updateSetting('business', 'requireBusinessLicense', e.target.checked)}
                 className="h-4 w-4 text-wrench-accent focus:ring-wrench-accent border-gray-300 rounded"
               />
-              <label htmlFor="requireBusinessLicense" className="ml-2 text-sm text-gray-700">
-                Require Business License
-              </label>
+              <label htmlFor="requireBusinessLicense" className="ml-2 text-sm text-gray-700">{t('requireBusinessLicense')}</label>
             </div>
           </div>
         </CardContent>
@@ -407,10 +384,8 @@ export default function AdminSettingsPage() {
           <div className="flex items-start gap-3">
             <Settings className="h-5 w-5 text-blue-600 mt-0.5" />
             <div>
-              <h4 className="font-medium text-blue-800">Demo Mode</h4>
-              <p className="text-sm text-blue-700 mt-1">
-                This is a demonstration of the settings interface. In production, these settings would be saved to the database and applied across the platform.
-              </p>
+              <h4 className="font-medium text-blue-800">{t('demoMode')}</h4>
+              <p className="text-sm text-blue-700 mt-1">{t('demoModeDesc')}</p>
             </div>
           </div>
         </CardContent>

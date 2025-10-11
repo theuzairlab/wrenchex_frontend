@@ -7,6 +7,7 @@ export interface WishlistItem {
   title: string;
   price: number;
   image: string;
+  currency?: string;
   category?: string;
   sellerName?: string;
   addedAt: Date;
@@ -52,7 +53,7 @@ export const useWishlistStore = create<WishlistStore>()(
       
       isInWishlist: (id, type) => {
         const { items } = get();
-        return items.some(item => item.id === id && item.type === item.type);
+        return items.some(item => item.id === id && item.type === type);
       },
       
       clearWishlist: () => {

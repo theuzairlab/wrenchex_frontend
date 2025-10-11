@@ -331,6 +331,7 @@ export interface Product {
   name?: string; // additional name field
   description: string;
   price: number;
+  currency?: string;
   originalPrice?: number;
   sku?: string;
   brand?: string;
@@ -428,7 +429,8 @@ export interface CreateProductData {
   categoryId: string;
   price: number;
   specifications?: Record<string, string>;
-  images?: string[]; 
+  images?: string[];
+  language?: 'en' | 'ar';
 }
 
 export interface UpdateProductData extends Partial<CreateProductData> {
@@ -463,6 +465,7 @@ export interface Service {
   title: string;
   description: string;
   price: number;
+  currency?: string;
   durationMinutes: number;
   isMobileService: boolean;
   images?: string[];
@@ -499,6 +502,7 @@ export interface CreateServiceData {
   description: string;
   categoryId: string;
   price: number;
+  currency?: string;
   durationMinutes: number;
   isMobileService: boolean;
   images?: string[];

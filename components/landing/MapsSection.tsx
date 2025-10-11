@@ -3,12 +3,17 @@
 import React from 'react';
 import { MapPin, Navigation, Store, Wrench } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import InteractiveMap from '@/components/maps/InteractiveMap';
 import { Button } from '@/components/ui/Button';
 import { useLocationContext } from '@/lib/contexts/LocationContext';
+import { useTranslations } from 'next-intl';
 
 export function MapsSection() {
   const { location, setShowLocationModal } = useLocationContext();
+  const t = useTranslations('common.mapsSection');
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
 
   const handleRequestLocation = () => {
     setShowLocationModal(true);
@@ -24,12 +29,11 @@ export function MapsSection() {
           </div>
           
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Find Auto Shops Near You
+            {t('findAutoShops')}
           </h2>
           
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            Discover trusted auto parts stores and service providers in your area. 
-            Get directions, compare services, and connect with local mechanics.
+            {t('discoverTrustedShops')}
           </p>
 
           {/* Location Status */}
@@ -37,10 +41,11 @@ export function MapsSection() {
             <div className="inline-flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-4 py-2 text-green-800 mb-6">
               <Navigation className="h-4 w-4" />
               <span className="text-sm font-medium">
-                Showing shops near {location.city && location.area 
-                  ? `${location.area}, ${location.city}`
-                  : location.city || 'your location'
-                }
+                {t('showingShopsNear', { 
+                  location: location.city && location.area 
+                    ? `${location.area}, ${location.city}`
+                    : location.city || t('yourLocation')
+                })}
               </span>
             </div>
           ) : (
@@ -50,7 +55,7 @@ export function MapsSection() {
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 <Navigation className="h-4 w-4 mr-2" />
-                Enable Location to See Nearby Shops
+                {t('enableLocation')}
               </Button>
             </div>
           )}
@@ -73,10 +78,10 @@ export function MapsSection() {
               <Store className="h-6 w-6 text-blue-600" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Local Auto Parts Stores
+              {t('localAutoPartsStores')}
             </h3>
             <p className="text-gray-600 text-sm">
-              Find genuine and aftermarket parts from verified sellers in your neighborhood.
+              {t('localAutoPartsStoresDesc')}
             </p>
           </div>
 
@@ -85,10 +90,10 @@ export function MapsSection() {
               <Wrench className="h-6 w-6 text-green-600" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Professional Services
+              {t('professionalServices')}
             </h3>
             <p className="text-gray-600 text-sm">
-              Book appointments with certified mechanics and service centers near you.
+              {t('professionalServicesDesc')}
             </p>
           </div>
 
@@ -97,10 +102,10 @@ export function MapsSection() {
               <Navigation className="h-6 w-6 text-purple-600" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Easy Navigation
+              {t('easyNavigation')}
             </h3>
             <p className="text-gray-600 text-sm">
-              Get directions and contact information for all listed shops and services.
+              {t('easyNavigationDesc')}
             </p>
           </div>
         </div>
@@ -109,20 +114,19 @@ export function MapsSection() {
         <div className="text-center mt-12">
           <div className="bg-white rounded-xl shadow-lg p-8 max-w-2xl mx-auto border border-gray-200">
             <h3 className="text-2xl font-bold text-gray-900 mb-4">
-              Can't Find What You Need?
+              {t('cantFindWhatYouNeed')}
             </h3>
             <p className="text-gray-600 mb-6">
-              Browse our complete catalog of products and services, or use our advanced search 
-              to find exactly what you're looking for.
+              {t('browseCompleteCatalog')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
                 asChild
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
-                <Link href="/products">
+                <Link href={`/${currentLocale}/products`}>
                   <Store className="h-4 w-4 mr-2" />
-                  Browse All Products
+                  {t('browseAllProducts')}
                 </Link>
               </Button>
               <Button 
@@ -130,9 +134,9 @@ export function MapsSection() {
                 variant="outline"
                 className="border-gray-300 text-gray-700 hover:bg-gray-50"
               >
-                <Link href="/services">
+                <Link href={`/${currentLocale}/services`}>
                   <Wrench className="h-4 w-4 mr-2" />
-                  Find Services
+                  {t('findServices')}
                 </Link>
               </Button>
             </div>

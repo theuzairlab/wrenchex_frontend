@@ -4,6 +4,17 @@ import { apiClient } from '@/lib/api/client';
 import { toast } from 'sonner';
 import type { User, RegisterData } from '@/types';
 
+// Translation helper for auth store
+const getTranslation = (key: string): string => {
+  // Fallback translations for auth store
+  const translations: Record<string, string> = {
+    'emailVerifiedSuccessfully': 'Email verified successfully!',
+    'verificationEmailSentSuccessfully': 'Verification email sent successfully!',
+    'loggedOutSuccessfully': 'Logged out successfully!',
+  };
+  return translations[key] || key;
+};
+
 interface AuthState {
   user: User | null;
   token: string | null;
@@ -325,7 +336,7 @@ const useAuthStoreBase = create<AuthState & AuthActions>()(
               error: null,
             });
             console.log('AuthStore: Email verified successfully', { userId: response.data.user.id });
-            toast.success('Email verified successfully!');
+            toast.success(getTranslation('emailVerifiedSuccessfully'));
           } else {
             throw new Error(response.error?.message || 'Email verification failed');
           }
@@ -353,7 +364,7 @@ const useAuthStoreBase = create<AuthState & AuthActions>()(
               error: null,
             });
             console.log('AuthStore: Verification email sent successfully');
-            toast.success('Verification email sent successfully!');
+            toast.success(getTranslation('verificationEmailSentSuccessfully'));
           } else {
             throw new Error(response.error?.message || 'Failed to resend verification email');
           }
@@ -382,7 +393,7 @@ const useAuthStoreBase = create<AuthState & AuthActions>()(
         });
 
         // Show logout success message
-        toast.success('Logged out successfully!');
+        toast.success(getTranslation('loggedOutSuccessfully'));
 
         // Redirect to home page after logout
         if (typeof window !== 'undefined') {

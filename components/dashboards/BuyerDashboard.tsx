@@ -5,8 +5,10 @@ import { ArrowRight, Calendar, Heart, MessageCircle, Search, Wrench } from "luci
 import { Button } from "../ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/Card";
 import Link from "next/link";
+import { usePathname } from 'next/navigation';
 import { apiClient } from "@/lib/api/client";
 import { toast } from "sonner";
+import { useTranslations } from 'next-intl';
 
 interface ChatStats {
   totalChats: number;
@@ -26,6 +28,9 @@ export function BuyerDashboard({ User }: { User: any }) {
     const [appointmentStats, setAppointmentStats] = useState<AppointmentStats>({ totalAppointments: 0, upcomingAppointments: [] });
     const [recentChats, setRecentChats] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const t = useTranslations('buyerDashboard');
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
 
     useEffect(() => {
       loadDashboardData();
@@ -85,7 +90,7 @@ export function BuyerDashboard({ User }: { User: any }) {
 
       } catch (error: any) {
         console.error('Failed to load dashboard data:', error);
-        toast.error('Failed to load dashboard data');
+        toast.error(t('loadDashboardDataFailed'));
       } finally {
         setIsLoading(false);
       }
@@ -96,25 +101,25 @@ export function BuyerDashboard({ User }: { User: any }) {
         {/* Welcome Section */}
         <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-6 border border-blue-200">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Welcome back, {user?.firstName}! 👋
+            {t('welcomeBack', { name: user?.firstName })}
           </h2>
           <p className="text-gray-600 mb-4">
-            Find the perfect parts for your vehicle and book professional services with ease.
+            {t('findPerfectParts')}
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
-            <Link href="/products">
+            <Link href={`/${currentLocale}/products`}>
               <Button variant="primary" leftIcon={<Search className="h-4 w-4" />}>
-                Browse Products
+                {t('browseProducts')}
               </Button>
             </Link>
-            <Link href="/buyer/chats">
+            <Link href={`/${currentLocale}/buyer/chats`}>
               <Button variant="secondary" leftIcon={<MessageCircle className="h-4 w-4" />}>
-                My Chats
+                {t('myChats')}
               </Button>
             </Link>
-            <Link href="/services">
+            <Link href={`/${currentLocale}/services`}>
               <Button variant="outline" leftIcon={<Wrench className="h-4 w-4" />}>
-                Book Service
+                {t('bookService')}
               </Button>
             </Link>
           </div>
@@ -126,9 +131,9 @@ export function BuyerDashboard({ User }: { User: any }) {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Chats</p>
+                  <p className="text-sm font-medium text-gray-600">{t('totalChats')}</p>
                   <p className="text-2xl font-bold text-gray-900">{isLoading ? '...' : chatStats.totalChats}</p>
-                  <p className="text-sm text-blue-600">with sellers</p>
+                  <p className="text-sm text-blue-600">{t('withSellers')}</p>
                 </div>
                 <MessageCircle className="h-8 w-8 text-blue-600" />
               </div>
@@ -139,9 +144,9 @@ export function BuyerDashboard({ User }: { User: any }) {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Unread Messages</p>
+                  <p className="text-sm font-medium text-gray-600">{t('unreadMessages')}</p>
                   <p className="text-2xl font-bold text-gray-900">{isLoading ? '...' : chatStats.unreadMessages}</p>
-                  <p className="text-sm text-green-600">new messages</p>
+                  <p className="text-sm text-green-600">{t('newMessages')}</p>
                 </div>
                 <MessageCircle className="h-8 w-8 text-green-600" />
               </div>
@@ -152,9 +157,9 @@ export function BuyerDashboard({ User }: { User: any }) {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Active Chats</p>
+                  <p className="text-sm font-medium text-gray-600">{t('activeChats')}</p>
                   <p className="text-2xl font-bold text-gray-900">{isLoading ? '...' : chatStats.activeChats}</p>
-                  <p className="text-sm text-orange-600">ongoing conversations</p>
+                  <p className="text-sm text-orange-600">{t('ongoingConversations')}</p>
                 </div>
                 <MessageCircle className="h-8 w-8 text-orange-600" />
               </div>
@@ -165,9 +170,9 @@ export function BuyerDashboard({ User }: { User: any }) {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Appointments</p>
+                  <p className="text-sm font-medium text-gray-600">{t('appointments')}</p>
                   <p className="text-2xl font-bold text-gray-900">{isLoading ? '...' : appointmentStats.totalAppointments}</p>
-                  <p className="text-sm text-purple-600">scheduled services</p>
+                  <p className="text-sm text-purple-600">{t('scheduledServices')}</p>
                 </div>
                 <Calendar className="h-8 w-8 text-purple-600" />
               </div>
@@ -180,10 +185,10 @@ export function BuyerDashboard({ User }: { User: any }) {
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Recent Chats</CardTitle>
-                <Link href="/buyer/chats">
+                <CardTitle>{t('recentChats')}</CardTitle>
+                <Link href={`/${currentLocale}/buyer/chats`}>
                   <Button variant="ghost" size="sm" rightIcon={<ArrowRight className="h-4 w-4" />}>
-                    View All
+                    {t('viewAll')}
                   </Button>
                 </Link>
               </div>
@@ -194,8 +199,8 @@ export function BuyerDashboard({ User }: { User: any }) {
                   {recentChats.map((chat: any) => (
                     <div key={chat.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                       <div className="flex-1">
-                        <p className="font-medium text-gray-900">{chat.product?.title || 'Product Chat'}</p>
-                        <p className="text-sm text-gray-500">with {chat.seller?.firstName} {chat.seller?.lastName}</p>
+                        <p className="font-medium text-gray-900">{chat.product?.title || t('productChat')}</p>
+                        <p className="text-sm text-gray-500">{t('with')} {chat.seller?.firstName} {chat.seller?.lastName}</p>
                         {chat.messages && chat.messages.length > 0 && (
                           <p className="text-xs text-gray-400 mt-1 truncate">
                             {chat.messages[chat.messages.length - 1]?.message}
@@ -205,7 +210,7 @@ export function BuyerDashboard({ User }: { User: any }) {
                       <div className="text-right">
                         {chat.unreadCount > 0 && (
                           <span className="bg-blue-600 text-white text-xs font-medium px-2 py-1 rounded-full">
-                            {chat.unreadCount} new
+                            {chat.unreadCount} {t('new')}
                           </span>
                         )}
                         <p className="text-xs text-gray-500 mt-1">
@@ -218,10 +223,10 @@ export function BuyerDashboard({ User }: { User: any }) {
               ) : (
                 <div className="text-center py-8">
                   <MessageCircle className="mx-auto mb-4 text-gray-400" size={48} />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No chats yet</h3>
-                  <p className="text-gray-600 mb-4">Start chatting with sellers about products you're interested in</p>
-                  <Link href="/products">
-                    <Button variant="outline">Browse Products</Button>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('noChatsYet')}</h3>
+                  <p className="text-gray-600 mb-4">{t('startChattingWithSellers')}</p>
+                  <Link href={`/${currentLocale}/products`}>
+                    <Button variant="outline">{t('browseProducts')}</Button>
                   </Link>
                 </div>
               )}
@@ -232,10 +237,10 @@ export function BuyerDashboard({ User }: { User: any }) {
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Upcoming Appointments</CardTitle>
-                <Link href="/appointments">
+                <CardTitle>{t('upcomingAppointments')}</CardTitle>
+                <Link href={`/${currentLocale}/appointments`}>
                   <Button variant="ghost" size="sm" rightIcon={<ArrowRight className="h-4 w-4" />}>
-                    View All
+                    {t('viewAll')}
                   </Button>
                 </Link>
               </div>
@@ -249,8 +254,8 @@ export function BuyerDashboard({ User }: { User: any }) {
                         <Calendar className="h-10 w-10 text-blue-600" />
                       </div>
                       <div className="ml-3 flex-1">
-                        <p className="font-medium text-gray-900">{appointment.service?.title || 'Service Appointment'}</p>
-                        <p className="text-sm text-gray-500">{appointment.seller?.shopName || 'Auto Service Center'}</p>
+                        <p className="font-medium text-gray-900">{appointment.service?.title || t('serviceAppointment')}</p>
+                        <p className="text-sm text-gray-500">{appointment.seller?.shopName || t('autoServiceCenter')}</p>
                         <p className="text-sm text-gray-500">
                           {new Date(appointment.scheduledDate).toLocaleDateString()} at {new Date(appointment.scheduledTimeStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </p>
@@ -261,7 +266,7 @@ export function BuyerDashboard({ User }: { User: any }) {
                           appointment.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
                           'bg-gray-100 text-gray-700'
                         }`}>
-                          {appointment.status}
+                          {t(`appointmentStatus.${appointment.status.toLowerCase()}`)}
                         </span>
                       </div>
                     </div>
@@ -270,10 +275,10 @@ export function BuyerDashboard({ User }: { User: any }) {
               ) : (
                 <div className="text-center py-8">
                   <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-500">No upcoming appointments</p>
-                  <Link href="/services">
+                  <p className="text-gray-500">{t('noUpcomingAppointments')}</p>
+                  <Link href={`/${currentLocale}/services`}>
                     <Button variant="outline" size="sm" className="mt-3">
-                      Book Service
+                      {t('bookService')}
                     </Button>
                   </Link>
                 </div>

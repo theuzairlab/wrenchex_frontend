@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/auth';
 import { apiClient } from '@/lib/api/client';
 import { SellerAvailability, SellerTimeOff } from '@/types';
@@ -10,9 +11,13 @@ import { AvailabilityCalendar } from '@/components/seller/AvailabilityCalendar';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Calendar, Clock, Plus } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export default function SellerAvailabilityPage() {
   const { user, isAuthenticated } = useAuthStore();
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
+  const t = useTranslations('sellerAvailability');
   const [schedule, setSchedule] = useState<SellerAvailability[]>([]);
   const [timeOff, setTimeOff] = useState<SellerTimeOff[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -49,11 +54,11 @@ export default function SellerAvailabilityPage() {
       }
       
       if (!scheduleResponse.success) {
-        setError(scheduleResponse.error?.message || 'Failed to load schedule');
+        setError(scheduleResponse.error?.message || t('failedToLoadSchedule'));
       }
     } catch (err: any) {
       console.error('Availability error:', err);
-      setError(err.message || 'Failed to load availability data');
+      setError(err.message || t('failedToLoadAvailabilityData'));
     } finally {
       setIsLoading(false);
     }
@@ -63,8 +68,8 @@ export default function SellerAvailabilityPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
-          <p className="text-gray-600">You need to be logged in as a seller to access this page.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">{t('accessDenied')}</h1>
+          <p className="text-gray-600">{t('mustBeSellerToAccess')}</p>
         </div>
       </div>
     );
@@ -85,14 +90,14 @@ export default function SellerAvailabilityPage() {
             <svg className="w-12 h-12 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
             </svg>
-            <p className="text-lg font-medium">Error loading availability</p>
+            <p className="text-lg font-medium">{t('errorLoadingAvailability')}</p>
             <p className="text-sm text-gray-600">{error}</p>
           </div>
           <button 
             onClick={fetchAvailabilityData}
             className="bg-wrench-orange-500 text-white px-4 py-2 rounded-lg hover:bg-wrench-orange-600"
           >
-            Try Again
+            {t('tryAgain')}
           </button>
         </div>
     );
@@ -103,10 +108,10 @@ export default function SellerAvailabilityPage() {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
-            Availability Management
+            {t('availabilityManagement')}
           </h1>
           <p className="mt-2 text-gray-600">
-            Manage your working hours, schedule, and time off periods.
+            {t('manageWorkingHoursDescription')}
           </p>
         </div>
 
@@ -125,7 +130,7 @@ export default function SellerAvailabilityPage() {
                 >
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4" />
-                    Weekly Schedule
+                    {t('weeklySchedule')}
                   </div>
                 </button>
                 <button
@@ -138,7 +143,7 @@ export default function SellerAvailabilityPage() {
                 >
                   <div className="flex items-center gap-2">
                     <Plus className="h-4 w-4" />
-                    Time Off
+                    {t('timeOff')}
                   </div>
                 </button>
                 <button
@@ -151,7 +156,7 @@ export default function SellerAvailabilityPage() {
                 >
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
-                    Calendar View
+                    {t('calendarView')}
                   </div>
                 </button>
               </nav>

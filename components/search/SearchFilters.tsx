@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { 
   Filter, 
   X, 
@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { cn } from '@/lib/utils';
 import { Category, ProductSearchResult } from '@/types';
+import { useTranslations } from 'next-intl';
 
 interface SearchFiltersProps {
   categories: Category[];
@@ -83,6 +84,9 @@ const SearchFilters = ({
   const safeCategories = Array.isArray(categories) ? categories : [];
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations('common');
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
   
   const [priceRange, setPriceRange] = useState({
     min: currentFilters.minPrice || '',
@@ -102,7 +106,7 @@ const SearchFilters = ({
     // Reset to first page when filtering
     params.delete('page');
     
-    router.push(`/search?${params.toString()}`);
+    router.push(`/${currentLocale}/search?${params.toString()}`);
   };
 
   // Clear all filters except search query
@@ -111,7 +115,7 @@ const SearchFilters = ({
     if (searchQuery) {
       params.set('q', searchQuery);
     }
-    router.push(`/search?${params.toString()}`);
+    router.push(`/${currentLocale}/search?${params.toString()}`);
   };
 
   // Apply price range filter
@@ -131,7 +135,7 @@ const SearchFilters = ({
     }
     
     params.delete('page');
-    router.push(`/search?${params.toString()}`);
+    router.push(`/${currentLocale}/search?${params.toString()}`);
   };
 
   // Count active filters (excluding search query)
@@ -147,9 +151,9 @@ const SearchFilters = ({
   const availableBrands = availableFilters?.brands || [];
 
   const conditions = [
-    { value: 'NEW', label: 'New', count: availableFilters?.conditions?.find((c: any) => c.value === 'NEW')?.count || 0 },
-    { value: 'USED', label: 'Used', count: availableFilters?.conditions?.find((c: any) => c.value === 'USED')?.count || 0 },
-    { value: 'REFURBISHED', label: 'Refurbished', count: availableFilters?.conditions?.find((c: any) => c.value === 'REFURBISHED')?.count || 0 },
+    { value: 'NEW', label: t('productDetail.new'), count: availableFilters?.conditions?.find((c: any) => c.value === 'NEW')?.count || 0 },
+    { value: 'USED', label: t('productDetail.used'), count: availableFilters?.conditions?.find((c: any) => c.value === 'USED')?.count || 0 },
+    { value: 'REFURBISHED', label: t('productDetail.refurbished'), count: availableFilters?.conditions?.find((c: any) => c.value === 'REFURBISHED')?.count || 0 },
   ].filter(condition => condition.count > 0);
 
   return (
@@ -158,7 +162,7 @@ const SearchFilters = ({
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-2">
           <Filter className="h-5 w-5 text-gray-600" />
-          <h3 className="font-semibold text-gray-900">Refine Search</h3>
+          <h3 className="font-semibold text-gray-900">{t('searchFilters.refineSearch')}</h3>
           {activeFiltersCount > 0 && (
             <span className="px-2 py-1 bg-wrench-accent text-black text-xs rounded-full">
               {activeFiltersCount}
@@ -174,7 +178,7 @@ const SearchFilters = ({
             className="text-gray-500 hover:text-gray-700"
           >
             <RotateCcw className="h-4 w-4 mr-1" />
-            Reset
+            {t('searchFilters.reset')}
           </Button>
         )}
       </div>
@@ -184,11 +188,11 @@ const SearchFilters = ({
         <div className="mb-6 p-3 bg-wrench-accent/5 rounded-lg border border-wrench-accent/20">
           <div className="flex items-center space-x-2">
             <Search className="h-4 w-4 text-wrench-accent" />
-            <span className="text-sm text-gray-700">Searching for:</span>
+            <span className="text-sm text-gray-700">{t('searchFilters.searchingFor')}</span>
             <span className="font-medium text-wrench-accent">"{searchQuery}"</span>
           </div>
           <div className="text-xs text-gray-600 mt-1">
-            {totalProducts.toLocaleString()} results found
+            {t('searchFilters.resultsFound', { count: totalProducts.toLocaleString() })}
           </div>
         </div>
       )}
@@ -196,7 +200,7 @@ const SearchFilters = ({
       {/* Active Filters */}
       {activeFiltersCount > 0 && (
         <div className="mb-6">
-          <h4 className="text-sm font-medium text-gray-700 mb-2">Active Filters</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-2">{t('searchFilters.activeFilters')}</h4>
           <div className="flex flex-wrap gap-2">
             {Object.entries(currentFilters).map(([key, value]) => {
               if (!value || key === 'q') return null;
@@ -229,7 +233,7 @@ const SearchFilters = ({
       {/* Categories Filter */}
       {relevantCategories.length > 0 && (
         <FilterSection
-          title="Categories"
+          title={t('searchFilters.categories')}
           icon={<Package className="h-4 w-4 text-gray-600" />}
           defaultOpen={!!currentFilters.category}
           count={relevantCategories.length}
@@ -257,20 +261,20 @@ const SearchFilters = ({
 
       {/* Price Range Filter */}
       <FilterSection
-        title="Price Range"
-        icon={<div>AED</div>}
+        title={t('searchAdvanced.priceRange')}
+        icon={<div>{t('currency.aed')}</div>}
         defaultOpen={!!(currentFilters.minPrice || currentFilters.maxPrice)}
       >
         <div className="space-y-3">
           {availableFilters?.priceRange && (
             <div className="text-xs text-gray-600 mb-2">
-              Available range: AED {availableFilters.priceRange.min.toLocaleString()} - AED {availableFilters.priceRange.max.toLocaleString()}
+              {t('searchFilters.availableRange', { currency: t('currency.aed'), min: availableFilters.priceRange.min.toLocaleString(), max: availableFilters.priceRange.max.toLocaleString() })}
             </div>
           )}
           
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block text-xs text-gray-600 mb-1">Min Price</label>
+              <label className="block text-xs text-gray-600 mb-1">{t('searchFilters.minPrice')}</label>
               <Input
                 type="number"
                 placeholder="0"
@@ -280,7 +284,7 @@ const SearchFilters = ({
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-600 mb-1">Max Price</label>
+              <label className="block text-xs text-gray-600 mb-1">{t('searchFilters.maxPrice')}</label>
               <Input
                 type="number"
                 placeholder="10000"
@@ -295,7 +299,7 @@ const SearchFilters = ({
             className="w-full" 
             onClick={applyPriceFilter}
           >
-            Apply Price Filter
+            {t('searchFilters.applyPrice')}
           </Button>
         </div>
       </FilterSection>
@@ -303,7 +307,7 @@ const SearchFilters = ({
       {/* Brand Filter */}
       {availableBrands.length > 0 && (
         <FilterSection
-          title="Brand"
+          title={t('searchFilters.brand')}
           icon={<Tag className="h-4 w-4 text-gray-600" />}
           count={availableBrands.length}
         >
@@ -329,7 +333,7 @@ const SearchFilters = ({
       {/* Condition Filter */}
       {conditions.length > 0 && (
         <FilterSection
-          title="Condition"
+          title={t('searchFilters.condition')}
           icon={<Package className="h-4 w-4 text-gray-600" />}
         >
           <div className="space-y-2">
@@ -357,15 +361,15 @@ const SearchFilters = ({
           variant="outline" 
           size="sm" 
           className="w-full"
-          onClick={() => router.push('/search/advanced')}
+          onClick={() => router.push(`/${currentLocale}/search/advanced`)}
         >
           <Filter className="h-4 w-4 mr-2" />
-          Advanced Search
+          {t('searchFilters.advancedSearch')}
         </Button>
         
         <div className="text-center text-sm text-gray-600">
           <Package className="h-4 w-4 inline mr-1" />
-          {totalProducts.toLocaleString()} products found
+          {t('searchFilters.productsFound', { count: totalProducts.toLocaleString() })}
         </div>
       </div>
     </div>

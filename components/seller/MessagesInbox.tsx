@@ -14,6 +14,7 @@ import {
   Package,
   Search
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface MessagesInboxProps {
   conversations: any[];
@@ -28,6 +29,7 @@ export function MessagesInbox({ conversations, unreadCount, onRefresh }: Message
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const t = useTranslations('common.auth');
 
   const loadOrderMessages = async (orderId: string) => {
     try {
@@ -61,10 +63,10 @@ export function MessagesInbox({ conversations, unreadCount, onRefresh }: Message
         // Reload messages
         await loadOrderMessages(selectedConversation.orderId);
       } else {
-        alert('Failed to send message');
+        alert(t('failedToSendMessage'));
       }
     } catch (error) {
-      alert('Failed to send message');
+      alert(t('failedToSendMessage'));
     } finally {
       setIsSending(false);
     }

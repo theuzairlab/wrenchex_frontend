@@ -7,6 +7,7 @@ import { apiClient } from '@/lib/api/client';
 import { Seller } from '@/types';
 import { MapPin } from 'lucide-react';
 import LeafletMap from './LeafletMap';
+import { useTranslations } from 'next-intl';
 
 interface InteractiveMapProps {
   height?: string;
@@ -28,6 +29,7 @@ export function InteractiveMap({
   showControls = true,
   className = ''
 }: InteractiveMapProps) {
+  const t = useTranslations('interactiveMap');
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
@@ -503,6 +505,7 @@ export function InteractiveMap({
     }
 
     // Show content with calculated distance
+    const localePrefix = (typeof window !== 'undefined' ? (window.location.pathname.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en') : 'en');
     const initialContent = `
       <div style="max-width: 300px; padding: 16px;">
         <div style="display: flex; align-items: center; margin-bottom: 12px;">
@@ -533,15 +536,15 @@ export function InteractiveMap({
         ` : ''}
         
         <div style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;">
-          <a href="/shop/${seller.id}" target="_blank" style="display: inline-block; background: #3B82F6; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 500;">
-            🏪 View Shop
+          <a href="/${localePrefix}/shop/${seller.id}" target="_blank" style="display: inline-block; background: #3B82F6; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 500;">
+            🏪 {t('viewShop')}
           </a>
           <button onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${shop.position.lat},${shop.position.lng}', '_blank')" style="background: #10B981; color: white; padding: 6px 12px; border-radius: 6px; border: none; font-size: 12px; font-weight: 500; cursor: pointer;">
-            🧭 Directions
+            🧭 {t('directions')}
           </button>
           ${!location ? `
             <button onclick="window.parent.postMessage({type: 'REQUEST_LOCATION'}, '*')" style="background: #F59E0B; color: white; padding: 6px 12px; border-radius: 6px; border: none; font-size: 12px; font-weight: 500; cursor: pointer;">
-              📍 Enable Location
+              📍 {t('enableLocation')}
             </button>
           ` : ''}
         </div>
@@ -674,7 +677,7 @@ export function InteractiveMap({
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-90 z-20">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-            <p className="text-gray-600 text-sm">Loading map...</p>
+            <p className="text-gray-600 text-sm">{t('loadingMap')}</p>
           </div>
         </div>
       )}
@@ -698,7 +701,7 @@ export function InteractiveMap({
             disabled={!userLocationMarkerRef.current}
           >
             <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-            <span>Your Location</span>
+            <span>{t('yourLocation')}</span>
           </button>
           <button 
             onClick={highlightShops}
@@ -706,7 +709,7 @@ export function InteractiveMap({
             disabled={shops.length === 0}
           >
             <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-            <span>Auto Shops ({shops.length} nearby)</span>
+            <span>{t('autoShops')} ({shops.length} {t('nearby')})</span>
           </button>
         </div>
       )}

@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { TypingIndicator, TypingBubble } from './TypingIndicator';
+import { useTranslations } from 'next-intl';
 
 interface ChatInterfaceProps {
   chatId: string;
@@ -27,6 +28,8 @@ export function ChatInterface({ chatId }: ChatInterfaceProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { user } = useAuthStore();
+  const t = useTranslations('chatInterface');
+  const tCurrency = useTranslations('common.currency');
   const {
     socket,
     isConnected,
@@ -103,7 +106,7 @@ export function ChatInterface({ chatId }: ChatInterfaceProps) {
     try {
       setIsLoading(true);
       const response = await apiClient.getChatById(chatId);
-      
+
       if (response.success && response.data) {
         setChat(response.data.chat);
         // Mark as read
@@ -111,7 +114,7 @@ export function ChatInterface({ chatId }: ChatInterfaceProps) {
       }
     } catch (error: any) {
       console.error('Failed to load chat:', error);
-      toast.error(error.message || 'Failed to load chat');
+      toast.error(error.message || t('failedToLoadChat'));
     } finally {
       setIsLoading(false);
     }
@@ -123,7 +126,7 @@ export function ChatInterface({ chatId }: ChatInterfaceProps) {
     setIsSending(true);
     const messageText = message;
     setMessage(''); // Clear input immediately
-    
+
     // Stop typing indicator
     if (chat) stopTyping(chatId, chat.productId);
 
@@ -135,7 +138,7 @@ export function ChatInterface({ chatId }: ChatInterfaceProps) {
       // Fallback to HTTP API if WebSocket not connected
       try {
         const response = await apiClient.sendChatMessage(chatId, messageText, messageType);
-        
+
         if (response.success && response.data) {
           // Add message to chat immediately for better UX
           setChat(prev => {
@@ -148,7 +151,7 @@ export function ChatInterface({ chatId }: ChatInterfaceProps) {
         }
       } catch (error: any) {
         console.error('Failed to send message:', error);
-        toast.error(error.message || 'Failed to send message');
+        toast.error(error.message || t('failedToSendMessage'));
         setMessage(messageText); // Restore message on failure
       } finally {
         setIsSending(false);
@@ -178,7 +181,7 @@ export function ChatInterface({ chatId }: ChatInterfaceProps) {
     // Trigger typing indicator if user is actively typing
     if (value.trim()) {
       startTyping(chatId, chat.productId);
-      
+
       // Set a timeout to stop typing after 2 seconds of inactivity
       typingTimeoutRef.current = setTimeout(() => {
         stopTyping(chatId, chat.productId);
@@ -196,7 +199,7 @@ export function ChatInterface({ chatId }: ChatInterfaceProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading chat...</div>
+        <div className="text-gray-500">{t('loadingChat')}</div>
       </div>
     );
   }
@@ -204,7 +207,7 @@ export function ChatInterface({ chatId }: ChatInterfaceProps) {
   if (!chat) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Chat not found</div>
+        <div className="text-gray-500">{t('chatNotFound')}</div>
       </div>
     );
   }
@@ -224,8 +227,8 @@ export function ChatInterface({ chatId }: ChatInterfaceProps) {
           <div className="flex-1">
             <h3 className="font-semibold text-gray-900">{chat.product.title}</h3>
             <p className="text-sm text-gray-600">
-              AED {chat.product.price.toFixed(2)} • Chat with{' '}
-              {user?.id === chat.sellerId 
+              {tCurrency('aed')} {chat.product.price.toFixed(2)} • {t('chatWith')}{' '}
+              {user?.id === chat.sellerId
                 ? `${chat.buyer.firstName} ${chat.buyer.lastName}`
                 : `${chat.seller.firstName} ${chat.seller.lastName}`
               }
@@ -238,31 +241,29 @@ export function ChatInterface({ chatId }: ChatInterfaceProps) {
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {chat.messages.length === 0 ? (
           <div className="text-center text-gray-500 py-8">
-            No messages yet. Start the conversation!
+            {t('noMessagesYet')}
           </div>
         ) : (
           chat.messages.map((msg) => {
             const isMyMessage = msg.senderId === user?.id;
-            
+
             return (
               <div
                 key={msg.id}
                 className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}
               >
-                <Card className={`max-w-[70%] p-3 ${
-                  isMyMessage 
-                    ? 'bg-blue-600 text-gray-900' 
+                <Card className={`max-w-[70%] p-3 ${isMyMessage
+                    ? 'bg-blue-600 text-gray-900'
                     : 'bg-gray-100 text-gray-900'
-                }`}>
+                  }`}>
                   {msg.messageType === 'PRICE_OFFER' && (
                     <div className="flex items-center gap-1 text-sm opacity-75 mb-1">
-                      Price Offer
+                      {t('priceOffer')}
                     </div>
                   )}
                   <p className="text-sm">{msg.message}</p>
-                  <div className={`text-xs mt-1 opacity-75 ${
-                    isMyMessage ? 'text-gray-500' : 'text-gray-500'
-                  }`}>
+                  <div className={`text-xs mt-1 opacity-75 ${isMyMessage ? 'text-gray-500' : 'text-gray-500'
+                    }`}>
                     {formatMessageTime(msg.createdAt)}
                     {!isMyMessage && ` • ${msg.sender.firstName}`}
                   </div>
@@ -271,12 +272,12 @@ export function ChatInterface({ chatId }: ChatInterfaceProps) {
             );
           })
         )}
-        
+
         {/* Typing Indicator */}
         {isTyping && typingUser && (
           <TypingBubble />
         )}
-        
+
         <div ref={messagesEndRef} />
       </div>
 
@@ -284,31 +285,30 @@ export function ChatInterface({ chatId }: ChatInterfaceProps) {
       <div className="p-4 border-t bg-gray-50 rounded-b-lg">
         {/* Connection Status */}
         <div className="mb-2 flex items-center justify-between">
-          <TypingIndicator 
-            isTyping={isTyping} 
-            userName={typingUser || undefined} 
+          <TypingIndicator
+            isTyping={isTyping}
+            userName={typingUser || undefined}
             className="text-xs"
           />
-          <div className={`text-xs px-2 py-1 rounded-full ${
-            isConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-          }`}>
-            {isConnected ? '🟢 Online' : '🔴 Offline'}
+          <div className={`text-xs px-2 py-1 rounded-full ${isConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+            }`}>
+            {isConnected ? t('online') : t('offline')}
           </div>
         </div>
-        
+
         <div className="flex gap-2">
           <div className="w-full">
-          <Input
-            value={message}
-            onChange={handleInputChange}
-            onKeyPress={handleKeyPress}
-            placeholder="Type your message..."
-            disabled={isSending}
-            className="w-full"
-          />
-          </div>          
+            <Input
+              value={message}
+              onChange={handleInputChange}
+              onKeyPress={handleKeyPress}
+              placeholder={t('typeYourMessage')}
+              disabled={isSending}
+              className="w-full"
+            />
+          </div>
           {/* Send as Price Offer */}
-          {message.match(/^AED\d+(\.\d{1,2})?$/) && (
+          {message.match(/^${tCurrency('aed')}\d+(\.\d{1,2})?$/) && (
             <Button
               onClick={() => sendMessage('PRICE_OFFER')}
               disabled={isSending}
@@ -316,10 +316,10 @@ export function ChatInterface({ chatId }: ChatInterfaceProps) {
               size="sm"
               className="text-green-600 border-green-600 hover:bg-green-50"
             >
-              AED
+              {tCurrency('aed')}
             </Button>
           )}
-          
+
           {/* Send Button */}
           <Button
             onClick={() => sendMessage()}
@@ -329,10 +329,10 @@ export function ChatInterface({ chatId }: ChatInterfaceProps) {
             <Send size={16} />
           </Button>
         </div>
-        
+
         {message.match(/^AED\d+(\.\d{1,2})?$/) && (
           <p className="text-xs text-gray-500 mt-1">
-            💡 Detected a price! Click the AED button to send as a price offer.
+            {t('detectedPriceOffer')}
           </p>
         )}
       </div>

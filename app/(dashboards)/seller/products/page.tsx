@@ -7,11 +7,17 @@ import SellerProductDashboard from '@/components/seller/SellerProductDashboard';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useAuthStore } from '@/lib/stores/auth';
+import { useTranslations } from 'next-intl';
 
 export default function SellerProductsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isAuthenticated } = useAuthStore();
+  const t = useTranslations('sellerProductsPage');
+  
+  // Detect current locale
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  const currentLocale = pathname.includes('/ar/') ? 'ar' : 'en';
   
   const [products, setProducts] = useState<any>(null);
   const [categories, setCategories] = useState<any[]>([]);
@@ -83,7 +89,7 @@ export default function SellerProductsPage() {
     };
 
     fetchData();
-  }, [isAuthenticated, user, params.page, params.search, params.status, params.category, params.sortBy, router]);
+  }, [isAuthenticated, user, params.page, params.search, params.status, params.category, params.sortBy, router, currentLocale]);
 
   if (isLoading) {
     return (
@@ -104,10 +110,10 @@ export default function SellerProductsPage() {
             <div className="flex justify-between items-center">
               <div>
                 <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
-                  Product Management
+{t('productManagement')}
                 </h1>
                 <p className="text-gray-600 mt-1">
-                  Manage your inventory, add new products, and track performance
+{t('manageInventoryDescription')}
                 </p>
               </div>
             </div>
@@ -120,7 +126,7 @@ export default function SellerProductsPage() {
             <div className="flex">
               <div className="ml-3">
                 <h3 className="text-sm font-medium text-red-800">
-                  Error loading products
+{t('errorLoadingProducts')}
                 </h3>
                 <div className="mt-2 text-sm text-red-700">
                   {error.message}
@@ -135,14 +141,14 @@ export default function SellerProductsPage() {
           {error ? (
             <div className="text-center py-12">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Unable to load product dashboard
+{t('unableToLoadProductDashboard')}
               </h3>
               <p className="text-gray-600 mb-4">{error.message}</p>
               <button 
                 onClick={() => window.location.reload()}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Try Again
+{t('tryAgain')}
               </button>
             </div>
           ) : (

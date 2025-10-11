@@ -5,6 +5,7 @@ import { X, MapPin, Check, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { LocationService, LocationData } from '@/lib/services/locationService';
+import { useTranslations } from 'next-intl';
 
 interface MapPickerModalProps {
   isOpen: boolean;
@@ -40,6 +41,7 @@ export function MapPickerModal({
     };
   });
   const [showManualEntry, setShowManualEntry] = useState(false);
+  const t = useTranslations('common.auth');
 
   // Initialize map when modal opens
   useEffect(() => {
@@ -221,12 +223,12 @@ export function MapPickerModal({
     const lng = parseFloat(manualCoords.longitude);
     
     if (isNaN(lat) || isNaN(lng)) {
-      alert('Please enter valid coordinates');
+      alert(t('pleaseEnterValidCoordinates'));
       return;
     }
     
     if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-      alert('Please enter valid coordinates (Latitude: -90 to 90, Longitude: -180 to 180)');
+      alert(t('pleaseEnterValidCoordinatesRange'));
       return;
     }
     

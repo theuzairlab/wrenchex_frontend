@@ -11,9 +11,11 @@ import { toast } from 'sonner';
 import { User, Mail, Phone, Save } from 'lucide-react';
 import { SocialAccountManager } from '@/components/auth/SocialAccountManager';
 import { EmailVerificationBanner } from '@/components/auth/EmailVerificationBanner';
+import { useTranslations } from 'next-intl';
 
 export default function BuyerProfilePage() {
   const { user } = useAuthStore();
+  const t = useTranslations('buyerProfile');
   const [isSaving, setIsSaving] = useState(false);
   const [profile, setProfile] = useState({
     firstName: user?.firstName || '',
@@ -47,11 +49,11 @@ export default function BuyerProfilePage() {
       const response = await apiClient.updateProfile(profile);
       
       if (response.success) {
-        toast.success('Profile updated successfully!');
+        toast.success(t('profileUpdatedSuccessfully'));
       }
     } catch (error: any) {
       console.error('Failed to update profile:', error);
-      toast.error(error.message || 'Failed to update profile');
+      toast.error(error.message || t('updateProfileFailed'));
     } finally {
       setIsSaving(false);
     }
@@ -64,10 +66,10 @@ export default function BuyerProfilePage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <User className="text-blue-600" />
-            My Profile
+{t('myProfile')}
           </h1>
           <p className="text-gray-600">
-            Manage your personal information and preferences
+{t('managePersonalInfo')}
           </p>
         </div>
 
@@ -77,29 +79,29 @@ export default function BuyerProfilePage() {
         {/* Profile Form */}
         <Card>
           <CardHeader>
-            <CardTitle>Personal Information</CardTitle>
+            <CardTitle>{t('personalInformation')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  First Name
+                  {t('firstName')}
                 </label>
                 <Input
                   value={profile.firstName}
                   onChange={(e) => handleInputChange('firstName', e.target.value)}
-                  placeholder="Enter your first name"
+                  placeholder={t('enterFirstName')}
                 />
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Last Name
+                  {t('lastName')}
                 </label>
                 <Input
                   value={profile.lastName}
                   onChange={(e) => handleInputChange('lastName', e.target.value)}
-                  placeholder="Enter your last name"
+                  placeholder={t('enterLastName')}
                 />
               </div>
             </div>
@@ -107,26 +109,26 @@ export default function BuyerProfilePage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <Mail className="inline h-4 w-4 mr-1" />
-                Email Address
+                {t('emailAddress')}
               </label>
               <Input
                 type="email"
                 value={profile.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
-                placeholder="Enter your email address"
+                placeholder={t('enterEmail')}
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <Phone className="inline h-4 w-4 mr-1" />
-                Phone Number
+                {t('phoneNumber')}
               </label>
               <Input
                 type="tel"
                 value={profile.phone}
                 onChange={(e) => handleInputChange('phone', e.target.value)}
-                placeholder="Enter your phone number"
+                placeholder={t('enterPhone')}
               />
             </div>
 
@@ -136,7 +138,7 @@ export default function BuyerProfilePage() {
                 disabled={isSaving}
                 leftIcon={<Save className="h-4 w-4" />}
               >
-                {isSaving ? 'Saving...' : 'Save Changes'}
+                {isSaving ? t('saving') : t('saveChanges')}
               </Button>
             </div>
           </CardContent>
@@ -148,37 +150,37 @@ export default function BuyerProfilePage() {
         {/* Account Settings */}
         <Card>
           <CardHeader>
-            <CardTitle>Account Settings</CardTitle>
+            <CardTitle>{t('accountSettings')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="flex items-center justify-between py-3 border-b">
                 <div>
-                  <h3 className="font-medium text-gray-900">Email Notifications</h3>
-                  <p className="text-sm text-gray-500">Receive updates about your chats and appointments</p>
+                  <h3 className="font-medium text-gray-900">{t('emailNotifications')}</h3>
+                  <p className="text-sm text-gray-500">{t('emailNotificationsDesc')}</p>
                 </div>
                 <Button variant="outline" size="sm">
-                  Configure
+                  {t('configure')}
                 </Button>
               </div>
               
               <div className="flex items-center justify-between py-3 border-b">
                 <div>
-                  <h3 className="font-medium text-gray-900">Privacy Settings</h3>
-                  <p className="text-sm text-gray-500">Control who can see your information</p>
+                  <h3 className="font-medium text-gray-900">{t('privacySettings')}</h3>
+                  <p className="text-sm text-gray-500">{t('privacySettingsDesc')}</p>
                 </div>
                 <Button variant="outline" size="sm">
-                  Manage
+                  {t('manage')}
                 </Button>
               </div>
               
               <div className="flex items-center justify-between py-3">
                 <div>
-                  <h3 className="font-medium text-gray-900">Delete Account</h3>
-                  <p className="text-sm text-gray-500">Permanently delete your account and data</p>
+                  <h3 className="font-medium text-gray-900">{t('deleteAccount')}</h3>
+                  <p className="text-sm text-gray-500">{t('deleteAccountDesc')}</p>
                 </div>
                 <Button variant="outline" size="sm" className="text-red-600 border-red-300 hover:bg-red-50">
-                  Delete
+                  {t('delete')}
                 </Button>
               </div>
             </div>

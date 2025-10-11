@@ -3,13 +3,15 @@
 import { useState } from 'react';
 import { WishlistIcon } from '@/components/ui/WishlistIcon';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { Star, MapPin, ShoppingCart, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { cn } from '@/lib/utils';
+import { cn, formatPrice } from '@/lib/utils';
 import { Product } from '@/types';
 import DistanceDisplay from '@/components/location/DistanceDisplay';
 import { DirectionButton } from '@/components/location/DirectionButton';
+import { useTranslations } from 'next-intl';
 
 interface ProductCardProps {
   product: Product;
@@ -18,11 +20,14 @@ interface ProductCardProps {
 const ProductCard = ({ product }: ProductCardProps) => {
   const [imageError, setImageError] = useState(false);
   const primaryImage = product.images?.[0] || product.productImages?.[0]?.url;
+  const t = useTranslations('common');
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
   
   return (
     <div className="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-200 overflow-hidden">
       {/* Product Image */}
-      <Link href={`/products/${product.id}`}>
+      <Link href={`/${currentLocale}/products/${product.id}`}>
         <div className="relative aspect-square bg-gray-100 overflow-hidden">
           {primaryImage && !imageError ? (
             <Image
@@ -45,6 +50,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
               type="product"
               title={product.title}
               price={product.price}
+              currency={product.currency}
               image={primaryImage || ''}
               category={product.category?.name}
               sellerName={product.seller.shopName}
@@ -152,24 +158,24 @@ const ProductCard = ({ product }: ProductCardProps) => {
         {/* Price */}
         <div className="mb-3">
           <div className="text-lg font-bold text-gray-900">
-            AED {product.price.toLocaleString()}
+            {formatPrice(product.price, product.currency || 'AED', currentLocale)}
           </div>
           {product.originalPrice && product.originalPrice > product.price && (
             <div className="text-sm text-gray-500 line-through">
-              AED {product.originalPrice.toLocaleString()}
+              {formatPrice(product.originalPrice, product.currency || 'AED', currentLocale)}
             </div>
           )}
         </div>
 
         {/* Action Button */}
-        <Link href={`/products/${product.id}`} className="w-full">
+        <Link href={`/${currentLocale}/products/${product.id}`} className="w-full">
           <Button 
             size="sm" 
             className="w-full"
             disabled={!product.isActive}
           >
             <MessageCircle className="h-4 w-4 mr-2" />
-            Chat with Seller
+            {t('productCard.chatWithSeller')}
           </Button>
         </Link>
       </div>

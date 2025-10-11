@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
+import { useTranslations } from 'next-intl';
+import { usePathname } from 'next/navigation';
 import { 
   Store, 
   Search, 
@@ -60,6 +62,9 @@ interface SellersResponse {
 export default function AdminSellersPage() {
   const role = useUserRole();
   const { isLoading, isAuthenticated } = useAuthStore();
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
+  const t = useTranslations('adminSellers');
 
   const [sellers, setSellers] = useState<Seller[]>([]);
   const [loading, setLoading] = useState(true);
@@ -97,11 +102,11 @@ export default function AdminSellersPage() {
         setSellers(response.data.sellers);
         setPagination(response.data.pagination);
       } else {
-        setError(response.error?.message || 'Failed to fetch sellers');
+        setError(response.error?.message || t('fetchSellersFailed'));
       }
     } catch (err: any) {
       console.error('Error fetching sellers:', err);
-      setError(err.message || 'Failed to fetch sellers');
+      setError(err.message || t('fetchSellersFailed'));
     } finally {
       setLoading(false);
     }
@@ -132,11 +137,11 @@ export default function AdminSellersPage() {
             : seller
         ));
       } else {
-        setError(response.error?.message || 'Failed to update seller approval');
+        setError(response.error?.message || t('updateSellerApprovalFailed'));
       }
     } catch (err: any) {
       console.error('Error updating seller approval:', err);
-      setError(err.message || 'Failed to update seller approval');
+      setError(err.message || t('updateSellerApprovalFailed'));
     } finally {
       setUpdatingSeller(null);
     }
@@ -146,18 +151,18 @@ export default function AdminSellersPage() {
     return isApproved ? (
       <Badge className="bg-green-100 text-green-800">
         <CheckCircle className="w-3 h-3 mr-1" />
-        Approved
+        {t('approved')}
       </Badge>
     ) : (
       <Badge className="bg-yellow-100 text-yellow-800">
         <AlertCircle className="w-3 h-3 mr-1" />
-        Pending Approval
+        {t('pendingApproval')}
       </Badge>
     );
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString(currentLocale === 'ar' ? 'ar-AE' : 'en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -167,11 +172,11 @@ export default function AdminSellersPage() {
   // Show loading state while user data is being fetched
   if (isLoading || !isAuthenticated) {
     return (
-      <DashboardLayout title="Loading..." description="Please wait...">
+      <DashboardLayout title={t('loading')} description={t('pleaseWait')}>
         <div className="flex items-center justify-center py-12">
           <div className="flex flex-col items-center space-y-4">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-wrench-accent"></div>
-            <p className="text-gray-600">Loading...</p>
+            <p className="text-gray-600">{t('loading')}</p>
           </div>
         </div>
       </DashboardLayout>
@@ -186,8 +191,8 @@ export default function AdminSellersPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Seller Management</h1>
-            <p className="text-gray-600">Review and approve seller applications</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('sellerManagement')}</h1>
+            <p className="text-gray-600">{t('reviewAndApproveSellerApplications')}</p>
           </div>
           <Button 
             onClick={fetchSellers} 
@@ -195,7 +200,7 @@ export default function AdminSellersPage() {
             leftIcon={<RefreshCw className="h-4 w-4" />}
             disabled={loading}
           >
-            Refresh
+            {t('refresh')}
           </Button>
         </div>
 
@@ -206,13 +211,13 @@ export default function AdminSellersPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Search Sellers
+                    {t('searchSellers')}
                   </label>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
                       type="text"
-                      placeholder="Search by shop name, city, or owner..."
+                      placeholder={t('searchPlaceholder')}
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
                       className="pl-10"
@@ -222,23 +227,23 @@ export default function AdminSellersPage() {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Approval Status
+                    {t('approvalStatus')}
                   </label>
                   <select
                     value={approvalFilter}
                     onChange={(e) => handleApprovalFilterChange(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wrench-accent focus:border-transparent"
                   >
-                    <option value="">All Sellers</option>
-                    <option value="false">Pending Approval</option>
-                    <option value="true">Approved</option>
+                    <option value="">{t('allSellers')}</option>
+                    <option value="false">{t('pendingApproval')}</option>
+                    <option value="true">{t('approved')}</option>
                   </select>
                 </div>
 
                 <div className="flex items-end">
                   <Button type="submit" variant="primary" className="w-full">
                     <Search className="h-4 w-4 mr-2" />
-                    Search
+                    {t('search')}
                   </Button>
                 </div>
               </div>
@@ -251,7 +256,7 @@ export default function AdminSellersPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Store className="h-5 w-5" />
-              Sellers ({pagination.total})
+              {t('sellers', { count: pagination.total })}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -259,20 +264,20 @@ export default function AdminSellersPage() {
               <div className="flex items-center justify-center py-8">
                 <div className="flex flex-col items-center space-y-2">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-wrench-accent"></div>
-                  <p className="text-gray-600">Loading sellers...</p>
+                  <p className="text-gray-600">{t('loadingSellers')}</p>
                 </div>
               </div>
             ) : error ? (
               <div className="text-center py-8">
                 <p className="text-red-600 mb-4">{error}</p>
                 <Button onClick={fetchSellers} variant="outline">
-                  Try Again
+                  {t('tryAgain')}
                 </Button>
               </div>
             ) : sellers.length === 0 ? (
               <div className="text-center py-8">
                 <Store className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">No sellers found</p>
+                <p className="text-gray-600">{t('noSellersFound')}</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -290,14 +295,14 @@ export default function AdminSellersPage() {
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
                           <div>
-                            <p className="font-medium text-gray-700">Owner</p>
+                            <p className="font-medium text-gray-700">{t('owner')}</p>
                             <p>{seller.user.firstName} {seller.user.lastName}</p>
                             <p>{seller.user.email}</p>
                             {seller.user.phone && <p>{seller.user.phone}</p>}
                           </div>
                           
                           <div>
-                            <p className="font-medium text-gray-700">Location</p>
+                            <p className="font-medium text-gray-700">{t('location')}</p>
                             <div className="flex items-center gap-1">
                               <MapPin className="h-4 w-4" />
                               <p>{seller.city}, {seller.area}</p>
@@ -315,26 +320,26 @@ export default function AdminSellersPage() {
                         <div className="flex items-center gap-4 mt-3 text-sm">
                           <div className="flex items-center gap-1">
                             <Package className="h-4 w-4 text-blue-600" />
-                            <span>{seller._count.products} products</span>
+                            <span>{t('products', { count: seller._count.products })}</span>
                           </div>
                           <div className="flex items-center gap-1">
                             <Store className="h-4 w-4 text-green-600" />
-                            <span>{seller._count.services} services</span>
+                            <span>{t('services', { count: seller._count.services })}</span>
                           </div>
                           <div className="flex items-center gap-1">
                             <Calendar className="h-4 w-4 text-purple-600" />
-                            <span>{seller._count.appointments} appointments</span>
+                            <span>{t('appointments', { count: seller._count.appointments })}</span>
                           </div>
                           <div className="flex items-center gap-1">
                             <Calendar className="h-4 w-4 text-gray-600" />
-                            <span>Joined {formatDate(seller.createdAt)}</span>
+                            <span>{t('joined', { date: formatDate(seller.createdAt) })}</span>
                           </div>
                         </div>
                       </div>
                       
                       <div className="flex flex-col gap-2 min-w-fit">
                         <Button variant="outline" size="sm" leftIcon={<Eye className="h-4 w-4" />}>
-                          View Details
+                          {t('viewDetails')}
                         </Button>
                         
                         {!seller.isApproved ? (
@@ -345,7 +350,7 @@ export default function AdminSellersPage() {
                             onClick={() => handleSellerApproval(seller.id, true)}
                             disabled={updatingSeller === seller.id}
                           >
-                            {updatingSeller === seller.id ? 'Approving...' : 'Approve'}
+                            {updatingSeller === seller.id ? t('approving') : t('approve')}
                           </Button>
                         ) : (
                           <Button
@@ -356,7 +361,7 @@ export default function AdminSellersPage() {
                             disabled={updatingSeller === seller.id}
                             className="text-red-600 border-red-200 hover:bg-red-50"
                           >
-                            {updatingSeller === seller.id ? 'Updating...' : 'Revoke Approval'}
+                            {updatingSeller === seller.id ? t('updating') : t('revokeApproval')}
                           </Button>
                         )}
                       </div>
@@ -374,9 +379,11 @@ export default function AdminSellersPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-600">
-                  Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
-                  {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
-                  {pagination.total} sellers
+                  {t('showingResults', { 
+                    start: ((pagination.page - 1) * pagination.limit) + 1,
+                    end: Math.min(pagination.page * pagination.limit, pagination.total),
+                    total: pagination.total
+                  })}
                 </div>
                 
                 <div className="flex items-center gap-2">
@@ -387,11 +394,11 @@ export default function AdminSellersPage() {
                     disabled={currentPage === 1}
                   >
                     <ChevronLeft className="h-4 w-4" />
-                    Previous
+                    {t('previous')}
                   </Button>
                   
                   <span className="text-sm text-gray-600">
-                    Page {currentPage} of {pagination.pages}
+                    {t('pageOf', { current: currentPage, total: pagination.pages })}
                   </span>
                   
                   <Button
@@ -400,7 +407,7 @@ export default function AdminSellersPage() {
                     onClick={() => setCurrentPage(currentPage + 1)}
                     disabled={currentPage === pagination.pages}
                   >
-                    Next
+                    {t('next')}
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>

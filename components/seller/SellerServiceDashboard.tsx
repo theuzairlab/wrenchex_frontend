@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -34,9 +34,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { cn } from '@/lib/utils';
+import { cn, formatPrice } from '@/lib/utils';
 import { ServiceSearchResult, Service, Category } from '@/types';
 import { apiClient } from '@/lib/api/client';
+import { useTranslations } from 'next-intl';
 
 interface SellerServiceDashboardProps {
   services: ServiceSearchResult | null;
@@ -89,14 +90,9 @@ interface ServiceTableRowProps {
 
 const ServiceTableRow = ({ service, onEdit, onDelete, onToggleStatus }: ServiceTableRowProps) => {
   const primaryImage = service.images?.[0];
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'AED',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
+  const t = useTranslations('sellerServiceDashboard');
 
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
@@ -133,7 +129,7 @@ const ServiceTableRow = ({ service, onEdit, onDelete, onToggleStatus }: ServiceT
 
       <td className="px-6 py-4">
         <div className="text-sm">
-          <p className="font-medium text-gray-900">{formatCurrency(service.price)}</p>
+          <p className="font-medium text-gray-900">{formatPrice(service.price, service.currency || 'AED', currentLocale)}</p>
           <p className="text-gray-500">{formatDuration(service.durationMinutes)}</p>
         </div>
       </td>
@@ -152,7 +148,7 @@ const ServiceTableRow = ({ service, onEdit, onDelete, onToggleStatus }: ServiceT
               ? "bg-green-100 text-green-800"
               : "bg-gray-100 text-gray-800"
           )}>
-            {service.isActive ? 'Active' : 'Inactive'}
+            {service.isActive ? t('active') : t('inactive')}
           </span>
         </div>
       </td>
@@ -183,24 +179,24 @@ const ServiceTableRow = ({ service, onEdit, onDelete, onToggleStatus }: ServiceT
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => window.open(`/services/${service.id}`, '_blank')}>
+            <DropdownMenuItem onClick={() => window.open(`/${currentLocale}/services/${service.id}`, '_blank')}>
               <Eye className="h-4 w-4 mr-2" />
-              View Service
+              {t('viewService')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onEdit(service)}>
               <Edit className="h-4 w-4 mr-2" />
-              Edit Service
+              {t('editService')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onToggleStatus(service)}>
               {service.isActive ? (
                 <>
                   <EyeOff className="h-4 w-4 mr-2" />
-                  Deactivate
+                  {t('deactivate')}
                 </>
               ) : (
                 <>
                   <Eye className="h-4 w-4 mr-2" />
-                  Activate
+                  {t('activate')}
                 </>
               )}
             </DropdownMenuItem>
@@ -210,7 +206,7 @@ const ServiceTableRow = ({ service, onEdit, onDelete, onToggleStatus }: ServiceT
               className="text-red-600 focus:text-red-600"
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              Delete Service
+              {t('deleteService')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -221,6 +217,9 @@ const ServiceTableRow = ({ service, onEdit, onDelete, onToggleStatus }: ServiceT
 
 const SellerServiceDashboard = ({ services, categories, currentFilters, onServicesUpdate }: SellerServiceDashboardProps) => {
   const router = useRouter();
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
+  const t = useTranslations('sellerServiceDashboard');
   const [searchQuery, setSearchQuery] = useState(currentFilters.search || '');
   const [selectedCategory, setSelectedCategory] = useState(currentFilters.category || '');
   const [selectedServiceType, setSelectedServiceType] = useState(currentFilters.isMobileService || '');
@@ -245,19 +244,19 @@ const SellerServiceDashboard = ({ services, categories, currentFilters, onServic
     if (selectedServiceType) params.set('isMobileService', selectedServiceType);
 
     console.log('Searching with params:', params.toString());
-    router.push(`/seller/services?${params.toString()}`);
+    router.push(`/${currentLocale}/seller/services?${params.toString()}`);
   };
 
   const clearFilters = () => {
     setSearchQuery('');
     setSelectedCategory('');
     setSelectedServiceType('');
-    router.push('/seller/services');
+    router.push(`/${currentLocale}/seller/services`);
   };
 
   // Service actions
   const handleEditService = (service: Service) => {
-    router.push(`/seller/services/update/${service.id}`);
+    router.push(`/${currentLocale}/seller/services/update/${service.id}`);
   };
 
   const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
@@ -274,26 +273,26 @@ const SellerServiceDashboard = ({ services, categories, currentFilters, onServic
       if (response.success) {
         // Update local state to mark the service as inactive (soft delete)
         if (services && Array.isArray(services)) {
-          const updatedServices = services.map(s => 
-            s.id === serviceToDelete.id 
-              ? { ...s, isActive: false } 
+          const updatedServices = services.map(s =>
+            s.id === serviceToDelete.id
+              ? { ...s, isActive: false }
               : s
           );
           onServicesUpdate({ services: updatedServices, categories });
         }
-        
-        toast.success('Service Deleted', {
+
+        toast.success(t('serviceDeleted'), {
           description: `"${serviceToDelete.title}" has been deactivated and hidden from customers`
         });
       } else {
-        toast.error('Failed to delete service', {
-          description: response.error?.message || 'Unknown error occurred'
+        toast.error(t('deleteServiceFailed'), {
+          description: response.error?.message || t('unknownErrorOccurred')
         });
       }
     } catch (error: any) {
       console.error('Delete service error:', error);
-      toast.error('Failed to delete service', {
-        description: error.message || 'An unexpected error occurred'
+      toast.error(t('deleteServiceFailed'), {
+        description: error.message || t('unexpectedErrorOccurred')
       });
     } finally {
       setServiceToDelete(null);
@@ -303,30 +302,30 @@ const SellerServiceDashboard = ({ services, categories, currentFilters, onServic
   const handleToggleStatus = async (service: Service) => {
     try {
       const response = await apiClient.toggleServiceStatus(service.id);
-      
+
       if (response.success) {
         // Update local state to reflect the status change
         if (services && Array.isArray(services)) {
-          const updatedServices = services.map(s => 
-            s.id === service.id 
-              ? { ...s, isActive: !s.isActive } 
+          const updatedServices = services.map(s =>
+            s.id === service.id
+              ? { ...s, isActive: !s.isActive }
               : s
           );
           onServicesUpdate({ services: updatedServices, categories });
         }
 
-        toast.success('Service Status Updated', {
+        toast.success(t('serviceStatusUpdated'), {
           description: response.data?.message || `"${service.title}" is now ${!service.isActive ? 'active' : 'inactive'}`
         });
       } else {
-        toast.error('Failed to Update Service Status', {
-          description: response.error?.message || 'Unknown error occurred'
+        toast.error(t('updateServiceStatusFailed'), {
+          description: response.error?.message || t('unknownErrorOccurred')
         });
       }
     } catch (error: any) {
       console.error('Toggle status error:', error);
-      toast.error('Update Failed', {
-        description: error.message || 'An unexpected error occurred'
+      toast.error(t('updateFailed'), {
+        description: error.message || t('unexpectedErrorOccurred')
       });
     }
   };
@@ -336,25 +335,25 @@ const SellerServiceDashboard = ({ services, categories, currentFilters, onServic
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <ServiceStatsCard
-          title="Total Services"
+          title={t('totalServices')}
           value={stats.totalServices}
           icon={<Calendar className="h-6 w-6 text-wrench-accent" />}
         />
         <ServiceStatsCard
-          title="Active Services"
+          title={t('activeServices')}
           value={stats.activeServices}
-          change="+3 this month"
+          change={t('changeThisMonth')}
           changeType="positive"
           icon={<Eye className="h-6 w-6 text-green-600" />}
         />
         <ServiceStatsCard
-          title="Mobile Services"
+          title={t('mobileServices')}
           value={stats.mobileServices}
           icon={<MapPin className="h-6 w-6 text-blue-600" />}
         />
         <ServiceStatsCard
-          title="Average Price"
-          value={`AED ${stats.averagePrice.toLocaleString()}`}
+          title={t('averagePrice')}
+          value={formatPrice(stats.averagePrice, 'AED')}
           icon={<TrendingUp className="h-6 w-6 text-purple-600" />}
         />
       </div>
@@ -366,7 +365,7 @@ const SellerServiceDashboard = ({ services, categories, currentFilters, onServic
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                placeholder="Search services..."
+                placeholder={t('searchServices')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -379,7 +378,7 @@ const SellerServiceDashboard = ({ services, categories, currentFilters, onServic
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-wrench-orange-500 focus:border-transparent"
             >
-              <option value="">All Categories</option>
+              <option value="">{t('allCategories')}</option>
               {categories.map(category => (
                 <option key={category.id} value={category.id}>
                   {category.name}
@@ -392,18 +391,18 @@ const SellerServiceDashboard = ({ services, categories, currentFilters, onServic
               onChange={(e) => setSelectedServiceType(e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-wrench-orange-500 focus:border-transparent"
             >
-              <option value="">All Service Types</option>
-              <option value="true">Mobile Services</option>
-              <option value="false">In-Shop Services</option>
+              <option value="">{t('allServiceTypes')}</option>
+              <option value="true">{t('mobileServices')}</option>
+              <option value="false">{t('inShopServices')}</option>
             </select>
 
             <div className="flex space-x-2">
               <Button onClick={handleSearch} className="flex-1">
                 <Search className="h-4 w-4 mr-2" />
-                Search
+                {t('search')}
               </Button>
               <Button variant="outline" onClick={clearFilters}>
-                Clear
+                {t('clear')}
               </Button>
             </div>
           </div>
@@ -415,15 +414,15 @@ const SellerServiceDashboard = ({ services, categories, currentFilters, onServic
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Services ({servicesList.length})</CardTitle>
+              <CardTitle>{t('servicesCount', { count: servicesList.length })}</CardTitle>
               <CardDescription>
-                Manage your automotive services and track their performance
+                {t('manageServicesDescription')}
               </CardDescription>
             </div>
-            <Link href="/seller/services/add">
+            <Link href={`/${currentLocale}/seller/services/add`}>
               <Button className="whitespace-nowrap">
                 <Plus className="h-4 w-4 mr-2" />
-                Add New Service
+                {t('addNewService')}
               </Button>
             </Link>
           </div>
@@ -435,22 +434,22 @@ const SellerServiceDashboard = ({ services, categories, currentFilters, onServic
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50">
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Service
+                      {t('service')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Price & Duration
+                      {t('priceDuration')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
+                      {t('status')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Rating
+                      {t('rating')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Created
+                      {t('created')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
+                      {t('actions')}
                     </th>
                   </tr>
                 </thead>
@@ -470,16 +469,16 @@ const SellerServiceDashboard = ({ services, categories, currentFilters, onServic
           ) : (
             <div className="text-center py-12">
               <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No services found</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('noServicesFound')}</h3>
               <p className="text-gray-600 mb-6">
                 {searchQuery || selectedCategory || selectedServiceType
-                  ? 'No services match your current filters. Try adjusting your search criteria.'
-                  : 'Get started by adding your first automotive service offering.'}
+                  ? t('noServicesMatchFilters')
+                  : t('getStartedAddFirstService')}
               </p>
-              <Link href="/seller/services/add">
+              <Link href={`/${currentLocale}/seller/services/add`}>
                 <Button>
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Your First Service
+                  {t('addYourFirstService')}
                 </Button>
               </Link>
             </div>
@@ -497,7 +496,7 @@ const SellerServiceDashboard = ({ services, categories, currentFilters, onServic
               <br /><br />
               <strong>This will hide the service from customers</strong> but preserve all data and appointments.
               <br /><br />
-              You can reactivate it later using the "Activate" button if needed.
+              {t('reactivateLater')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

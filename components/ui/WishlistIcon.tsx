@@ -9,6 +9,7 @@ interface WishlistIconProps {
   type: 'product' | 'service';
   title: string;
   price: number;
+  currency?: string;
   image: string;
   category?: string;
   sellerName?: string;
@@ -21,6 +22,7 @@ export function WishlistIcon({
   type,
   title,
   price,
+  currency,
   image,
   category,
   sellerName,
@@ -43,6 +45,7 @@ export function WishlistIcon({
         type,
         title,
         price,
+        currency,
         image,
         category,
         sellerName

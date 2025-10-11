@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/lib/stores/auth';
 import { Input } from '@/components/ui/Input';
@@ -15,9 +15,16 @@ import { ArrowLeft, Save, Upload, Clock, MapPin } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { apiClient } from '@/lib/api/client';
 import { Category } from '@/types';
+import { useTranslations } from 'next-intl';
+import { formatPrice } from '@/lib/utils';
+import CurrencySelector from '@/components/ui/CurrencySelector';
+import { CurrencyService, CurrencyInfo } from '@/lib/services/currencyService';
 
 export default function AddServicePage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
+  const t = useTranslations('sellerServicesAdd');
   const { token } = useAuthStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
@@ -26,15 +33,74 @@ export default function AddServicePage() {
     description: '',
     categoryId: '',
     price: '',
+    currency: '',
     durationMinutes: '',
     isMobileService: false,
+    language: currentLocale as 'en' | 'ar',
     images: [] as string[]
   });
   const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCurrency, setSelectedCurrency] = useState<CurrencyInfo | null>(null);
 
   useEffect(() => {
     fetchCategories();
+    detectCurrencyFromSellerLocation();
   }, []);
+
+  const detectCurrencyFromSellerLocation = async () => {
+    try {
+      const sellerProfile = await apiClient.getSellerProfile();
+      if (sellerProfile.success && sellerProfile.data) {
+        const seller = sellerProfile.data;
+        const detectedCurrency = await CurrencyService.detectCurrencyFromSellerLocation({
+          city: seller.city,
+          area: seller.area,
+          country: seller.country
+        });
+        
+        if (detectedCurrency) {
+          setSelectedCurrency(detectedCurrency);
+          setFormData(prev => ({
+            ...prev,
+            currency: detectedCurrency.code
+          }));
+        } else {
+          // Default to AED if detection fails
+          const defaultCurrency: CurrencyInfo = {
+            code: 'AED',
+            symbol: 'د.إ',
+            name: 'UAE Dirham'
+          };
+          setSelectedCurrency(defaultCurrency);
+          setFormData(prev => ({
+            ...prev,
+            currency: 'AED'
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Error detecting currency:', error);
+      // Default to AED if detection fails
+      const defaultCurrency: CurrencyInfo = {
+        code: 'AED',
+        symbol: 'د.إ',
+        name: 'UAE Dirham'
+      };
+      setSelectedCurrency(defaultCurrency);
+      setFormData(prev => ({
+        ...prev,
+        currency: 'AED'
+      }));
+    }
+  };
+
+  const handleCurrencyChange = (currency: CurrencyInfo) => {
+    setSelectedCurrency(currency);
+    setFormData(prev => ({
+      ...prev,
+      currency: currency.code
+    }));
+  };
 
   const fetchCategories = async () => {
     try {
@@ -52,11 +118,11 @@ export default function AddServicePage() {
         console.log('Categories set:', categoriesData);
       } else {
         console.error('Categories response not successful:', response);
-        toast.error('Failed to load categories');
+        toast.error(t('loadCategoriesFailed'));
       }
     } catch (error) {
       console.error('Failed to fetch categories:', error);
-      toast.error('Failed to load categories');
+      toast.error(t('loadCategoriesFailed'));
     }
   };
 
@@ -110,7 +176,7 @@ export default function AddServicePage() {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Upload Error Response:', errorText);
-        throw new Error(errorText || 'Image upload failed');
+        throw new Error(errorText || t('imageUploadFailed'));
       }
 
       const result = await response.json();
@@ -122,10 +188,10 @@ export default function AddServicePage() {
         images: [...prev.images, ...uploadedUrls]
       }));
       
-      toast.success(`${uploadedUrls.length} image(s) uploaded successfully`);
+      toast.success(t('imagesUploadedSuccessfully', { count: uploadedUrls.length }));
     } catch (error) {
       console.error('Image upload failed:', error);
-      toast.error('Failed to upload images');
+      toast.error(t('uploadImagesFailed'));
     } finally {
       setIsUploadingImages(false);
     }
@@ -142,7 +208,7 @@ export default function AddServicePage() {
     e.preventDefault();
     
     if (!formData.title || !formData.description || !formData.categoryId || !formData.price || !formData.durationMinutes) {
-      toast.error('Please fill in all required fields');
+      toast.error(t('fillRequiredFields'));
       return;
     }
 
@@ -154,6 +220,7 @@ export default function AddServicePage() {
         description: formData.description,
         categoryId: formData.categoryId,
         price: parseFloat(formData.price),
+        currency: formData.currency || 'AED',
         durationMinutes: parseInt(formData.durationMinutes),
         isMobileService: formData.isMobileService,
         images: formData.images
@@ -162,15 +229,15 @@ export default function AddServicePage() {
       const response = await apiClient.createService(serviceData);
 
       if (response.success) {
-        toast.success('Service created successfully!');
+        toast.success(t('serviceCreatedSuccessfully'));
         // Force a refresh of the services page to show the new service
-        router.push('/seller/services?refresh=' + Date.now());
+        router.push(`/${currentLocale}/seller/services?refresh=` + Date.now());
       } else {
-        toast.error(response.error?.message || 'Failed to create service');
+        toast.error(response.error?.message || t('createServiceFailed'));
       }
     } catch (error: any) {
       console.error('Failed to create service:', error);
-      toast.error('Failed to create service');
+      toast.error(t('createServiceFailed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -193,14 +260,14 @@ export default function AddServicePage() {
         <div className="container-responsive py-8">
           {/* Header */}
           <div className="mb-6">
-            <Link href="/seller/services">
+            <Link href={`/${currentLocale}/seller/services`}>
               <Button variant="outline" className="mb-4">
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Services
+                {t('backToServices')}
               </Button>
             </Link>
-            <h1 className="text-3xl font-bold text-gray-900">Add New Service</h1>
-            <p className="text-gray-600 mt-2">Create a new automotive service offering</p>
+            <h1 className="text-3xl font-bold text-gray-900">{t('addNewService')}</h1>
+            <p className="text-gray-600 mt-2">{t('createServiceOffering')}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
@@ -210,12 +277,12 @@ export default function AddServicePage() {
                 {/* Basic Information */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Basic Information</CardTitle>
+                    <CardTitle>{t('basicInformation')}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
                       <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-                        Service Title *
+                        {t('serviceTitle')} *
                       </label>
                       <Input
                         type="text"
@@ -223,21 +290,21 @@ export default function AddServicePage() {
                         name="title"
                         value={formData.title}
                         onChange={handleChange}
-                        placeholder="e.g., Oil Change Service, Brake Repair, Engine Diagnostic"
+                        placeholder={t('serviceTitlePlaceholder')}
                         required
                       />
                     </div>
 
                     <div>
                       <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                        Service Description *
+                        {t('serviceDescription')} *
                       </label>
                       <Textarea
                         id="description"
                         name="description"
                         value={formData.description}
                         onChange={handleChange}
-                        placeholder="Describe your service in detail. Include what's included, tools used, expertise level, etc."
+                        placeholder={t('serviceDescriptionPlaceholder')}
                         rows={4}
                         required
                       />
@@ -246,11 +313,11 @@ export default function AddServicePage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700 mb-2">
-                          Category *
+                          {t('category')} *
                         </label>
                         <Select value={formData.categoryId} onValueChange={(value) => setFormData({ ...formData, categoryId: value })}>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select service category" />
+                            <SelectValue placeholder={t('selectServiceCategory')} />
                           </SelectTrigger>
                           <SelectContent>
                             {categories.map((category) => (
@@ -273,7 +340,7 @@ export default function AddServicePage() {
                         />
                         <label htmlFor="isMobileService" className="text-sm font-medium text-gray-700 flex items-center">
                           <MapPin className="w-4 h-4 mr-1" />
-                          Mobile Service (I come to customer)
+                          {t('mobileService')}
                         </label>
                       </div>
                     </div>
@@ -285,7 +352,7 @@ export default function AddServicePage() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Upload className="w-5 h-5" />
-                      Service Images
+                      {t('serviceImages')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -294,25 +361,29 @@ export default function AddServicePage() {
                       accept="image/*"
                       onUpload={handleImageUpload}
                       className="mb-4"
+                      label={t('uploadFiles')}
+                      dragDropText={t('dragDropFiles')}
+                      maxFilesText={t('maxFilesText', { maxFiles: 5 })}
+                      maxFileSizeText={t('maxFileSizeText', { maxSize: 5 })}
                     />
                     {isUploadingImages && (
                       <div className="text-center text-sm text-gray-600 mb-4">
                         <div className="flex items-center justify-center gap-2">
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-wrench-accent"></div>
-                          Uploading images...
+                          {t('uploadingImages')}
                         </div>
                       </div>
                     )}
                     
                     {formData.images.length > 0 && (
                       <div className="mt-4">
-                        <p className="text-sm text-gray-600 mb-2">{formData.images.length} image(s) uploaded</p>
+                        <p className="text-sm text-gray-600 mb-2">{t('imagesUploadedCount', { count: formData.images.length })}</p>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                           {formData.images.map((imageUrl, index) => (
                             <div key={index} className="relative group">
                               <img
                                 src={imageUrl}
-                                alt={`Service image ${index + 1}`}
+                                alt={t('serviceImageAlt', { index: index + 1 })}
                                 className="w-full h-32 object-cover rounded-lg border"
                               />
                               <button
@@ -337,30 +408,43 @@ export default function AddServicePage() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      Pricing & Duration
+                      {t('pricingDuration')}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="flex gap-8">
-                    <div>
-                      <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">
-                        Service Price (AED) *
-                      </label>
-                      <Input
-                        type="number"
-                        id="price"
-                        name="price"
-                        value={formData.price}
-                        onChange={handleChange}
-                        placeholder="0"
-                        min="0"
-                        step="0.01"
-                        required
-                      />
+                  <CardContent className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">
+                          {t('servicePrice')} *
+                        </label>
+                        <Input
+                          type="number"
+                          id="price"
+                          name="price"
+                          value={formData.price}
+                          onChange={handleChange}
+                          placeholder={t('pricePlaceholder')}
+                          min="0"
+                          step="0.01"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="currency" className="block text-sm font-medium text-gray-700 mb-2">
+                          {t('currency')} *
+                        </label>
+                        <CurrencySelector
+                          value={formData.currency || 'AED'}
+                          onChange={handleCurrencyChange}
+                          placeholder={t('selectCurrency')}
+                          className="w-full"
+                        />
+                      </div>
                     </div>
 
                     <div>
                       <label htmlFor="durationMinutes" className="block text-sm font-medium text-gray-700 mb-2">
-                        Duration (minutes) *
+                        {t('durationMinutes')} *
                       </label>
                       <Input
                         type="number"
@@ -368,7 +452,7 @@ export default function AddServicePage() {
                         name="durationMinutes"
                         value={formData.durationMinutes}
                         onChange={handleChange}
-                        placeholder="60"
+placeholder={t('durationPlaceholder')}
                         min="15"
                         step="15"
                         required
@@ -387,23 +471,23 @@ export default function AddServicePage() {
                 {formData.title && (
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-sm">Preview</CardTitle>
+                      <CardTitle className="text-sm">{t('preview')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2 text-sm">
                         <h3 className="font-medium">{formData.title}</h3>
                         {formData.price && (
                           <p className="text-green-600 font-bold">
-                            AED {parseFloat(formData.price).toLocaleString()}
+                            {formatPrice(parseFloat(formData.price), formData.currency || 'AED')}
                           </p>
                         )}
                         {formData.durationMinutes && (
                           <p className="text-gray-600">
-                            Duration: {formatDuration(formData.durationMinutes)}
+{t('duration')}: {formatDuration(formData.durationMinutes)}
                           </p>
                         )}
                         {formData.isMobileService && (
-                          <p className="text-blue-600 text-xs">Mobile Service Available</p>
+                          <p className="text-blue-600 text-xs">{t('mobileServiceAvailable')}</p>
                         )}
                       </div>
                     </CardContent>
@@ -417,7 +501,7 @@ export default function AddServicePage() {
                   className="w-full"
                   leftIcon={<Save className="w-4 h-4" />}
                 >
-                  {isSubmitting ? 'Creating Service...' : isUploadingImages ? 'Uploading Images...' : 'Create Service'}
+                  {isSubmitting ? t('creatingService') : isUploadingImages ? t('uploadingImagesBtn') : t('createService')}
                 </Button>
               </div>
             </div>

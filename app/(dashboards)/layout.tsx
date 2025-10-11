@@ -16,6 +16,10 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children, title, description }: DashboardLayoutProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // Detect current locale
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
 
   // Handle mobile menu close on window resize
   useEffect(() => {
@@ -50,7 +54,10 @@ export default function DashboardLayout({ children, title, description }: Dashbo
         
         <div className="flex flex-1 overflow-hidden">
           {/* Mobile Sidebar Toggle Button */}
-          <div className="md:hidden fixed top-7 left-1 z-50">
+          <div className={cn(
+            "md:hidden fixed top-7 z-50",
+            currentLocale === 'ar' ? 'right-1' : 'left-1'
+          )}>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className={cn(
@@ -69,7 +76,10 @@ export default function DashboardLayout({ children, title, description }: Dashbo
           </div>
 
           {/* Desktop Sidebar */}
-          <div className="hidden md:block fixed top-0 left-0 h-screen z-50">
+          <div className={cn(
+            "hidden md:block fixed top-0 h-screen z-50",
+            currentLocale === 'ar' ? 'right-0' : 'left-0'
+          )}>
             <Sidebar 
               isCollapsed={isSidebarCollapsed}
               onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
@@ -83,7 +93,10 @@ export default function DashboardLayout({ children, title, description }: Dashbo
             <div className="fixed inset-0 bg-black/50 z-50 md:hidden">
               <div 
                 data-sidebar
-                className="fixed left-0 top-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-50"
+                className={cn(
+                  "fixed top-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-50",
+                  currentLocale === 'ar' ? 'right-0' : 'left-0'
+                )}
               >
                 {/* Mobile Sidebar Header with Close Button */}
                 <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
@@ -107,7 +120,12 @@ export default function DashboardLayout({ children, title, description }: Dashbo
           )}
 
           {/* Main Content */}
-          <div className={`flex-1 flex flex-col overflow-hidden ${isSidebarCollapsed ? 'md:ml-16' : 'md:ml-64'}`}>
+          <div className={cn(
+            "flex-1 flex flex-col overflow-hidden",
+            currentLocale === 'ar' 
+              ? (isSidebarCollapsed ? 'md:mr-16' : 'md:mr-64')
+              : (isSidebarCollapsed ? 'md:ml-16' : 'md:ml-64')
+          )}>
             <div className="flex-1 overflow-auto">
               <div className="p-6">
                 {children}

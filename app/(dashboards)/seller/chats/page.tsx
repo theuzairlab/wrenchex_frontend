@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { MessageCircle, Clock, User, Search } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -12,8 +12,12 @@ import { apiClient } from '@/lib/api/client';
 import { ProductChat } from '@/types';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
+import { useTranslations } from 'next-intl';
 
 function SellerChatsPage() {
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
+  const t = useTranslations('sellerChats');
   const [chats, setChats] = useState<ProductChat[]>([]);
   const [filteredChats, setFilteredChats] = useState<ProductChat[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -55,14 +59,14 @@ function SellerChatsPage() {
       }
     } catch (error: any) {
       console.error('Failed to load chats:', error);
-      toast.error(error.message || 'Failed to load chats');
+      toast.error(error.message || t('failedToLoadChats'));
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleChatClick = (chatId: string) => {
-    router.push(`/seller/chats/${chatId}`);
+    router.push(`/${currentLocale}/seller/chats/${chatId}`);
   };
 
   if (isLoading) {
@@ -71,7 +75,7 @@ function SellerChatsPage() {
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-center h-64">
-              <div className="text-gray-500">Loading your chats...</div>
+              <div className="text-gray-500">{t('loadingChats')}</div>
             </div>
           </div>
         </div>
@@ -87,22 +91,22 @@ function SellerChatsPage() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
               <MessageCircle className="text-blue-600" />
-              Product Chats
+              {t('productChats')}
             </h1>
             <p className="text-gray-600">
-              Manage conversations with customers about your products
+              {t('manageConversationsDescription')}
             </p>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-500">
-              {filteredChats.length} conversation{filteredChats.length !== 1 ? 's' : ''}
+              {t('conversationsCount', { count: filteredChats.length })}
             </span>
             <Button 
               onClick={loadChats}
               variant="outline" 
               size="sm"
             >
-              Refresh
+              {t('refresh')}
             </Button>
           </div>
         </div>
@@ -113,7 +117,7 @@ function SellerChatsPage() {
           <Input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search chats by product or customer name..."
+            placeholder={t('searchPlaceholder')}
             className="pl-10"
           />
         </div>
@@ -123,20 +127,20 @@ function SellerChatsPage() {
           <Card className="p-8 text-center">
             <MessageCircle className="mx-auto mb-4 text-gray-400" size={48} />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {searchTerm ? 'No chats found' : 'No customer chats yet'}
+              {searchTerm ? t('noChatsFound') : t('noCustomerChatsYet')}
             </h3>
             <p className="text-gray-600 mb-4">
               {searchTerm 
-                ? `No chats match "${searchTerm}"`
-                : 'Customer conversations about your products will appear here'
+                ? t('noChatsMatch', { searchTerm })
+                : t('customerConversationsWillAppearHere')
               }
             </p>
             {!searchTerm && (
               <Button 
-                onClick={() => router.push('/seller/products/add')}
+                onClick={() => router.push(`/${currentLocale}/seller/products/add`)}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
-                Add Products
+                {t('addProducts')}
               </Button>
             )}
           </Card>
@@ -173,15 +177,15 @@ function SellerChatsPage() {
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
                           <h3 className="font-semibold text-gray-900 truncate">
-                            {chat.product?.title || 'Product Chat'}
+                            {chat.product?.title || t('productChat')}
                           </h3>
                           <p className="text-sm text-gray-600">
-                            Customer: {chat.buyer?.firstName} {chat.buyer?.lastName}
+                            {t('customer')}: {chat.buyer?.firstName} {chat.buyer?.lastName}
                           </p>
                           {lastMessage && (
                             <p className="text-sm text-gray-500 mt-1 truncate">
                               <span className="font-medium">
-                                {lastMessage.senderId === user?.id ? 'You: ' : 'Customer: '}
+                                {lastMessage.senderId === user?.id ? t('you') + ': ' : t('customer') + ': '}
                               </span>
                               {lastMessage.messageType === 'PRICE_OFFER' && '💰 '}
                               {lastMessage.message}
@@ -192,7 +196,7 @@ function SellerChatsPage() {
                         <div className="flex flex-col items-end gap-2 ml-4">
                           {hasUnread && (
                             <span className="bg-blue-600 text-white text-xs font-medium px-2 py-1 rounded-full">
-                              {chat.unreadCount} new
+                              {t('newMessages', { count: chat.unreadCount || 0 })}
                             </span>
                           )}
                           {lastMessage && (

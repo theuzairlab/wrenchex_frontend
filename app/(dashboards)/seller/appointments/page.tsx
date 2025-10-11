@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { toast } from 'sonner';
 import { useAuthStore, useUser } from '@/lib/stores/auth';
 import { apiClient } from '@/lib/api/client';
@@ -11,11 +11,16 @@ import { Calendar, Clock, Edit, MapPin, MessageCircle, User } from 'lucide-react
 import { Button } from '@/components/ui/Button';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useTranslations } from 'next-intl';
+import { formatPrice } from '@/lib/utils';
 
 export default function SellerAppointmentsPage() {
   const user = useUser();
   const { isAuthenticated } = useAuthStore();
   const router = useRouter();
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
+  const t = useTranslations('sellerAppointments');
 
   // State management
   const [appointmentsData, setAppointmentsData] = useState<AppointmentSearchResult>({
@@ -44,10 +49,10 @@ export default function SellerAppointmentsPage() {
   useEffect(() => {
     // Redirect if not authenticated or not a seller
     if (!isAuthenticated || user?.role !== 'SELLER') {
-      toast.error('Unauthorized', {
-        description: 'You must be a seller to view appointments'
+      toast.error(t('unauthorized'), {
+        description: t('mustBeSellerToViewAppointments')
       });
-      router.push('/');
+      router.push(`/${currentLocale}`);
       return;
     }
 
@@ -75,17 +80,17 @@ export default function SellerAppointmentsPage() {
         setAppointmentsData(response.data);
       } else {
         // Handle error scenario
-        toast.error('Appointments Load Failed', {
-          description: response.error?.message || 'Could not fetch appointments'
+        toast.error(t('appointmentsLoadFailed'), {
+          description: response.error?.message || t('couldNotFetchAppointments')
         });
       }
     } catch (err) {
       // Comprehensive error handling
       const errorMessage = err instanceof Error
         ? err.message
-        : 'An unexpected error occurred';
+        : t('unexpectedErrorOccurred');
 
-      toast.error('Fetch Failed', { description: errorMessage });
+      toast.error(t('fetchFailed'), { description: errorMessage });
     } finally {
       setIsLoading(false);
     }
@@ -106,7 +111,7 @@ export default function SellerAppointmentsPage() {
       const response = await apiClient.updateAppointmentStatus(selectedAppointment.id, selectedStatus as AppointmentStatus, updateNote.trim() || undefined);
 
       if (response.success && response.data) {
-        toast.success('Appointment status updated successfully');
+        toast.success(t('appointmentStatusUpdatedSuccessfully'));
         fetchAppointments(); // Refresh appointments
 
         // Reset modal state
@@ -114,10 +119,10 @@ export default function SellerAppointmentsPage() {
         setSelectedStatus('');
         setUpdateNote('');
       } else {
-        toast.error('Failed to update appointment status');
+        toast.error(t('failedToUpdateAppointmentStatus'));
       }
     } catch (err) {
-      toast.error('Failed to update appointment status');
+      toast.error(t('failedToUpdateAppointmentStatus'));
     }
   };
   // Render methods
@@ -125,14 +130,14 @@ export default function SellerAppointmentsPage() {
     return (
       <div className="text-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-wrench-accent mx-auto mb-4"></div>
-        <p className="text-gray-600">Loading appointments...</p>
+        <p className="text-gray-600">{t('loadingAppointments')}</p>
       </div>
     );
   }
 
   return (
     <div className="container mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-6">My Appointments</h1>
+      <h1 className="text-2xl font-bold mb-6">{t('myAppointments')}</h1>
 
       {/* Filters */}
       <div className="mb-4 flex items-center space-x-4">
@@ -141,9 +146,9 @@ export default function SellerAppointmentsPage() {
           onChange={(e) => handleStatusFilterChange(e.target.value)}
           className="px-3 py-2 border rounded-lg"
         >
-          <option value="">All Statuses</option>
+          <option value="">{t('allStatuses')}</option>
           {Object.values(AppointmentStatus).map(status => (
-            <option key={status} value={status}>{status}</option>
+            <option key={status} value={status}>{t(`status.${status.toLowerCase()}`)}</option>
           ))}
         </select>
       </div>
@@ -160,10 +165,10 @@ export default function SellerAppointmentsPage() {
               <div className="flex justify-between items-center mb-4 pb-4 border-b">
                 <div>
                   <h3 className="text-xl font-bold text-gray-900">
-                    {appointment.service?.title || 'Service Title Not Available'}
+                    {appointment.service?.title || t('serviceTitleNotAvailable')}
                   </h3>
                   <p className="text-sm text-gray-600">
-                    Appointment #{appointment.appointmentNumber}
+                    {t('appointmentNumber', { number: appointment.appointmentNumber })}
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -172,7 +177,7 @@ export default function SellerAppointmentsPage() {
                     appointment.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
                       'bg-blue-100 text-blue-800'
                   }`}>
-                  {appointment.status}
+                  {t(`status.${appointment.status.toLowerCase()}`)}
                 </span>
 
                   {/* Status Update Button */}
@@ -187,10 +192,10 @@ export default function SellerAppointmentsPage() {
                     }}
                     variant="primary"
                     className="text-gray-600 hover:text-gray-800 transition-colors"
-                    title="Update Appointment Status"
+                    title={t('updateAppointmentStatus')}
                     size="sm"
                     >
-                      <Edit className="h-5 w-5 mr-2" /> Update Status
+                      <Edit className="h-5 w-5 mr-2" /> {t('updateStatus')}
                     </Button>
                 </div>
               </div>
@@ -202,9 +207,9 @@ export default function SellerAppointmentsPage() {
                   <div className="flex items-center space-x-3">
                     <Calendar className="h-5 w-5 text-wrench-accent" />
                     <div>
-                      <p className="text-sm font-medium text-gray-700">Scheduled Date</p>
+                      <p className="text-sm font-medium text-gray-700">{t('scheduledDate')}</p>
                       <p className="text-gray-900">
-                        {new Date(appointment.scheduledTimeStart).toLocaleDateString('en-US', {
+                        {new Date(appointment.scheduledTimeStart).toLocaleDateString(currentLocale === 'ar' ? 'ar-AE' : 'en-US', {
                           weekday: 'long',
                           year: 'numeric',
                           month: 'long',
@@ -217,10 +222,10 @@ export default function SellerAppointmentsPage() {
                   <div className="flex items-center space-x-3">
                     <Clock className="h-5 w-5 text-wrench-accent" />
                     <div>
-                      <p className="text-sm font-medium text-gray-700">Time Slot</p>
+                      <p className="text-sm font-medium text-gray-700">{t('timeSlot')}</p>
                       <p className="text-gray-900">
-                        {new Date(appointment.scheduledTimeStart).toLocaleTimeString()} -
-                        {new Date(appointment.scheduledTimeEnd).toLocaleTimeString()}
+                        {new Date(appointment.scheduledTimeStart).toLocaleTimeString(currentLocale === 'ar' ? 'ar-AE' : 'en-US')} -
+                        {new Date(appointment.scheduledTimeEnd).toLocaleTimeString(currentLocale === 'ar' ? 'ar-AE' : 'en-US')}
                       </p>
                     </div>
                   </div>
@@ -228,11 +233,11 @@ export default function SellerAppointmentsPage() {
                   <div className="flex items-center space-x-3">
                     <MapPin className="h-5 w-5 text-wrench-accent" />
                     <div>
-                      <p className="text-sm font-medium text-gray-700">Location</p>
+                      <p className="text-sm font-medium text-gray-700">{t('location')}</p>
                       <p className="text-gray-900">
                         {appointment?.serviceLocation?.type === 'CUSTOMER_LOCATION'
-                          ? 'Customer Location'
-                          : 'Shop Location'}
+                          ? t('customerLocation')
+                          : t('shopLocation')}
                       </p>
                       <p className="text-sm text-gray-600">
                         {appointment?.serviceLocation?.address}
@@ -246,7 +251,7 @@ export default function SellerAppointmentsPage() {
                   <div className="flex items-center space-x-3">
                     <User className="h-5 w-5 text-wrench-accent" />
                     <div>
-                      <p className="text-sm font-medium text-gray-700">Customer</p>
+                      <p className="text-sm font-medium text-gray-700">{t('customer')}</p>
                       <p className="text-gray-900">
                         {appointment.buyer?.firstName} {appointment.buyer?.lastName}
                       </p>
@@ -258,9 +263,9 @@ export default function SellerAppointmentsPage() {
 
                   <div className="flex items-center space-x-3">
                     <div>
-                      <p className="text-sm font-medium text-gray-700">Total Amount</p>
+                      <p className="text-sm font-medium text-gray-700">{t('totalAmount')}</p>
                       <p className="text-gray-900 font-bold">
-                        AED {appointment.totalAmount.toFixed(2)}
+                        {formatPrice(appointment.totalAmount, (appointment.service as any)?.currency || 'AED', currentLocale)}
                       </p>
                     </div>
                   </div>
@@ -270,7 +275,7 @@ export default function SellerAppointmentsPage() {
                     <div className="flex items-center space-x-3">
                       <MessageCircle className="h-5 w-5 text-wrench-accent" />
                       <div>
-                        <p className="text-sm font-medium text-gray-700">Special Notes</p>
+                        <p className="text-sm font-medium text-gray-700">{t('specialNotes')}</p>
                         <p className="text-gray-600 italic">
                           "{appointment.notes}"
                         </p>
@@ -286,8 +291,8 @@ export default function SellerAppointmentsPage() {
         <div className="text-center py-12 text-gray-600">
           <p>
             {statusFilter
-              ? `No ${statusFilter} appointments found`
-              : 'No appointments found'
+              ? t('noAppointmentsFoundWithStatus', { status: t(`status.${statusFilter.toLowerCase()}`) })
+              : t('noAppointmentsFound')
             }
           </p>
         </div>
@@ -304,9 +309,9 @@ export default function SellerAppointmentsPage() {
       >
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Update Appointment Status</DialogTitle>
+            <DialogTitle>{t('updateAppointmentStatus')}</DialogTitle>
             <DialogDescription>
-              Change the status of the appointment. You can add an optional note.
+              {t('changeAppointmentStatusDescription')}
             </DialogDescription>
           </DialogHeader>
 
@@ -314,21 +319,21 @@ export default function SellerAppointmentsPage() {
             {/* Status Selection */}
             <div className="flex flex-col gap-2 items-start w-full justify-start">
               <label htmlFor="statusSelect" className="text-right">
-                Status
+                {t('statusLabel')}
               </label>
               <Select 
                 value={selectedStatus} 
                 onValueChange={(value) => setSelectedStatus(value as AppointmentStatus)}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select new status" />
+                  <SelectValue placeholder={t('selectNewStatus')} />
                 </SelectTrigger>
                 <SelectContent>
                   {Object.values(AppointmentStatus)
                     .filter(status => status !== selectedAppointment?.status)
                     .map(status => (
                       <SelectItem key={status} value={status}>
-                        {status}
+                        {t(`status.${status.toLowerCase()}`)}
                       </SelectItem>
                     ))
                   }
@@ -339,13 +344,13 @@ export default function SellerAppointmentsPage() {
             {/* Optional Note */}
             <div className="flex flex-col gap-2 items-start w-full justify-start">
               <label htmlFor="updateNote" className="text-right">
-                Note
+                {t('note')}
               </label>
               <textarea
                 id="updateNote"
                 value={updateNote}
                 onChange={(e) => setUpdateNote(e.target.value)}
-                placeholder="Optional note about status change"
+                placeholder={t('optionalNoteAboutStatusChange')}
                 className=" border rounded-lg p-2 w-full"
                 rows={3}
               />
@@ -355,7 +360,7 @@ export default function SellerAppointmentsPage() {
           <DialogFooter>
             <DialogClose asChild>
               <Button type="button" variant="secondary">
-                Cancel
+                {t('cancel')}
               </Button>
             </DialogClose>
             <Button 
@@ -363,7 +368,7 @@ export default function SellerAppointmentsPage() {
               onClick={handleStatusUpdate}
               disabled={!selectedStatus}
             >
-              Update Status
+              {t('updateStatus')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -377,17 +382,17 @@ export default function SellerAppointmentsPage() {
             disabled={!appointmentsData.hasPreviousPage}
             className="px-4 py-2 border rounded-lg disabled:opacity-50"
           >
-            Previous
+            {t('previous')}
           </button>
           <span className="px-4 py-2">
-            Page {appointmentsData.currentPage} of {appointmentsData.totalPages}
+            {t('pageOf', { current: appointmentsData.currentPage, total: appointmentsData.totalPages })}
           </span>
           <button
             onClick={() => setCurrentPage(prev => prev + 1)}
             disabled={!appointmentsData.hasNextPage}
             className="px-4 py-2 border rounded-lg disabled:opacity-50"
           >
-            Next
+            {t('next')}
           </button>
         </div>
       )}

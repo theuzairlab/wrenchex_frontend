@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { WishlistIcon } from '@/components/ui/WishlistIcon';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -19,7 +20,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
-import { cn } from '@/lib/utils';
+import { cn, formatPrice } from '@/lib/utils';
 import { ProductSearchResult, Product } from '@/types';
 
 interface ProductCatalogProps {
@@ -32,7 +33,10 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
+  const t = useTranslations('common');
   const [imageError, setImageError] = useState(false);
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
 
   const primaryImage = product.images?.[0] || product.productImages?.[0]?.url;
   const discountPercentage = product.originalPrice
@@ -52,14 +56,9 @@ const ProductCard = ({ product }: ProductCardProps) => {
           />
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
 
-          {/* Type Badge */}
-          <Badge className="absolute top-2 left-2 bg-blue-500 hover:bg-blue-600">
-            Product
-          </Badge>
-
           {/* Category Badge */}
           {product.category?.name && (
-            <Badge variant="secondary" className="absolute top-2 left-20">
+            <Badge variant="secondary" className="absolute top-2 left-2">
               {product.category.name}
             </Badge>
           )}
@@ -78,6 +77,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
               type="product"
               title={product.title}
               price={product.price}
+              currency={product.currency}
               image={primaryImage || ''}
               category={product.category?.name}
               sellerName={product.seller.shopName}
@@ -95,12 +95,12 @@ const ProductCard = ({ product }: ProductCardProps) => {
         </Link>
 
         <p className="text-sm text-gray-600 mb-2">
-          by {product.seller.shopName}
+          {t('search.by')} {product.seller.shopName}
         </p>
 
         <div className="flex items-center justify-between">
           <span className="text-lg font-bold text-wrench-orange-600">
-            AED {product.price.toLocaleString()}
+          {formatPrice(product.price, product.currency || 'AED', currentLocale)}
           </span>
 
           <div className="flex space-x-2">
@@ -110,7 +110,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
                 className="w-full"
               >
                 <MessageCircle className="h-4 w-4 mr-2" />
-                Let's Chat
+                {t('search.letsChat')}
               </Button>
             </Link>
           </div>
@@ -149,6 +149,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
 };
 
 const ProductCatalog = ({ searchResult, currentFilters }: ProductCatalogProps) => {
+  const t = useTranslations('common');
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -162,16 +163,6 @@ const ProductCatalog = ({ searchResult, currentFilters }: ProductCatalogProps) =
   const totalPages = pagination.pages;
   const hasNextPage = currentPage < totalPages;
   const hasPreviousPage = currentPage > 1;
-
-  // Sorting options
-  const sortOptions = [
-    { value: 'newest', label: 'Newest First' },
-    { value: 'price_asc', label: 'Price: Low to High' },
-    { value: 'price_desc', label: 'Price: High to Low' },
-    { value: 'rating', label: 'Highest Rated' },
-    { value: 'popularity', label: 'Most Popular' },
-    { value: 'title', label: 'Name A-Z' },
-  ];
 
   const updateSort = (sortBy: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -203,13 +194,13 @@ const ProductCatalog = ({ searchResult, currentFilters }: ProductCatalogProps) =
         <div className="text-center py-12">
           <ShoppingCart className="h-16 w-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            No products found
+            {t('products.noResults')}
           </h3>
           <p className="text-gray-600 mb-4">
-            Try adjusting your search criteria or browse different categories.
+            {t('products.tryAdjusting')}
           </p>
           <Button onClick={() => router.push('/products')}>
-            Browse All Products
+            {t('products.viewAllProducts')}
           </Button>
         </div>
       )}
@@ -218,7 +209,11 @@ const ProductCatalog = ({ searchResult, currentFilters }: ProductCatalogProps) =
       {totalPages > 1 && (
         <div className="flex items-center justify-between border-t border-gray-200 pt-6">
           <div className="text-sm text-gray-600">
-            Showing page {currentPage} of {totalPages} ({totalCount.toLocaleString()} total products)
+            {t('products.paginationSummary', { 
+              start: ((currentPage - 1) * 12) + 1, 
+              end: Math.min(currentPage * 12, totalCount), 
+              total: totalCount.toLocaleString() 
+            })}
           </div>
 
           <div className="flex items-center space-x-2">
@@ -229,7 +224,7 @@ const ProductCatalog = ({ searchResult, currentFilters }: ProductCatalogProps) =
               disabled={!hasPreviousPage}
             >
               <ChevronLeft className="h-4 w-4 mr-1" />
-              Previous
+              {t('pagination.previous')}
             </Button>
 
             {/* Page Numbers */}
@@ -259,7 +254,7 @@ const ProductCatalog = ({ searchResult, currentFilters }: ProductCatalogProps) =
               onClick={() => goToPage(currentPage + 1)}
               disabled={!hasNextPage}
             >
-              Next
+              {t('pagination.next')}
               <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>

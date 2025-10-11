@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
+import { headers } from 'next/headers';
 import { apiClient } from '@/lib/api/client';
 import ProductDetailView from '@/components/products/ProductDetailView';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
@@ -9,17 +10,74 @@ interface ProductPageProps {
   params: Promise<{
     id: string;
   }>;
+  locale?: 'en' | 'ar';
+}
+
+// Helper function to detect locale from the request URL using headers
+async function detectLocaleFromUrl(): Promise<'en' | 'ar'> {
+  try {
+    const headersList = await headers();
+    
+    // Get the actual request URL
+    const url = headersList.get('x-url') || 
+                headersList.get('referer') || 
+                headersList.get('x-forwarded-url') ||
+                '';
+    
+    console.log('[detectLocale] URL:', url);
+    
+    // Parse the URL and check the path
+    if (url) {
+      // Check if URL contains /ar/
+      if (url.includes('/ar/')) {
+        console.log('[detectLocale] Detected Arabic from URL');
+        return 'ar';
+      }
+      // Check if URL contains /en/
+      if (url.includes('/en/')) {
+        console.log('[detectLocale] Detected English from URL');
+        return 'en';
+      }
+    }
+    
+    // Fallback: check all headers for any clue
+    const allHeaders: Record<string, string> = {};
+    headersList.forEach((value, key) => {
+      allHeaders[key] = value;
+      if (value.includes('/ar/')) {
+        console.log(`[detectLocale] Found /ar/ in header ${key}:`, value);
+      }
+    });
+    
+    // Check if any header contains /ar/
+    for (const [key, value] of Object.entries(allHeaders)) {
+      if (value.includes('/ar/')) {
+        console.log('[detectLocale] Detected Arabic from header:', key);
+        return 'ar';
+      }
+    }
+    
+    // Default to English
+    console.log('[detectLocale] Defaulting to English');
+    return 'en';
+  } catch (error) {
+    console.error('[detectLocale] Error:', error);
+    return 'en';
+  }
 }
 
 // This function generates metadata for SEO
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   try {
     const { id } = await params;
+    const locale = await detectLocaleFromUrl();
     
     // Direct server-side API call without auth (for public product data)
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${id}`, {
-      cache: 'force-cache',
-      next: { revalidate: 3600 }, // Cache for 1 hour
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${id}?lang=${locale}`, {
+      cache: 'no-store', // Disable caching to ensure fresh localized content
+      headers: {
+        'Accept-Language': locale,
+      },
     });
 
     if (!response.ok) {
@@ -94,7 +152,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
       // Additional product-specific metadata
       other: {
         'product:price:amount': product.price?.toString() || '0',
-        'product:price:currency': 'AED',
+        'product:price:currency': product.currency || 'AED',
         'product:availability': product.isActive ? 'in stock' : 'out of stock',
         'product:condition': product.condition || 'new',
         'product:brand': product.brand || '',
@@ -110,17 +168,21 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 }
 
 // Server-side data fetching for SSR
-async function getProductData(productId: string) {
+async function getProductData(productId: string, locale: 'en' | 'ar') {
   try {
     // Direct server-side API calls without auth (for public product data)
     const [productResponse, relatedResponse] = await Promise.all([
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${productId}`, {
-        cache: 'force-cache',
-        next: { revalidate: 3600 },
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${productId}?lang=${locale}`, {
+        cache: 'no-store', // Disable caching to ensure fresh localized content
+        headers: {
+          'Accept-Language': locale,
+        },
       }),
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${productId}/related?limit=4`, {
-        cache: 'force-cache',
-        next: { revalidate: 3600 },
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${productId}/related?limit=4&lang=${locale}`, {
+        cache: 'no-store', // Disable caching to ensure fresh localized content
+        headers: {
+          'Accept-Language': locale,
+        },
       }).catch(() => null),
     ]);
 
@@ -156,9 +218,12 @@ async function getProductData(productId: string) {
   }
 }
 
-export default async function ProductPage({ params }: ProductPageProps) {
+export default async function ProductPage({ params, locale: propLocale }: ProductPageProps) {
   const { id } = await params;
-  const { product } = await getProductData(id);
+  // Use prop locale if provided, otherwise detect from URL
+  const locale = propLocale || await detectLocaleFromUrl();
+  console.log('[ProductPage] Using locale:', locale, '(from prop:', propLocale, ')');
+  const { product } = await getProductData(id, locale);
 
   // Show 404 if product not found
   if (!product) {
@@ -182,7 +247,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     offers: {
       '@type': 'Offer',
       url: `https://wrenchex.com/products/${product.id}`,
-      priceCurrency: 'AED',
+      priceCurrency: product.currency || 'AED',
       price: product.price,
       priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
       availability: product.isActive 

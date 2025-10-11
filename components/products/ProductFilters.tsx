@@ -15,6 +15,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Category } from '@/types';
+import { useTranslations } from 'next-intl';
 
 interface ProductFiltersProps {
   categories: Category[];
@@ -79,6 +80,7 @@ const ProductFilters = ({
   totalProducts, 
   availableFilters 
 }: ProductFiltersProps) => {
+  const t = useTranslations('common');
   // Ensure categories is always an array
   const safeCategories = Array.isArray(categories) ? categories : [];
   const router = useRouter();
@@ -160,7 +162,7 @@ const ProductFilters = ({
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               type="text"
-              placeholder="Search products..."
+              placeholder={t('products.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSearch(e)}
@@ -176,7 +178,7 @@ const ProductFilters = ({
             onChange={(e) => updateFilter('category', e.target.value || null)}
             className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-wrench-accent"
           >
-            <option value="">All Categories</option>
+            <option value="">{t('products.allCategories')}</option>
             {safeCategories.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.name}
@@ -192,7 +194,7 @@ const ProductFilters = ({
             onChange={(e) => updateFilter('condition', e.target.value || null)}
             className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-wrench-accent"
           >
-            <option value="">All Conditions</option>
+            <option value="">{t('searchFilters.condition')}</option>
             {conditions.map((condition) => (
               <option key={condition.value} value={condition.value}>
                 {condition.label}
@@ -205,7 +207,7 @@ const ProductFilters = ({
         <div className="flex items-center gap-2 min-w-[200px]">
           <Input
             type="number"
-            placeholder="Min"
+            placeholder={t('products.min')}
             value={priceRange.min}
             onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
             className="w-20 text-sm py-2"
@@ -213,7 +215,7 @@ const ProductFilters = ({
           <span className="text-gray-500">-</span>
           <Input
             type="number"
-            placeholder="Max"
+            placeholder={t('products.max')}
             value={priceRange.max}
             onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
             className="w-20 text-sm py-2"
@@ -223,7 +225,7 @@ const ProductFilters = ({
             onClick={applyPriceFilter}
             className="px-3 py-2"
           >
-            Apply
+            {t('products.apply')}
           </Button>
         </div>
 
@@ -237,7 +239,7 @@ const ProductFilters = ({
             className="text-gray-600 hover:text-gray-800"
           >
             <X className="h-4 w-4 mr-1" />
-            Clear All
+            {t('products.clear')}
           </Button>
         )}
       </div>

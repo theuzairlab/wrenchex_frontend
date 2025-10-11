@@ -10,6 +10,7 @@ import {
   Wrench, Car, Settings, Zap, Gauge, Shield, 
   Grid3X3, List, Search, Filter 
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface ServiceCategory {
   id: string;
@@ -54,6 +55,7 @@ export default function ServiceCategories({
   const [categories, setCategories] = useState<ServiceCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(layout === 'compact' ? 'list' : layout);
+  const t = useTranslations('common.auth');
 
   useEffect(() => {
     loadCategories();
@@ -67,11 +69,11 @@ export default function ServiceCategories({
       if (response.success && response.data) {
         setCategories(response.data);
       } else {
-        toast.error('Failed to load service categories');
+        toast.error(t('failedToLoadServiceCategories'));
       }
     } catch (error) {
       console.error('Failed to load categories:', error);
-      toast.error('Failed to load service categories');
+      toast.error(t('failedToLoadServiceCategories'));
     } finally {
       setIsLoading(false);
     }

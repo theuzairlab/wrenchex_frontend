@@ -8,10 +8,10 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useAuthStore } from '@/lib/stores/auth';
 import { buyerRegisterSchema, type BuyerRegisterFormData } from '@/lib/validations/auth';
-import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { GoogleLoginButton } from './GoogleLoginButton';
+import { useTranslations } from 'next-intl';
 
 interface BuyerRegisterFormProps {
   onSuccess?: () => void;
@@ -24,6 +24,9 @@ export function BuyerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToSeller
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { register: registerUser, isLoading, error, clearError, user } = useAuthStore();
   const router = useRouter();
+  const t = useTranslations('common.auth');
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
 
   const {
     register,
@@ -58,7 +61,7 @@ export function BuyerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToSeller
       await registerUser(data);
       
       // Show success message with email verification info
-      toast.success('Account created successfully! Please check your email to verify your account.');
+      toast.success(t('accountCreatedSuccessfully'));
       
       // Redirect buyer to dashboard (they'll see verification banner)
       router.push('/dashboard');
@@ -68,7 +71,7 @@ export function BuyerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToSeller
       console.error('Registration error:', err);
       
       // Show user-friendly error message
-      const errorMessage = err?.message || 'Registration failed. Please try again.';
+      const errorMessage = err?.message || t('registrationFailed');
       toast.error(errorMessage);
       
       setError('root', {
@@ -85,7 +88,7 @@ export function BuyerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToSeller
         <div className="flex items-center justify-center w-12 h-12 bg-wrench-accent/10 rounded-full mx-auto mb-4">
           <ShoppingCart className="h-6 w-6 text-wrench-accent" />
         </div>
-        <p className="text-wrench-text-secondary">Create your account to start shopping</p>
+        <p className="text-wrench-text-secondary">{t('createAccountToShop')}</p>
       </div>
 
       {/* Error Message */}
@@ -102,14 +105,14 @@ export function BuyerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToSeller
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label htmlFor="firstName" className="text-sm font-medium text-wrench-text-primary">
-              First Name
+              {t('firstName')}
             </label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-wrench-text-secondary" />
               <Input
                 id="firstName"
                 type="text"
-                placeholder="First name"
+                placeholder={t('firstName')}
                 className="pl-10"
                 {...register('firstName')}
               />
@@ -121,14 +124,14 @@ export function BuyerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToSeller
 
           <div className="space-y-2">
             <label htmlFor="lastName" className="text-sm font-medium text-wrench-text-primary">
-              Last Name
+              {t('lastName')}
             </label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-wrench-text-secondary" />
               <Input
                 id="lastName"
                 type="text"
-                placeholder="Last name"
+                placeholder={t('lastName')}
                 className="pl-10"
                 {...register('lastName')}
               />
@@ -142,14 +145,14 @@ export function BuyerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToSeller
         {/* Email */}
         <div className="space-y-2">
           <label htmlFor="email" className="text-sm font-medium text-wrench-text-primary">
-            Email Address
+            {t('emailAddress')}
           </label>
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-wrench-text-secondary" />
             <Input
               id="email"
               type="email"
-              placeholder="Enter your email"
+              placeholder={t('enterEmail')}
               className="pl-10"
               {...register('email')}
             />
@@ -162,14 +165,14 @@ export function BuyerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToSeller
         {/* Phone */}
         <div className="space-y-2">
           <label htmlFor="phone" className="text-sm font-medium text-wrench-text-primary">
-            Phone Number
+            {t('phoneNumber')}
           </label>
           <div className="relative">
             <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-wrench-text-secondary" />
             <Input
               id="phone"
               type="tel"
-              placeholder="Enter your phone number in format +1234567890"
+              placeholder={t('enterPhoneNumber')}
               className="pl-10"
               {...register('phone')}
             />
@@ -182,21 +185,21 @@ export function BuyerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToSeller
         {/* Password */}
         <div className="space-y-2">
           <label htmlFor="password" className="text-sm font-medium text-wrench-text-primary">
-            Password
+            {t('password')}
           </label>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-wrench-text-secondary" />
+            <Lock className={`absolute ${currentLocale === 'ar' ? 'left-3' : 'right-3'} top-1/2 transform -translate-y-1/2 h-4 w-4 text-wrench-text-secondary`} />
             <Input
               id="password"
               type={showPassword ? 'text' : 'password'}
-              placeholder="Create a password"
+              placeholder={t('createPassword')}
               className="pl-10 pr-10"
               {...register('password')}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-wrench-text-secondary hover:text-wrench-text-primary"
+              className={`absolute ${currentLocale === 'ar' ? 'left-3' : 'right-3'} top-1/2 transform -translate-y-1/2 text-wrench-text-secondary hover:text-wrench-text-primary ${showPassword ? 'text-wrench-text-primary' : 'text-wrench-text-secondary'}`}
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
@@ -209,21 +212,21 @@ export function BuyerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToSeller
         {/* Confirm Password */}
         <div className="space-y-2">
           <label htmlFor="confirmPassword" className="text-sm font-medium text-wrench-text-primary">
-            Confirm Password
+            {t('confirmPassword')}
           </label>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-wrench-text-secondary" />
+            <Lock className={`absolute ${currentLocale === 'ar' ? 'left-3' : 'right-3'} top-1/2 transform -translate-y-1/2 h-4 w-4 text-wrench-text-secondary`} />
             <Input
               id="confirmPassword"
               type={showConfirmPassword ? 'text' : 'password'}
-              placeholder="Confirm your password"
+              placeholder={t('confirmYourPassword')}
               className="pl-10 pr-10"
               {...register('confirmPassword')}
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-wrench-text-secondary hover:text-wrench-text-primary"
+              className={`absolute ${currentLocale === 'ar' ? 'left-3' : 'right-3'} top-1/2 transform -translate-y-1/2 text-wrench-text-secondary hover:text-wrench-text-primary ${showConfirmPassword ? 'text-wrench-text-primary' : 'text-wrench-text-secondary'}`}
             >
               {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
@@ -242,10 +245,10 @@ export function BuyerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToSeller
           {isSubmitting || isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Creating Account...
+              {t('creatingAccount')}
             </>
           ) : (
-            'Create Account'
+            t('createAccount')
           )}
         </Button>
       </form>
@@ -256,26 +259,26 @@ export function BuyerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToSeller
           <div className="w-full border-t border-gray-200" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white px-2 text-wrench-text-secondary">Or</span>
+          <span className="bg-white px-2 text-wrench-text-secondary">{t('or')}</span>
         </div>
       </div>
 
       {/* Google Login */}
       <GoogleLoginButton
         onSuccess={onSuccess}
-        text="Continue with Google"
+        text={t('continueWithGoogle')}
       />
 
       {/* Footer */}
       <div className="text-center space-y-4">
         <p className="text-sm text-wrench-text-secondary">
-          Already have an account?{' '}
+          {t('dontHaveAccount')}{' '}
           <button
             type="button"
             onClick={onSwitchToLogin}
             className="text-wrench-accent hover:text-wrench-accent-hover font-medium"
           >
-            Sign in here
+            {t('signInHere')}
           </button>
         </p>
         
@@ -284,18 +287,18 @@ export function BuyerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToSeller
             <div className="w-full border-t border-gray-200" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-2 text-wrench-text-secondary">Or</span>
+            <span className="bg-white px-2 text-wrench-text-secondary">{t('or')}</span>
           </div>
         </div>
 
         <p className="text-sm text-wrench-text-secondary">
-          Want to sell your services?{' '}
+          {t('wantToSell')}{' '}
           <button
             type="button"
             onClick={onSwitchToSeller}
             className="text-wrench-accent hover:text-wrench-accent-hover font-medium"
           >
-            Register as Seller
+            {t('registerAsSeller')}
           </button>
         </p>
       </div>

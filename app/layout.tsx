@@ -7,6 +7,8 @@ import { CriticalErrorBoundary } from '@/components/error/ErrorBoundary';
 import { LocationProvider } from '@/lib/contexts/LocationContext';
 import { Toaster } from 'sonner';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import I18nProvider from '@/components/i18n/I18nProvider';
+import LocaleDetector from '@/components/i18n/LocaleDetector';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -47,20 +49,21 @@ export default function RootLayout({
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
   return (
-    <html lang="en" className="scroll-smooth" data-scroll-behavior="smooth">
+    <html lang="en" dir="ltr" className="scroll-smooth" data-scroll-behavior="smooth">
       <body className={inter.className}>
+        <LocaleDetector />
         <CriticalErrorBoundary>
           <GoogleOAuthProvider clientId={googleClientId || ''}>
-            <AuthProvider>
-              <LocationProvider requestOnMount={true}>
-                <AuthModalProvider>
-                  <main>
+            <I18nProvider>
+              <AuthProvider>
+                <LocationProvider requestOnMount={true}>
+                  <AuthModalProvider>
                     {children}
-                  </main>
-                  <Toaster />
-                </AuthModalProvider>
-              </LocationProvider>
-            </AuthProvider>
+                    <Toaster />
+                  </AuthModalProvider>
+                </LocationProvider>
+              </AuthProvider>
+            </I18nProvider>
           </GoogleOAuthProvider>
         </CriticalErrorBoundary>
       </body>

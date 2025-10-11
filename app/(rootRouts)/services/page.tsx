@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -16,6 +17,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import LocationSearch from '@/components/services/LocationSearch';
 import { LocationFilter } from '@/components/location/LocationFilter';
+import { formatPrice } from '@/lib/utils';
 
 interface ServicesPageData {
   services: Service[];
@@ -28,7 +30,10 @@ interface ServicesPageData {
 }
 
 export default function ServicesPage() {
+  const t = useTranslations('servicesPage');
   const router = useRouter();
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
   const searchParams = useSearchParams();
   const [data, setData] = useState<ServicesPageData | null>(null);
   const [categories, setCategories] = useState<any[]>([]);
@@ -61,7 +66,7 @@ export default function ServicesPage() {
   useEffect(() => {
     loadServices();
     loadCategories();
-  }, [searchParams, coordinates]);
+  }, [searchParams, coordinates, currentLocale]);
 
   const loadServices = async () => {
     try {
@@ -127,11 +132,11 @@ export default function ServicesPage() {
 
         setData(response.data);
       } else {
-        toast.error('Failed to load services');
+        toast.error(t('loadServicesFailed'));
       }
     } catch (error) {
       console.error('Failed to load services:', error);
-      toast.error('Failed to load services');
+      toast.error(t('loadServicesFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -200,13 +205,6 @@ export default function ServicesPage() {
     setRadiusKm(20);
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'AED',
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
 
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
@@ -233,10 +231,10 @@ export default function ServicesPage() {
         <div className="container-responsive py-16 relative z-10">
           <div className="text-center max-w-3xl mx-auto mt-20">
             <h1 className="text-4xl lg:text-5xl font-bold mb-4 text-white">
-              Professional Auto Services
+              {t('heroTitle')}
             </h1>
             <p className="text-xl text-white/90 mb-8">
-              Find trusted mechanics and book automotive services near you
+              {t('heroSubtitle')}
             </p>
           </div>
         </div>
@@ -251,7 +249,7 @@ export default function ServicesPage() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 type="text"
-                placeholder="Search services..."
+                placeholder={t('searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && applyFilters()}
@@ -267,9 +265,9 @@ export default function ServicesPage() {
               onChange={(e) => setServiceType(e.target.value)}
               className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-wrench-accent"
             >
-              <option value="all">All Types</option>
-              <option value="mobile">Mobile Service</option>
-              <option value="shop">Shop Service</option>
+              <option value="all">{t('allTypes')}</option>
+              <option value="mobile">{t('mobileType')}</option>
+              <option value="shop">{t('shopType')}</option>
             </select>
           </div>
 
@@ -277,7 +275,7 @@ export default function ServicesPage() {
           <div className="flex items-center gap-2 min-w-[200px]">
             <Input
               type="number"
-              placeholder="Min"
+              placeholder={t('min')}
               value={minPrice}
               onChange={(e) => setMinPrice(e.target.value)}
               className="w-20 text-sm py-2"
@@ -285,7 +283,7 @@ export default function ServicesPage() {
             <span className="text-gray-500">-</span>
             <Input
               type="number"
-              placeholder="Max"
+              placeholder={t('max')}
               value={maxPrice}
               onChange={(e) => setMaxPrice(e.target.value)}
               className="w-20 text-sm py-2"
@@ -295,7 +293,7 @@ export default function ServicesPage() {
               onClick={applyFilters}
               className="px-3 py-2"
             >
-              Apply
+              {t('apply')}
             </Button>
           </div>
 
@@ -307,7 +305,7 @@ export default function ServicesPage() {
             className="min-w-[120px]"
           >
             <MapPin className="h-4 w-4 mr-1" />
-            {location && coordinates ? 'Location ✓' : 'Location'}
+            {location && coordinates ? t('locationChecked') : t('location')}
           </Button>
 
           {/* Clear Filters */}
@@ -318,7 +316,7 @@ export default function ServicesPage() {
               onClick={clearFilters}
               className="text-gray-600 hover:text-gray-800"
             >
-              Clear
+              {t('clear')}
             </Button>
           )}
         </div>
@@ -344,15 +342,15 @@ export default function ServicesPage() {
           <div className="flex justify-center items-center py-20">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading services...</p>
+              <p className="text-gray-600">{t('loading')}</p>
             </div>
           </div>
         ) : !data?.services?.length ? (
           <div className="text-center py-20">
             <Wrench className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No services found</h3>
-            <p className="text-gray-600 mb-4">Try adjusting your search criteria or location</p>
-            <Button onClick={clearFilters}>Clear Filters</Button>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('noResults')}</h3>
+            <p className="text-gray-600 mb-4">{t('tryAdjusting')}</p>
+            <Button onClick={clearFilters}>{t('clear')}</Button>
           </div>
         ) : (
           <>
@@ -362,7 +360,6 @@ export default function ServicesPage() {
                 <ServiceCard
                   key={service.id}
                   service={service}
-                  formatPrice={formatPrice}
                   formatDuration={formatDuration}
                 />
               ))}
@@ -396,13 +393,14 @@ export default function ServicesPage() {
 // Service Card Component - Wishlist Style
 function ServiceCard({
   service,
-  formatPrice,
   formatDuration
 }: {
   service: Service;
-  formatPrice: (price: number) => string;
   formatDuration: (minutes: number) => string;
 }) {
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
+  const t = useTranslations('servicesPage');
   const primaryImage = service.images?.[0];
 
   return (
@@ -449,28 +447,28 @@ function ServiceCard({
       </div>
 
       <CardContent className="pt-2">
-        <Link href={`/services/${service.id}`}>
+        <Link href={`/${currentLocale}/services/${service.id}`}>
           <Button variant="link" className="font-semibold p-0 text-gray-900 mb-2 line-clamp-2">
             {service.title}
           </Button>
         </Link>
 
         <p className="text-sm text-gray-600 mb-2">
-          by {service.seller.shopName}
+          {t('by')} {service.seller.shopName}
         </p>
 
         <div className="flex items-center justify-between">
           <span className="text-lg font-bold text-wrench-orange-600">
-            {formatPrice(service.price)}
+            {formatPrice(service.price, service.currency || 'AED', currentLocale)}
           </span>
 
           <div className="flex space-x-2">
-            <Link href={`/services/${service.id}`} className="w-full">
+                <Link href={`/${currentLocale}/services/${service.id}`} className="w-full">
               <Button
                 size="sm"
                 className="w-full"
               >
-                Book Now
+                    {t('bookNow')}
               </Button>
             </Link>
           </div>
@@ -504,12 +502,10 @@ function ServiceCard({
                 />
               ))}
             </div>
-            <span className="text-xs text-gray-500 ml-1">
-              ({service.ratingCount || 0})
-            </span>
+            <span className="text-xs text-gray-500 ml-1">({service.ratingCount || 0})</span>
           </div>
           <div className="text-xs text-gray-500">
-            {service.isMobileService ? 'Mobile' : 'Shop'}
+            {service.isMobileService ? t('mobileBadge') : t('shopBadge')}
           </div>
         </div>
       </CardContent>

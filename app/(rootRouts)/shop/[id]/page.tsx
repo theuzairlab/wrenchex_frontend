@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { useParams } from 'next/navigation';
 import { 
   MapPin, 
@@ -45,8 +46,14 @@ interface ShopPageData {
 }
 
 export default function ShopPage() {
+  const t = useTranslations('shopDetail');
+  const tReviews = useTranslations('common.reviews');
   const params = useParams();
   const sellerId = params.id as string;
+  
+  // Detect current locale
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  const currentLocale = pathname.includes('/ar/') ? 'ar' : 'en';
   
   const [shopData, setShopData] = useState<ShopPageData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -70,13 +77,13 @@ export default function ShopPage() {
     const years = Math.floor(days / 365);
     
     if (years > 0) {
-      return { value: years, unit: years === 1 ? 'Year' : 'Years', label: 'Member Since' };
+      return { value: years, unit: years === 1 ? t('year') : t('years'), label: 'memberSince' };
     } else if (months > 0) {
-      return { value: months, unit: months === 1 ? 'Month' : 'Months', label: 'Member Since' };
+      return { value: months, unit: months === 1 ? t('month') : t('months'), label: 'memberSince' };
     } else if (days > 0) {
-      return { value: days, unit: days === 1 ? 'Day' : 'Days', label: 'Member Since' };
+      return { value: days, unit: days === 1 ? t('day') : t('days'), label: 'memberSince' };
     } else {
-      return { value: 'New', unit: '', label: 'Member Since' };
+      return { value: 'New', unit: '', label: 'memberSince' };
     }
   };
 
@@ -84,20 +91,20 @@ export default function ShopPage() {
     if (sellerId) {
       fetchShopData(sellerId);
     }
-  }, [sellerId]);
+  }, [sellerId, currentLocale]);
 
   const fetchShopData = async (id: string) => {
     try {
       setLoading(true);
       
       // Fetch seller details
-      const sellerResponse = await apiClient.get(`/sellers/public/${id}`);
+      const sellerResponse = await apiClient.get(`/sellers/public/${id}?lang=${currentLocale}`);
       
       // Fetch seller's products
-      const productsResponse = await apiClient.get(`/products?sellerId=${id}&limit=20`);
+      const productsResponse = await apiClient.get(`/products?sellerId=${id}&limit=20&lang=${currentLocale}`);
       
       // Fetch seller's services
-      const servicesResponse = await apiClient.get(`/services?sellerId=${id}&limit=20`);
+      const servicesResponse = await apiClient.get(`/services?sellerId=${id}&limit=20&lang=${currentLocale}`);
       
       if (sellerResponse.success) {
         const seller = sellerResponse.data;
@@ -105,7 +112,7 @@ export default function ShopPage() {
         const services = servicesResponse.success ? servicesResponse.data.services || [] : [];
         
         // Calculate stats
-        const membershipDuration = seller.createdAt ? calculateMembershipDuration(seller.createdAt) : { value: 'New', unit: '', label: 'Member Since' };
+        const membershipDuration = seller.createdAt ? calculateMembershipDuration(seller.createdAt) : { value: t('new'), unit: '', label: 'Member Since' };
         
         const stats = {
           totalProducts: products.length,
@@ -123,11 +130,11 @@ export default function ShopPage() {
           stats
         });
       } else {
-        setError('Shop not found');
+        setError(t('shopNotFound'));
       }
     } catch (err) {
       console.error('Error fetching shop data:', err);
-      setError('Failed to load shop information');
+      setError(t('loadShopInformationFailed'));
     } finally {
       setLoading(false);
     }
@@ -145,10 +152,10 @@ export default function ShopPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Shop Not Found</h1>
-          <p className="text-gray-600 mb-6">{error || 'The shop you\'re looking for doesn\'t exist.'}</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">{t('shopNotFound')}</h1>
+          <p className="text-gray-600 mb-6">{error || t('shopNotFoundDesc')}</p>
           <Button onClick={() => window.history.back()}>
-            Go Back
+            {t('tryAgain')}
           </Button>
         </div>
       </div>
@@ -198,7 +205,7 @@ export default function ShopPage() {
                         ))}
                       </div>
                       <span className="text-sm font-medium">{stats.totalRating.toFixed(1)}</span>
-                      <span className="text-sm text-gray-600">({stats.totalReviews} reviews)</span>
+                      <span className="text-sm text-gray-600">({stats.totalReviews} {t('reviews')})</span>
                     </div>
                   )}
                   
@@ -290,14 +297,14 @@ export default function ShopPage() {
             </div>
             <div className="text-center">
               <div className="text-lg sm:text-2xl font-bold text-gray-900">{stats.responseTime}</div>
-              <div className="text-xs sm:text-sm text-gray-600">Response Time</div>
+                <div className="text-xs sm:text-sm text-gray-600">{t('responseTime')}</div>
             </div>
             <div className="text-center">
               <div className="text-xl sm:text-2xl font-bold text-gray-900">
                 {stats?.membershipDuration.value}
                 {stats?.membershipDuration.unit && ` ${stats.membershipDuration.unit}`}
               </div>
-              <div className="text-xs sm:text-sm text-gray-600">{stats?.membershipDuration.label}</div>
+              <div className="text-xs sm:text-sm text-gray-600">{t('memberSince')}</div>
             </div>
           </div>
         </div>
@@ -316,7 +323,7 @@ export default function ShopPage() {
               }`}
             >
               <Package className="h-4 w-4 inline mr-2" />
-              Products ({stats.totalProducts})
+              {t('products')} ({stats.totalProducts})
             </button>
             <button
               onClick={() => scrollToSection('services')}
@@ -327,7 +334,7 @@ export default function ShopPage() {
               }`}
             >
               <Wrench className="h-4 w-4 inline mr-2" />
-              Services ({stats.totalServices})
+              {t('services')} ({stats.totalServices})
             </button>
             <button
               onClick={() => scrollToSection('reviews')}
@@ -338,7 +345,7 @@ export default function ShopPage() {
               }`}
             >
               <Star className="h-4 w-4 inline mr-2" />
-              Reviews ({stats.totalReviews})
+              {t('reviews')} ({stats.totalReviews})
             </button>
             <button
               onClick={() => scrollToSection('about')}
@@ -349,7 +356,7 @@ export default function ShopPage() {
               }`}
             >
               <User className="h-4 w-4 inline mr-2" />
-              About
+              {t('aboutShop')}
             </button>
           </nav>
         </div>
@@ -360,7 +367,7 @@ export default function ShopPage() {
 
         {/* Products Section */}
         <section id="products" className="scroll-mt-32">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Products ({stats.totalProducts})</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('products')} ({stats.totalProducts})</h2>
           {products.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {products.map((product) => (
@@ -370,15 +377,15 @@ export default function ShopPage() {
           ) : (
             <div className="text-center py-12 bg-gray-50 rounded-lg">
               <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No Products Available</h3>
-              <p className="text-gray-600">This shop hasn't listed any products yet.</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('noProducts')}</h3>
+              <p className="text-gray-600">{t('noProducts')}</p>
             </div>
           )}
         </section>
 
         {/* Services Section */}
         <section id="services" className="scroll-mt-32">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Services ({stats.totalServices})</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('services')} ({stats.totalServices})</h2>
           {services.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {services.map((service) => (
@@ -388,15 +395,15 @@ export default function ShopPage() {
           ) : (
             <div className="text-center py-12 bg-gray-50 rounded-lg">
               <Wrench className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No Services Available</h3>
-              <p className="text-gray-600">This shop doesn't offer any services yet.</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('noServices')}</h3>
+              <p className="text-gray-600">{t('noServices')}</p>
             </div>
           )}
         </section>
 
         {/* Reviews Section */}
         <section id="reviews" className="scroll-mt-32">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Shop Reviews ({stats.totalReviews})</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('reviews')} ({stats.totalReviews})</h2>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Review Summary */}
             <div className="lg:col-span-1">
@@ -410,10 +417,10 @@ export default function ShopPage() {
               {/* Smart Review Button */}
               <Card className="p-4 text-center mt-4">
                 <h4 className="font-medium text-gray-900 mb-2">
-                  Rate This Shop
+                  {tReviews('writeReview')}
                 </h4>
                 <p className="text-sm text-gray-600 mb-4">
-                  Share your experience with {seller.shopName}
+                  {tReviews('shareYourExperienceWith', { entityName: seller.shopName })}
                 </p>
                 <SmartReviewButton
                   entityType="seller"
@@ -430,7 +437,7 @@ export default function ShopPage() {
             <div className="lg:col-span-2">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  All Reviews
+                  {t('reviews')}
                 </h3>
                 {selectedRatingFilter && (
                   <Button
@@ -438,7 +445,7 @@ export default function ShopPage() {
                     size="sm"
                     onClick={() => setSelectedRatingFilter(null)}
                   >
-                    Clear Filter
+                    {tReviews('all')}
                   </Button>
                 )}
               </div>
@@ -458,7 +465,7 @@ export default function ShopPage() {
 
         {/* About Section */}
         <section id="about" className="scroll-mt-32">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">About {seller.shopName}</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('aboutShop')}</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
             {/* Shop Information */}
             <Card className="p-6">
@@ -466,7 +473,7 @@ export default function ShopPage() {
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium text-gray-700">Business Type</label>
-                  <p className="text-gray-900">{seller.businessType || 'General'}</p>
+                  <p className="text-gray-900">{seller.businessType || t('general')}</p>
                 </div>
                 
                 {seller.shopDescription && (
@@ -479,7 +486,7 @@ export default function ShopPage() {
                 <div>
                   <label className="text-sm font-medium text-gray-700">Member Since</label>
                   <p className="text-gray-900">
-                    {seller.createdAt ? new Date(seller.createdAt).toLocaleDateString() : 'Recently joined'}
+                    {seller.createdAt ? new Date(seller.createdAt).toLocaleDateString() : t('recentlyJoined')}
                   </p>
                 </div>
                 

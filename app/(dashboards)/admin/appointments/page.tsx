@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
+import { formatPrice } from '@/lib/utils';
 import { 
   Calendar, 
   Search, 
@@ -19,6 +20,7 @@ import {
   ChevronRight,
   RefreshCw
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface Appointment {
   id: string;
@@ -50,6 +52,7 @@ export default function AdminAppointmentsPage() {
   const role = useUserRole();
   // const user = useUser();
   const { isLoading, isAuthenticated } = useAuthStore();
+  const t = useTranslations('adminAppointments');
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,11 +86,11 @@ export default function AdminAppointmentsPage() {
         setAppointments(response.data.appointments);
         setPagination(response.data.pagination);
       } else {
-        setError(response.error?.message || 'Failed to fetch appointments');
+        setError(response.error?.message || t('fetchAppointmentsFailed'));
       }
     } catch (err: any) {
       console.error('Error fetching appointments:', err);
-      setError(err.message || 'Failed to fetch appointments');
+      setError(err.message || t('fetchAppointmentsFailed'));
     } finally {
       setLoading(false);
     }
@@ -112,10 +115,10 @@ export default function AdminAppointmentsPage() {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      PENDING: { color: 'bg-yellow-100 text-yellow-800', text: 'Pending' },
-      CONFIRMED: { color: 'bg-blue-100 text-blue-800', text: 'Confirmed' },
-      CANCELLED: { color: 'bg-red-100 text-red-800', text: 'Cancelled' },
-      COMPLETED: { color: 'bg-green-100 text-green-800', text: 'Completed' }
+      PENDING: { color: 'bg-yellow-100 text-yellow-800', text: t('pending') },
+      CONFIRMED: { color: 'bg-blue-100 text-blue-800', text: t('confirmed') },
+      CANCELLED: { color: 'bg-red-100 text-red-800', text: t('cancelled') },
+      COMPLETED: { color: 'bg-green-100 text-green-800', text: t('completed') }
     };
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.PENDING;
@@ -152,11 +155,11 @@ export default function AdminAppointmentsPage() {
   // Show loading state while user data is being fetched
   if (isLoading || !isAuthenticated) {
     return (
-      <DashboardLayout title="Loading..." description="Please wait...">
+      <DashboardLayout title={t('loadingTitle')} description={t('pleaseWait')}>
         <div className="flex items-center justify-center py-12">
           <div className="flex flex-col items-center space-y-4">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-wrench-accent"></div>
-            <p className="text-gray-600">Loading...</p>
+            <p className="text-gray-600">{t('loading')}</p>
           </div>
         </div>
       </DashboardLayout>
@@ -170,8 +173,8 @@ export default function AdminAppointmentsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Appointment Management</h1>
-            <p className="text-gray-600">Monitor and manage all platform appointments</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('appointmentManagement')}</h1>
+            <p className="text-gray-600">{t('monitorManage')}</p>
           </div>
           <Button 
             onClick={fetchAppointments} 
@@ -179,7 +182,7 @@ export default function AdminAppointmentsPage() {
             leftIcon={<RefreshCw className="h-4 w-4" />}
             disabled={loading}
           >
-            Refresh
+            {t('refresh')}
           </Button>
         </div>
 
@@ -189,9 +192,7 @@ export default function AdminAppointmentsPage() {
             <form onSubmit={handleSearch} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Status Filter
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('statusFilter')}</label>
                   <select
                     value={statusFilter}
                     onChange={(e) => {
@@ -200,18 +201,16 @@ export default function AdminAppointmentsPage() {
                     }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wrench-accent focus:border-transparent"
                   >
-                    <option value="">All Statuses</option>
-                    <option value="PENDING">Pending</option>
-                    <option value="CONFIRMED">Confirmed</option>
-                    <option value="CANCELLED">Cancelled</option>
-                    <option value="COMPLETED">Completed</option>
+                    <option value="">{t('allStatuses')}</option>
+                    <option value="PENDING">{t('pending')}</option>
+                    <option value="CONFIRMED">{t('confirmed')}</option>
+                    <option value="CANCELLED">{t('cancelled')}</option>
+                    <option value="COMPLETED">{t('completed')}</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Start Date
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('startDate')}</label>
                   <Input
                     type="date"
                     value={startDate}
@@ -223,9 +222,7 @@ export default function AdminAppointmentsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    End Date
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('endDate')}</label>
                   <Input
                     type="date"
                     value={endDate}
@@ -237,14 +234,12 @@ export default function AdminAppointmentsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Search
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('search')}</label>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
                       type="text"
-                      placeholder="Search appointments..."
+                      placeholder={t('searchAppointmentsPlaceholder')}
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
                       className="pl-10"
@@ -255,7 +250,7 @@ export default function AdminAppointmentsPage() {
                 <div className="flex items-end">
                   <Button type="submit" variant="primary" className="w-full">
                     <Search className="h-4 w-4 mr-2" />
-                    Search
+                    {t('search')}
                   </Button>
                 </div>
               </div>
@@ -266,9 +261,9 @@ export default function AdminAppointmentsPage() {
         {/* Appointments List */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              Appointments ({pagination.total})
+              {t('appointmentsCount', {count: pagination.total})}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -276,20 +271,20 @@ export default function AdminAppointmentsPage() {
               <div className="flex items-center justify-center py-8">
                 <div className="flex flex-col items-center space-y-2">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-wrench-accent"></div>
-                  <p className="text-gray-600">Loading appointments...</p>
+                  <p className="text-gray-600">{t('loadingAppointments')}</p>
                 </div>
               </div>
             ) : error ? (
               <div className="text-center py-8">
                 <p className="text-red-600 mb-4">{error}</p>
                 <Button onClick={fetchAppointments} variant="outline">
-                  Try Again
+                  {t('tryAgain')}
                 </Button>
               </div>
             ) : appointments.length === 0 ? (
               <div className="text-center py-8">
                 <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">No appointments found</p>
+                <p className="text-gray-600">{t('noAppointmentsFound')}</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -311,7 +306,7 @@ export default function AdminAppointmentsPage() {
                           <div className="flex items-center gap-2">
                             <User className="h-4 w-4 text-gray-500" />
                             <div>
-                              <p className="font-medium text-gray-700">Customer</p>
+                              <p className="font-medium text-gray-700">{t('customer')}</p>
                               <p className="text-gray-600">
                                 {appointment.buyer.firstName} {appointment.buyer.lastName}
                               </p>
@@ -322,7 +317,7 @@ export default function AdminAppointmentsPage() {
                           <div className="flex items-center gap-2">
                             <Store className="h-4 w-4 text-gray-500" />
                             <div>
-                              <p className="font-medium text-gray-700">Service Provider</p>
+                              <p className="font-medium text-gray-700">{t('serviceProvider')}</p>
                               <p className="text-gray-600">{appointment.seller.shopName}</p>
                               <p className="text-xs text-gray-500">
                                 {appointment.seller.user.firstName} {appointment.seller.user.lastName}
@@ -333,7 +328,7 @@ export default function AdminAppointmentsPage() {
                           <div className="flex items-center gap-2">
                             <Clock className="h-4 w-4 text-gray-500" />
                             <div>
-                              <p className="font-medium text-gray-700">Schedule</p>
+                              <p className="font-medium text-gray-700">{t('schedule')}</p>
                               <p className="text-gray-600">{formatDate(appointment.scheduledDate)}</p>
                               <p className="text-xs text-gray-500">
                                 {formatTime(appointment.scheduledTimeStart)} - {formatTime(appointment.scheduledTimeEnd)}
@@ -343,10 +338,10 @@ export default function AdminAppointmentsPage() {
                           
                           <div className="flex items-center gap-2">
                             <div>
-                              <p className="font-medium text-gray-700">Amount</p>
-                              <p className="text-gray-600">AED {formatCurrency(appointment.totalAmount)}</p>
+                              <p className="font-medium text-gray-700">{t('amount')}</p>
+                              <p className="text-gray-600">{formatPrice(appointment.totalAmount, 'AED')}</p>
                               <p className="text-xs text-gray-500">
-                                Created {formatDate(appointment.createdAt)}
+                                {t('created')} {formatDate(appointment.createdAt)}
                               </p>
                             </div>
                           </div>
@@ -355,10 +350,10 @@ export default function AdminAppointmentsPage() {
                       
                       <div className="flex flex-col gap-2 min-w-fit">
                         <Button variant="outline" size="sm">
-                          View Details
+                          {t('viewDetails')}
                         </Button>
                         <Button variant="outline" size="sm">
-                          Contact Customer
+                          {t('contactCustomer')}
                         </Button>
                       </div>
                     </div>
@@ -375,9 +370,7 @@ export default function AdminAppointmentsPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-600">
-                  Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
-                  {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
-                  {pagination.total} appointments
+                  {t('showingAppointmentsRange', {from: ((pagination.page - 1) * pagination.limit) + 1, to: Math.min(pagination.page * pagination.limit, pagination.total), total: pagination.total})}
                 </div>
                 
                 <div className="flex items-center gap-2">
@@ -388,12 +381,10 @@ export default function AdminAppointmentsPage() {
                     disabled={currentPage === 1}
                   >
                     <ChevronLeft className="h-4 w-4" />
-                    Previous
+                    {t('previous')}
                   </Button>
                   
-                  <span className="text-sm text-gray-600">
-                    Page {currentPage} of {pagination.pages}
-                  </span>
+                  <span className="text-sm text-gray-600">{t('pageOf', {page: currentPage, pages: pagination.pages})}</span>
                   
                   <Button
                     variant="outline"
@@ -401,7 +392,7 @@ export default function AdminAppointmentsPage() {
                     onClick={() => setCurrentPage(currentPage + 1)}
                     disabled={currentPage === pagination.pages}
                   >
-                    Next
+                    {t('next')}
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>

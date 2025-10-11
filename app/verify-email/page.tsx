@@ -1,17 +1,53 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { CheckCircle, XCircle, Loader2, Mail, ArrowRight } from 'lucide-react';
 import { apiClient } from '@/lib/api/client';
 import { useAuthStore } from '@/lib/stores/auth';
 import { toast } from 'sonner';
+// import { useTranslations } from 'next-intl'; // Not needed - using fallback translations
 
 export default function VerifyEmailPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const pathname = usePathname();
+  
+  // Detect locale from the URL path
+  // The page can be accessed via /en/verify-email or /ar/verify-email
+  const currentLocale = pathname?.includes('/ar/') ? 'ar' : 'en';
+  
+  // Fallback translations in case the namespace is not available
+  const fallbackTranslations = {
+    emailVerification: 'Email Verification',
+    verifyingEmail: 'Verifying your email address...',
+    emailVerified: 'Your email has been verified!',
+    emailVerificationFailed: 'Email verification failed',
+    pleaseWaitVerifying: 'Please wait while we verify your email address...',
+    verificationSuccessful: 'Verification Successful!',
+    emailSuccessfullyVerified: (email: string) => `Your email ${email} has been successfully verified.`,
+    redirectingToDashboard: 'You will be redirected to your dashboard in a few seconds.',
+    goToDashboard: 'Go to Dashboard',
+    verificationFailed: 'Verification Failed',
+    resendVerificationEmail: 'Resend Verification Email',
+    backToLogin: 'Back to Login',
+    needHelp: 'Need help?',
+    checkSpamFolder: 'Check your spam folder or',
+    noTokenProvided: 'No verification token provided',
+    emailVerifiedSuccessfully: 'Email verified successfully!',
+    failedToVerifyEmail: 'Failed to verify email'
+  };
+  
+  // Use fallback translations directly to avoid translation namespace issues
+  const safeT = (key: string, params?: any) => {
+    const fallback = fallbackTranslations[key as keyof typeof fallbackTranslations];
+    if (typeof fallback === 'function') {
+      return fallback(params?.email || '');
+    }
+    return fallback || key;
+  };
   const { updateUser } = useAuthStore();
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState<'pending' | 'success' | 'error'>('pending');
@@ -25,7 +61,7 @@ export default function VerifyEmailPage() {
       verifyEmail(token);
     } else {
       setVerificationStatus('error');
-      setErrorMessage('No verification token provided');
+      setErrorMessage(safeT('noTokenProvided'));
     }
   }, [token]);
 
@@ -45,35 +81,35 @@ export default function VerifyEmailPage() {
         // Update user in store
         updateUser(response.data.user);
         
-        toast.success('Email verified successfully!');
+        toast.success(safeT('emailVerifiedSuccessfully'));
         
         // Redirect to dashboard after 3 seconds
         setTimeout(() => {
-          router.push('/dashboard');
+          router.push(`/${currentLocale}/dashboard`);
         }, 3000);
       } else {
-        throw new Error(response.error?.message || 'Verification failed');
+        throw new Error(response.error?.message || safeT('verificationFailed'));
       }
     } catch (error: any) {
       console.error('Email verification error:', error);
       setVerificationStatus('error');
-      setErrorMessage(error.message || 'Failed to verify email');
-      toast.error(error.message || 'Failed to verify email');
+      setErrorMessage(error.message || safeT('failedToVerifyEmail'));
+      toast.error(error.message || safeT('failedToVerifyEmail'));
     } finally {
       setIsVerifying(false);
     }
   };
 
   const handleResendEmail = () => {
-    router.push('/auth/login?message=resend-verification');
+    router.push(`/${currentLocale}/auth/login?message=resend-verification`);
   };
 
   const handleGoToLogin = () => {
-    router.push('/auth/login');
+    router.push(`/${currentLocale}/auth/login`);
   };
 
   const handleGoToDashboard = () => {
-    router.push('/dashboard');
+    router.push(`/${currentLocale}/dashboard`);
   };
 
   return (
@@ -84,12 +120,12 @@ export default function VerifyEmailPage() {
             <Mail className="h-12 w-12" />
           </div>
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            Email Verification
+            {safeT('emailVerification')}
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            {verificationStatus === 'pending' && 'Verifying your email address...'}
-            {verificationStatus === 'success' && 'Your email has been verified!'}
-            {verificationStatus === 'error' && 'Email verification failed'}
+            {verificationStatus === 'pending' && safeT('verifyingEmail')}
+            {verificationStatus === 'success' && safeT('emailVerified')}
+            {verificationStatus === 'error' && safeT('emailVerificationFailed')}
           </p>
         </div>
 
@@ -99,7 +135,7 @@ export default function VerifyEmailPage() {
               <div className="text-center">
                 <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-600 mb-4" />
                 <p className="text-gray-600">
-                  Please wait while we verify your email address...
+                  {safeT('pleaseWaitVerifying')}
                 </p>
               </div>
             )}
@@ -108,13 +144,13 @@ export default function VerifyEmailPage() {
               <div className="text-center">
                 <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Verification Successful!
+                  {safeT('verificationSuccessful')}
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  Your email <span className="font-medium">{userEmail}</span> has been successfully verified.
+                  {safeT('emailSuccessfullyVerified', { email: userEmail })}
                 </p>
                 <p className="text-sm text-gray-500 mb-6">
-                  You will be redirected to your dashboard in a few seconds.
+                  {safeT('redirectingToDashboard')}
                 </p>
                 <div className="space-y-3">
                   <Button
@@ -122,7 +158,7 @@ export default function VerifyEmailPage() {
                     className="w-full"
                   >
                     <ArrowRight className="h-4 w-4 mr-2" />
-                    Go to Dashboard
+                    {safeT('goToDashboard')}
                   </Button>
                 </div>
               </div>
@@ -132,7 +168,7 @@ export default function VerifyEmailPage() {
               <div className="text-center">
                 <XCircle className="h-16 w-16 text-red-600 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Verification Failed
+                  {safeT('verificationFailed')}
                 </h3>
                 <p className="text-gray-600 mb-4">
                   {errorMessage}
@@ -144,14 +180,14 @@ export default function VerifyEmailPage() {
                     className="w-full"
                   >
                     <Mail className="h-4 w-4 mr-2" />
-                    Resend Verification Email
+                    {safeT('resendVerificationEmail')}
                   </Button>
                   <Button
                     onClick={handleGoToLogin}
                     variant="outline"
                     className="w-full"
                   >
-                    Back to Login
+                    {safeT('backToLogin')}
                   </Button>
                 </div>
               </div>
@@ -162,12 +198,12 @@ export default function VerifyEmailPage() {
         {/* Help Section */}
         <div className="text-center">
           <p className="text-sm text-gray-500">
-            Need help? Check your spam folder or{' '}
+            {safeT('needHelp')} {safeT('checkSpamFolder')}{' '}
             <button
               onClick={handleResendEmail}
               className="text-blue-600 hover:text-blue-500 font-medium"
             >
-              resend verification email
+              {safeT('resendVerificationEmail')}
             </button>
           </p>
         </div>

@@ -13,6 +13,9 @@ import {
 } from 'lucide-react';
 import { Appointment } from '@/types';
 import { format, formatDistanceToNow, isFuture, isPast } from 'date-fns';
+import { useTranslations } from 'next-intl';
+import { formatPrice } from '@/lib/utils';
+import { usePathname } from 'next/navigation';
 
 interface AppointmentCardProps {
   appointment: Appointment;
@@ -27,8 +30,12 @@ export default function AppointmentCard({
   onUpdate,
   variant = 'default' 
 }: AppointmentCardProps) {
+  const t = useTranslations('appointmentCard');
+  const tCurrency = useTranslations('common.currency');
   const [isUpdating, setIsUpdating] = useState(false);
   const [showActions, setShowActions] = useState(false);
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -50,14 +57,6 @@ export default function AppointmentCard({
       case 'CANCELLED': return <XCircle className="h-4 w-4" />;
       default: return <AlertCircle className="h-4 w-4" />;
     }
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'AED',
-      minimumFractionDigits: 0,
-    }).format(price);
   };
 
   const appointmentDate = new Date(appointment.scheduledTimeStart);
@@ -92,7 +91,7 @@ export default function AppointmentCard({
   };
 
   const handleCancel = () => {
-    const reason = prompt('Please provide a reason for cancellation (optional):');
+    const reason = prompt(t('prompt.cancelReasonOptional'));
     handleStatusUpdate('CANCELLED', reason || undefined);
   };
 
@@ -112,14 +111,14 @@ export default function AppointmentCard({
               </div>
               
               <div>
-                <h3 className="font-semibold text-gray-900">{appointment.service?.title || 'Service Title Not Available'}</h3>
+                <h3 className="font-semibold text-gray-900">{appointment.service?.title || t('serviceTitleNA')}</h3>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Clock className="h-3 w-3" />
                   <span>{format(appointmentDate, 'HH:mm')}</span>
                   {userRole === 'buyer' && (
                     <>
                       <span>•</span>
-                      <span>{appointment.seller?.shopName || 'Shop Name Not Available'}</span>
+                      <span>{appointment.seller?.shopName || t('shopNameNA')}</span>
                     </>
                   )}
                   {userRole === 'seller' && (
@@ -150,10 +149,10 @@ export default function AppointmentCard({
         <div className="flex justify-between items-start mb-4">
           <div>
             <h3 className="text-xl font-semibold text-gray-900 mb-1">
-              {appointment.service?.title || 'Service Title Not Available'}
+              {appointment.service?.title || t('serviceTitleNA')}
             </h3>
             <p className="text-gray-600 text-sm">
-              Appointment #{appointment.appointmentNumber}
+              {t('appointmentNumber', { num: appointment.appointmentNumber })}
             </p>
           </div>
           
@@ -179,8 +178,8 @@ export default function AppointmentCard({
             <div>
               <div className="font-medium">{format(appointmentDate, 'EEEE, MMMM do, yyyy')}</div>
               <div className="text-sm text-gray-600">
-                {isUpcoming ? `In ${formatDistanceToNow(appointmentDate)}` : 
-                 isPastAppointment ? `${formatDistanceToNow(appointmentDate)} ago` : 'Today'}
+                {isUpcoming ? t('inDuration', { duration: formatDistanceToNow(appointmentDate) }) : 
+                 isPastAppointment ? t('durationAgo', { duration: formatDistanceToNow(appointmentDate) }) : t('today')}
               </div>
             </div>
           </div>
@@ -191,9 +190,7 @@ export default function AppointmentCard({
               <div className="font-medium">
                 {format(appointmentDate, 'HH:mm')} - {format(new Date(appointment.scheduledTimeEnd), 'HH:mm')}
               </div>
-              <div className="text-sm text-gray-600">
-                {appointment.service?.durationMinutes || 0} minutes
-              </div>
+              <div className="text-sm text-gray-600">{t('minutes', { count: appointment.service?.durationMinutes || 0 })}</div>
             </div>
           </div>
         </div>
@@ -204,10 +201,10 @@ export default function AppointmentCard({
             <div className="flex items-center gap-2">
               <User className="h-5 w-5 text-green-600" />
               <div>
-                <div className="font-medium">{appointment.seller?.shopName || 'Shop Name Not Available'}</div>
+                <div className="font-medium">{appointment.seller?.shopName || t('shopNameNA')}</div>
                 <div className="text-sm text-gray-600 flex items-center gap-1">
                   <MapPin className="h-3 w-3" />
-                  Location not available
+                  {t('locationNA')}
                 </div>
               </div>
             </div>
@@ -225,8 +222,8 @@ export default function AppointmentCard({
           
           <div className="flex items-center gap-2">
             <div>
-              <div className="font-medium">AED {formatPrice(appointment.totalAmount)}</div>
-              <div className="text-sm text-gray-600">Total amount</div>
+              <div className="font-medium">{formatPrice(appointment.totalAmount, (appointment.service as any)?.currency || 'AED', currentLocale)}</div>
+              <div className="text-sm text-gray-600">{t('totalAmount')}</div>
             </div>
           </div>
         </div>
@@ -236,7 +233,7 @@ export default function AppointmentCard({
           <div className="flex items-start gap-2 mb-4 p-3 bg-blue-50 rounded-lg">
             <Navigation className="h-5 w-5 text-blue-600 mt-0.5" />
             <div>
-              <div className="font-medium text-blue-900">Mobile Service Location</div>
+              <div className="font-medium text-blue-900">{t('mobileServiceLocation')}</div>
               <div className="text-sm text-blue-700">
                 {typeof appointment.serviceLocation === 'object' && appointment.serviceLocation.address}
               </div>
@@ -247,7 +244,7 @@ export default function AppointmentCard({
         {/* Notes */}
         {appointment.notes && (
           <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-            <div className="font-medium text-gray-900 mb-1">Notes</div>
+            <div className="font-medium text-gray-900 mb-1">{t('notes')}</div>
             <div className="text-sm text-gray-700">{appointment.notes}</div>
           </div>
         )}
@@ -261,7 +258,7 @@ export default function AppointmentCard({
               disabled={isUpdating}
               leftIcon={<CheckCircle className="h-4 w-4" />}
             >
-              Confirm
+              {t('confirm')}
             </Button>
           )}
           
@@ -272,7 +269,7 @@ export default function AppointmentCard({
               disabled={isUpdating}
               leftIcon={<Clock className="h-4 w-4" />}
             >
-              Start Service
+              {t('startService')}
             </Button>
           )}
           
@@ -283,7 +280,7 @@ export default function AppointmentCard({
               disabled={isUpdating}
               leftIcon={<CheckCircle className="h-4 w-4" />}
             >
-              Mark Complete
+              {t('markComplete')}
             </Button>
           )}
           
@@ -292,7 +289,7 @@ export default function AppointmentCard({
             size="sm"
             leftIcon={<MessageCircle className="h-4 w-4" />}
           >
-            Message
+            {t('message')}
           </Button>
           
           {userRole === 'buyer' && appointment.buyer?.phone && (
@@ -302,7 +299,7 @@ export default function AppointmentCard({
               leftIcon={<Phone className="h-4 w-4" />}
               onClick={() => window.open(`tel:${appointment.buyer?.phone}`)}
             >
-              Call
+              {t('call')}
             </Button>
           )}
           
@@ -315,7 +312,7 @@ export default function AppointmentCard({
               leftIcon={<XCircle className="h-4 w-4" />}
               className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
             >
-              Cancel
+              {t('cancel')}
             </Button>
           )}
         </div>

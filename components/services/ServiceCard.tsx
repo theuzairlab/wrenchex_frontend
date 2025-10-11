@@ -4,9 +4,10 @@ import { useState } from 'react';
 import { WishlistIcon } from '@/components/ui/WishlistIcon';
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { Star, MapPin, Clock, Wrench, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { cn } from '@/lib/utils';
+import { cn, formatPrice } from '@/lib/utils';
 import { Service } from '@/types';
 import DistanceDisplay from '@/components/location/DistanceDisplay';
 import { DirectionButton } from '@/components/location/DirectionButton';
@@ -18,14 +19,9 @@ interface ServiceCardProps {
 const ServiceCard = ({ service }: ServiceCardProps) => {
   const [imageError, setImageError] = useState(false);
   const primaryImage = service.images?.[0];
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
   
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'AED',
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
 
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
@@ -62,6 +58,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
               type="service"
               title={service.title}
               price={service.price}
+              currency={service.currency}
               image={primaryImage || ''}
               category={service.category?.name}
               sellerName={service.seller.shopName}
@@ -168,7 +165,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
         {/* Price */}
         <div className="mb-3">
           <div className="text-lg font-bold text-gray-900">
-            {formatPrice(service.price)}
+            {formatPrice(service.price, service.currency || 'AED', currentLocale)}
           </div>
         </div>
 

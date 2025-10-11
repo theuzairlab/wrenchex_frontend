@@ -1,12 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { useState } from 'react';
 import { ArrowRight, Star, ShoppingCart, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import { Product } from '@/types';
+import { useTranslations } from 'next-intl';
 
 interface RelatedProductsProps {
   products: Product[];
@@ -21,6 +23,9 @@ interface RelatedProductCardProps {
 const RelatedProductCard = ({ product }: RelatedProductCardProps) => {
   const [imageError, setImageError] = useState(false);
   const [isWishListed, setIsWishListed] = useState(false);
+  const t = useTranslations('common');
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
 
   const primaryImage = product.images?.[0] || product.productImages?.[0]?.url;
   const discountPercentage = product.originalPrice 
@@ -29,7 +34,7 @@ const RelatedProductCard = ({ product }: RelatedProductCardProps) => {
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-200 group">
-      <Link href={`/products/${product.id}`}>
+      <Link href={`/${currentLocale}/products/${product.id}`}>
         <div className="relative aspect-square bg-gray-100 rounded-t-lg overflow-hidden">
           {primaryImage && !imageError ? (
             <Image
@@ -67,7 +72,7 @@ const RelatedProductCard = ({ product }: RelatedProductCardProps) => {
       </Link>
 
       <div className="p-3">
-        <Link href={`/products/${product.id}`}>
+        <Link href={`/${currentLocale}/products/${product.id}`}>
           <h3 className="font-medium text-gray-900 hover:text-wrench-accent transition-colors line-clamp-2 text-sm mb-2">
             {product.title}
           </h3>
@@ -93,20 +98,20 @@ const RelatedProductCard = ({ product }: RelatedProductCardProps) => {
         <div className="flex items-end justify-between mb-2">
           <div>
             <div className="text-base font-bold text-gray-900">
-              AED {product.price.toLocaleString()}
+              {t('currency.aed')} {product.price.toLocaleString()}
             </div>
             {product.originalPrice && product.originalPrice > product.price && (
               <div className="text-xs text-gray-500 line-through">
-                AED {product.originalPrice.toLocaleString()}
+                {t('currency.aed')} {product.originalPrice.toLocaleString()}
               </div>
             )}
           </div>
           
           <div className="text-xs text-gray-500">
             {product.isActive ? (
-              <span className="text-green-600">Available</span>
+              <span className="text-green-600">{t('relatedProducts.available')}</span>
             ) : (
-              <span className="text-red-600">Not Available</span>
+              <span className="text-red-600">{t('relatedProducts.notAvailable')}</span>
             )}
           </div>
         </div>
@@ -118,7 +123,7 @@ const RelatedProductCard = ({ product }: RelatedProductCardProps) => {
           disabled={!product.isActive}
         >
           <ShoppingCart className="h-3 w-3 mr-1" />
-          Quick Add
+          {t('relatedProducts.quickAdd')}
         </Button>
       </div>
     </div>
@@ -130,6 +135,9 @@ const RelatedProducts = ({
   currentProductId, 
   categoryName 
 }: RelatedProductsProps) => {
+  const t = useTranslations('common');
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
   // Filter out the current product from related products
   const relatedProducts = products.filter(p => p.id !== currentProductId);
 
@@ -142,17 +150,17 @@ const RelatedProducts = ({
       {/* Section Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Related Products</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t('relatedProducts.heading')}</h2>
           {categoryName && (
             <p className="text-gray-600 mt-1">
-              More items from {categoryName}
+              {t('relatedProducts.moreFrom', { category: categoryName })}
             </p>
           )}
         </div>
         
-        <Link href="/products" className="group">
+        <Link href={`/${currentLocale}/products`} className="group">
           <Button variant="outline" className="group-hover:bg-wrench-accent group-hover:text-black transition-colors">
-            View All Products
+            {t('products.viewAllProducts')}
             <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
         </Link>
@@ -171,9 +179,9 @@ const RelatedProducts = ({
       {/* Show More Link */}
       {relatedProducts.length > 8 && (
         <div className="text-center pt-4">
-          <Link href={`/products?category=${relatedProducts[0]?.categoryId}`}>
+          <Link href={`/${currentLocale}/products?category=${relatedProducts[0]?.categoryId}`}>
             <Button variant="outline">
-              Show More from {categoryName}
+              {t('relatedProducts.showMoreFrom', { category: categoryName || 'Category' })}
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           </Link>

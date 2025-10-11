@@ -8,6 +8,9 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
+import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
+import { usePathname } from 'next/navigation';
 import { 
   Tag, 
   Plus, 
@@ -38,9 +41,16 @@ interface Category {
 export default function AdminCategoriesPage() {
   const role = useUserRole();
   const { isLoading, isAuthenticated } = useAuthStore();
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
+  const t = useTranslations('adminCategories');
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isUploadingCreate, setIsUploadingCreate] = useState(false);
+  const [isUploadingEdit, setIsUploadingEdit] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -77,7 +87,10 @@ export default function AdminCategoriesPage() {
       setLoading(true);
       setError(null);
       
-      const response = await apiClient.getCategories();
+      // Get current locale from pathname
+      const currentLocale = pathname.startsWith('/ar') ? 'ar' : 'en';
+      
+      const response = await apiClient.get(`/categories?includeInactive=true&lang=${currentLocale}&ts=${Date.now()}`);
       
       if (response.success && response.data) {
         const categoriesData = Array.isArray(response.data) ? response.data : (response.data as any)?.categories || [];
@@ -89,12 +102,12 @@ export default function AdminCategoriesPage() {
           pages: Math.ceil(categoriesData.length / 10)
         });
       } else {
-        setError(response.error?.message || 'Failed to fetch categories');
+        setError(response.error?.message || t('fetchCategoriesFailed'));
         setCategories([]);
       }
     } catch (err: any) {
       console.error('Error fetching categories:', err);
-      setError(err.message || 'Failed to fetch categories');
+      setError(err.message || t('fetchCategoriesFailed'));
     } finally {
       setLoading(false);
     }
@@ -103,13 +116,24 @@ export default function AdminCategoriesPage() {
   const handleCreateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      
-      // For now, just close the modal and refresh
+      const payload = {
+        name: formData.name.trim(),
+        description: formData.description.trim() || undefined,
+        parentId: formData.parentId || undefined,
+        imageUrl: formData.imageUrl || undefined,
+      };
+      const res = await apiClient.createCategory(payload);
+      if (!res.success) throw new Error(res.error?.message || 'Failed to create');
+      toast.success(t('categoryCreated') as any);
+      // close and refresh
       setShowCreateModal(false);
       setFormData({ name: '', description: '', parentId: '', imageUrl: '', isActive: true });
       fetchCategories();
     } catch (err: any) {
-      setError(err.message || 'Failed to create category');
+      setError(err.message || t('createCategoryFailed'));
+      toast.error(err.message || (t('createCategoryFailed') as any));
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -118,31 +142,42 @@ export default function AdminCategoriesPage() {
     if (!editingCategory) return;
     
     try {
-      // This would call the actual API when implemented
-      console.log('Updating category:', editingCategory.id, formData);
-      
-      // For now, just close the modal and refresh
+      const payload = {
+        name: formData.name.trim() || undefined,
+        description: formData.description.trim() || undefined,
+        parentId: formData.parentId || undefined,
+        imageUrl: formData.imageUrl || undefined,
+        isActive: formData.isActive,
+      };
+      const res = await apiClient.updateCategory(editingCategory.id, payload);
+      if (!res.success) throw new Error(res.error?.message || 'Failed to update');
+      toast.success(t('categoryUpdated') as any);
+      // close and refresh
       setShowEditModal(false);
       setEditingCategory(null);
       setFormData({ name: '', description: '', parentId: '', imageUrl: '', isActive: true });
       fetchCategories();
     } catch (err: any) {
-      setError(err.message || 'Failed to update category');
+      setError(err.message || t('updateCategoryFailed'));
+      toast.error(err.message || (t('updateCategoryFailed') as any));
+    } finally {
+      setIsUpdating(false);
     }
   };
 
   const handleDeleteCategory = async (categoryId: string) => {
-    if (!confirm('Are you sure you want to delete this category? This action cannot be undone.')) {
+    if (!confirm(t('deleteCategoryConfirm'))) {
       return;
     }
 
     try {
       setDeletingCategory(categoryId);
-      
-      // For now, just refresh
+      const res = await apiClient.deleteCategory(categoryId);
+      if (!res.success) throw new Error(res.error?.message || 'Failed to delete');
+      toast.success(t('categoryDeleted') as any);
       fetchCategories();
     } catch (err: any) {
-      setError(err.message || 'Failed to delete category');
+      setError(err.message || t('deleteCategoryFailed'));
     } finally {
       setDeletingCategory(null);
     }
@@ -165,26 +200,103 @@ export default function AdminCategoriesPage() {
     setEditingCategory(null);
   };
 
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve((reader.result as string).split(',')[1] || '');
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleCreateImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setIsUploadingCreate(true);
+      const base64 = await fileToBase64(file);
+      const res = await apiClient.post('/upload/image', {
+        file: base64,
+        fileName: file.name,
+        folder: 'categories',
+        tags: ['category']
+      });
+      if (!res.success) throw new Error(res.error?.message || 'Upload failed');
+      const url = (res.data as any)?.image?.url;
+      if (url) {
+        setFormData(prev => ({ ...prev, imageUrl: url }));
+        toast.success(t('imageUploaded') as any);
+      } else {
+        throw new Error('Invalid upload response');
+      }
+    } catch (err: any) {
+      toast.error(err.message || (t('imageUploadFailed') as any));
+    } finally {
+      setIsUploadingCreate(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleEditImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setIsUploadingEdit(true);
+      const base64 = await fileToBase64(file);
+      const res = await apiClient.post('/upload/image', {
+        file: base64,
+        fileName: file.name,
+        folder: 'categories',
+        tags: ['category']
+      });
+      if (!res.success) throw new Error(res.error?.message || 'Upload failed');
+      const url = (res.data as any)?.image?.url;
+      if (url) {
+        setFormData(prev => ({ ...prev, imageUrl: url }));
+        toast.success(t('imageUploaded') as any);
+      } else {
+        throw new Error('Invalid upload response');
+      }
+    } catch (err: any) {
+      toast.error(err.message || (t('imageUploadFailed') as any));
+    } finally {
+      setIsUploadingEdit(false);
+      e.target.value = '';
+    }
+  };
+
   const getStatusBadge = (isActive: boolean) => {
     return isActive ? (
-      <Badge className="bg-green-100 text-green-800">Active</Badge>
+      <Badge className="bg-green-100 text-green-800">{t('active')}</Badge>
     ) : (
-      <Badge className="bg-gray-100 text-gray-800">Inactive</Badge>
+      <Badge className="bg-gray-100 text-gray-800">{t('inactive')}</Badge>
     );
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString(currentLocale === 'ar' ? 'ar-AE' : 'en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     });
   };
 
+  const searchValue = search.trim().toLowerCase();
   const filteredCategories = (categories || []).filter(category =>
-    category.name.toLowerCase().includes(search.toLowerCase()) ||
-    category.description?.toLowerCase().includes(search.toLowerCase())
+    !searchValue ||
+    category.name?.toLowerCase().includes(searchValue) ||
+    category.description?.toLowerCase().includes(searchValue)
   );
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+    setPagination(prev => ({ 
+      ...prev, 
+      total: filteredCategories.length, 
+      pages: Math.max(1, Math.ceil(filteredCategories.length / prev.limit)) 
+    }));
+  }, [search, filteredCategories.length]);
 
   const paginatedCategories = (filteredCategories || []).slice(
     (currentPage - 1) * pagination.limit,
@@ -196,7 +308,7 @@ export default function AdminCategoriesPage() {
       <div className="flex items-center justify-center py-12">
         <div className="flex flex-col items-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-wrench-accent"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">{t('loading')}</p>
         </div>
       </div>
     );
@@ -207,8 +319,8 @@ export default function AdminCategoriesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Category Management</h1>
-          <p className="text-gray-600">Create, edit, and manage product categories</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('categoryManagement')}</h1>
+          <p className="text-gray-600">{t('createEditAndManageProductCategories')}</p>
         </div>
         <div className="flex gap-2">
           <Button 
@@ -217,14 +329,14 @@ export default function AdminCategoriesPage() {
             leftIcon={<RefreshCw className="h-4 w-4" />}
             disabled={loading}
           >
-            Refresh
+            {t('refresh')}
           </Button>
           <Button 
             onClick={() => setShowCreateModal(true)} 
             variant="primary" 
             leftIcon={<Plus className="h-4 w-4" />}
           >
-            Add Category
+            {t('addCategory')}
           </Button>
         </div>
       </div>
@@ -234,11 +346,11 @@ export default function AdminCategoriesPage() {
         <CardContent className="p-6">
           <div className="max-w-md">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Search Categories
+              {t('searchCategories')}
             </label>
             <Input
               type="text"
-              placeholder="Search by name or description..."
+              placeholder={t('searchPlaceholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -251,7 +363,7 @@ export default function AdminCategoriesPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Tag className="h-5 w-5" />
-            Categories ({filteredCategories.length})
+            {t('categories', { count: filteredCategories.length })}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -259,20 +371,20 @@ export default function AdminCategoriesPage() {
             <div className="flex items-center justify-center py-8">
               <div className="flex flex-col items-center space-y-2">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-wrench-accent"></div>
-                <p className="text-gray-600">Loading categories...</p>
+                <p className="text-gray-600">{t('loadingCategories')}</p>
               </div>
             </div>
           ) : error ? (
             <div className="text-center py-8">
               <p className="text-red-600 mb-4">{error}</p>
               <Button onClick={fetchCategories} variant="outline">
-                Try Again
+                {t('tryAgain')}
               </Button>
             </div>
           ) : paginatedCategories.length === 0 ? (
             <div className="text-center py-8">
               <Tag className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">No categories found</p>
+              <p className="text-gray-600">{t('noCategoriesFound')}</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -288,7 +400,7 @@ export default function AdminCategoriesPage() {
                         {getStatusBadge(category.isActive)}
                         {category.parent && (
                           <Badge className="bg-blue-100 text-blue-800">
-                            Subcategory of {category.parent.name}
+                            {t('subcategoryOf', { parentName: category.parent.name })}
                           </Badge>
                         )}
                       </div>
@@ -303,8 +415,8 @@ export default function AdminCategoriesPage() {
                         <div className="flex items-center gap-2">
                           <FolderOpen className="h-4 w-4 text-gray-500" />
                           <div>
-                            <p className="font-medium text-gray-700">Products</p>
-                            <p className="text-gray-600">{category.productCount || 0} items</p>
+                            <p className="font-medium text-gray-700">{t('products')}</p>
+                            <p className="text-gray-600">{t('items', { count: category.productCount || 0 })}</p>
                           </div>
                         </div>
                         
@@ -312,8 +424,8 @@ export default function AdminCategoriesPage() {
                           <div className="flex items-center gap-2">
                             <Image className="h-4 w-4 text-gray-500" />
                             <div>
-                              <p className="font-medium text-gray-700">Image</p>
-                              <p className="text-gray-600">Has image</p>
+                              <p className="font-medium text-gray-700">{t('image')}</p>
+                              <p className="text-gray-600">{t('hasImage')}</p>
                             </div>
                           </div>
                         )}
@@ -321,7 +433,7 @@ export default function AdminCategoriesPage() {
                         <div className="flex items-center gap-2">
                           <Tag className="h-4 w-4 text-gray-500" />
                           <div>
-                            <p className="font-medium text-gray-700">Created</p>
+                            <p className="font-medium text-gray-700">{t('created')}</p>
                             <p className="text-gray-600">{formatDate(category.createdAt)}</p>
                           </div>
                         </div>
@@ -329,16 +441,13 @@ export default function AdminCategoriesPage() {
                     </div>
                     
                     <div className="flex flex-col gap-2 min-w-fit">
-                      <Button variant="outline" size="sm" leftIcon={<Eye className="h-4 w-4" />}>
-                        View
-                      </Button>
                       <Button 
                         variant="outline" 
                         size="sm" 
                         leftIcon={<Edit className="h-4 w-4" />}
                         onClick={() => openEditModal(category)}
                       >
-                        Edit
+                        {t('edit')}
                       </Button>
                       <Button 
                         variant="outline" 
@@ -348,7 +457,7 @@ export default function AdminCategoriesPage() {
                         disabled={deletingCategory === category.id}
                         className="text-red-600 border-red-200 hover:bg-red-50"
                       >
-                        {deletingCategory === category.id ? 'Deleting...' : 'Delete'}
+                        {deletingCategory === category.id ? t('deleting') : t('delete')}
                       </Button>
                     </div>
                   </div>
@@ -365,9 +474,11 @@ export default function AdminCategoriesPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-600">
-                Showing {((currentPage - 1) * pagination.limit) + 1} to{' '}
-                {Math.min(currentPage * pagination.limit, filteredCategories.length)} of{' '}
-                {filteredCategories.length} categories
+                {t('showingResults', { 
+                  start: ((currentPage - 1) * pagination.limit) + 1,
+                  end: Math.min(currentPage * pagination.limit, filteredCategories.length),
+                  total: filteredCategories.length
+                })}
               </div>
               
               <div className="flex items-center gap-2">
@@ -378,11 +489,11 @@ export default function AdminCategoriesPage() {
                   disabled={currentPage === 1}
                 >
                   <ChevronLeft className="h-4 w-4" />
-                  Previous
+                  {t('previous')}
                 </Button>
                 
                 <span className="text-sm text-gray-600">
-                  Page {currentPage} of {pagination.pages}
+                  {t('pageOf', { current: currentPage, total: pagination.pages })}
                 </span>
                 
                 <Button
@@ -391,7 +502,7 @@ export default function AdminCategoriesPage() {
                   onClick={() => setCurrentPage(currentPage + 1)}
                   disabled={currentPage === pagination.pages}
                 >
-                  Next
+                  {t('next')}
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -402,46 +513,46 @@ export default function AdminCategoriesPage() {
 
       {/* Create Category Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold mb-4">Create New Category</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('createNewCategory')}</h3>
             <form onSubmit={handleCreateCategory} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Category Name *
+                  {t('categoryName')} *
                 </label>
                 <Input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
-                  placeholder="Enter category name"
+                  placeholder={t('enterCategoryName')}
                 />
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
+                  {t('description')}
                 </label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wrench-accent focus:border-transparent"
                   rows={3}
-                  placeholder="Enter category description"
+                  placeholder={t('enterCategoryDescription')}
                 />
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Parent Category
+                  {t('parentCategory')}
                 </label>
                 <select
                   value={formData.parentId}
                   onChange={(e) => setFormData({ ...formData, parentId: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wrench-accent focus:border-transparent"
                 >
-                  <option value="">No parent (Main category)</option>
+                  <option value="">{t('noParentMainCategory')}</option>
                   {(categories || []).map(cat => (
                     <option key={cat.id} value={cat.id}>{cat.name}</option>
                   ))}
@@ -450,14 +561,17 @@ export default function AdminCategoriesPage() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Image URL
+                  {t('image')}
                 </label>
-                <Input
-                  type="url"
-                  value={formData.imageUrl}
-                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                  placeholder="https://example.com/image.jpg"
-                />
+                <div className="space-y-2">
+                  {formData.imageUrl && (
+                    <img src={formData.imageUrl} alt="preview" className="h-20 w-20 object-cover rounded" />
+                  )}
+                  <input type="file" accept="image/*" onChange={handleCreateImageChange} />
+                  {isUploadingCreate && (
+                    <p className="text-xs text-gray-500">{t('uploading')}...</p>
+                  )}
+                </div>
               </div>
               
               <div className="flex items-center">
@@ -469,13 +583,13 @@ export default function AdminCategoriesPage() {
                   className="h-4 w-4 text-wrench-accent focus:ring-wrench-accent border-gray-300 rounded"
                 />
                 <label htmlFor="isActive" className="ml-2 text-sm text-gray-700">
-                  Active
+                  {t('active')}
                 </label>
               </div>
               
               <div className="flex gap-2 pt-4">
                 <Button type="submit" variant="primary" className="flex-1">
-                  Create Category
+                  {t('createCategory')}
                 </Button>
                 <Button 
                   type="button" 
@@ -486,7 +600,7 @@ export default function AdminCategoriesPage() {
                   }}
                   className="flex-1"
                 >
-                  Cancel
+                  {t('cancel')}
                 </Button>
               </div>
             </form>
@@ -496,46 +610,46 @@ export default function AdminCategoriesPage() {
 
       {/* Edit Category Modal */}
       {showEditModal && editingCategory && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold mb-4">Edit Category</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('editCategory')}</h3>
             <form onSubmit={handleEditCategory} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Category Name *
+                  {t('categoryName')} *
                 </label>
                 <Input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
-                  placeholder="Enter category name"
+                  placeholder={t('enterCategoryName')}
                 />
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
+                  {t('description')}
                 </label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wrench-accent focus:border-transparent"
                   rows={3}
-                  placeholder="Enter category description"
+                  placeholder={t('enterCategoryDescription')}
                 />
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Parent Category
+                  {t('parentCategory')}
                 </label>
                 <select
                   value={formData.parentId}
                   onChange={(e) => setFormData({ ...formData, parentId: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wrench-accent focus:border-transparent"
                 >
-                  <option value="">No parent (Main category)</option>
+                  <option value="">{t('noParentMainCategory')}</option>
                   {(categories || []).filter(cat => cat.id !== editingCategory.id).map(cat => (
                     <option key={cat.id} value={cat.id}>{cat.name}</option>
                   ))}
@@ -544,14 +658,17 @@ export default function AdminCategoriesPage() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Image URL
+                  {t('image')}
                 </label>
-                <Input
-                  type="url"
-                  value={formData.imageUrl}
-                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                  placeholder="https://example.com/image.jpg"
-                />
+                <div className="space-y-2">
+                  {formData.imageUrl && (
+                    <img src={formData.imageUrl} alt="preview" className="h-20 w-20 object-cover rounded" />
+                  )}
+                  <input type="file" accept="image/*" onChange={handleEditImageChange} />
+                  {isUploadingEdit && (
+                    <p className="text-xs text-gray-500">{t('uploading')}...</p>
+                  )}
+                </div>
               </div>
               
               <div className="flex items-center">
@@ -563,13 +680,13 @@ export default function AdminCategoriesPage() {
                   className="h-4 w-4 text-wrench-accent focus:ring-wrench-accent border-gray-300 rounded"
                 />
                 <label htmlFor="editIsActive" className="ml-2 text-sm text-gray-700">
-                  Active
+                  {t('active')}
                 </label>
               </div>
               
               <div className="flex gap-2 pt-4">
                 <Button type="submit" variant="primary" className="flex-1">
-                  Update Category
+                  {t('updateCategory')}
                 </Button>
                 <Button 
                   type="button" 
@@ -580,7 +697,7 @@ export default function AdminCategoriesPage() {
                   }}
                   className="flex-1"
                 >
-                  Cancel
+                  {t('cancel')}
                 </Button>
               </div>
             </form>

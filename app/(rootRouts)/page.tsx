@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/Button';
 import TopCategories from '@/components/categories/TopCategories';
 import FeaturedProducts from '@/components/products/FeaturedProducts';
@@ -14,13 +15,16 @@ import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/C
 import { useAuthModal } from '@/components/auth';
 import {
   Search, ShoppingCart, Wrench, 
-  ArrowRight
+  ArrowRight,
+  ArrowLeft
 } from 'lucide-react';
 import { AnimatedTestimonialsDemo } from '@/components/testimonials/Testimonial';
-import LocationSearch from '@/components/services/LocationSearch';
 
 export default function Home() {
+  const t = useTranslations('common');
   const router = useRouter();
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
   const [searchQuery, setSearchQuery] = useState('');
   const { isAuthenticated } = useAuthStore();
   const { openAuthModal } = useAuthModal();
@@ -31,7 +35,7 @@ export default function Home() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      let searchUrl = `/search?q=${encodeURIComponent(searchQuery.trim())}`;
+      let searchUrl = `/${currentLocale}/search?q=${encodeURIComponent(searchQuery.trim())}`;
       
       // Add location parameters if available
       if (coordinates) {
@@ -46,7 +50,7 @@ export default function Home() {
   };
 
   const handleQuickSearch = (term: string) => {
-    let searchUrl = `/search?q=${encodeURIComponent(term)}`;
+    let searchUrl = `/${currentLocale}/search?q=${encodeURIComponent(term)}`;
     
     // Add location parameters if available
     if (coordinates) {
@@ -74,7 +78,7 @@ export default function Home() {
             poster="/carservice.png"
           >
             <source src="/heroVid.mp4" type="video/mp4" />
-            Your browser does not support the video tag.
+            {t('videoNotSupported')}
           </video>
           
           {/* Dark overlay for better text readability */}
@@ -85,135 +89,123 @@ export default function Home() {
         </div>
 
         <div className="container mx-auto px-4 py-20 relative z-10 mt-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className={`grid lg:grid-cols-2 gap-12 items-center ${currentLocale === 'ar' ? 'rtl' : 'ltr'}`}>
             {/* Left Content */}
-            <div className="space-y-8 text-center lg:text-left">
+            <div className={`space-y-8 ${currentLocale === 'ar' ? 'text-center lg:text-right' : 'text-center lg:text-left'}`}>
               <div className="space-y-6">
-                <div className="inline-flex items-center px-4 py-2 bg-wrench-accent/20 backdrop-blur-sm rounded-full text-sm font-medium text-white border border-wrench-accent/30">
-                  <Wrench className="h-4 w-4 mr-2" />
-                  #1 Auto Parts Marketplace
+                <div className={`inline-flex items-center px-4 py-2 bg-wrench-accent/20 backdrop-blur-sm rounded-full text-sm font-medium text-white border border-wrench-accent/30 ${currentLocale === 'ar' ? 'flex-row-reverse' : ''}`}>
+                  <Wrench className={`h-4 w-4 ${currentLocale === 'ar' ? 'ml-2' : 'mr-2'}`} />
+                  {t('heroBadge')}
                 </div>
 
-                <h1 className="text-4xl lg:text-6xl font-bold leading-tight text-white">
-                  Your Trusted{' '}
-                  <span className="text-wrench-accent">Auto Parts</span>{' '}
-                  & Services Marketplace
+                <h1 className={`text-4xl lg:text-6xl font-bold leading-tight text-white ${currentLocale === 'ar' ? 'text-center lg:text-right' : 'text-center lg:text-left'}`}>
+                  {t('heroTitleBefore')}{' '}
+                  <span className="text-wrench-accent">{t('heroTitleHighlighted')}</span>{' '}
+                  {t('heroTitleAfter')}
                 </h1>
 
-                <p className="text-xl text-white/90 max-w-xl">
-                  Connect with verified sellers, find quality parts, and book professional services.
-                  Everything your vehicle needs, all in one place.
+                <p className={`text-xl text-white/90 max-w-xl ${currentLocale === 'ar' ? 'text-center lg:text-right' : 'text-center lg:text-left'}`}>
+                  {t('heroSubtitle')}
                 </p>
               </div>
 
               {/* Enhanced CTAs */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Link href="/products">
-                  <Button variant="primary" size="lg" className="group">
-                    <Search className="h-5 w-5 mr-2" />
-                    Browse Products
-                    <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+              <div className={`flex flex-col sm:flex-row gap-4 ${currentLocale === 'ar' ? 'justify-center lg:justify-start' : 'justify-center lg:justify-start'}`}>
+                <Link href={`/${currentLocale}/products`}>
+                  <Button variant="primary" size="lg" className={`group gap-2 ${currentLocale === 'ar' ? 'flex-row-reverse' : ''}`}>
+                    <Search className={`h-5 w-5 ${currentLocale === 'ar' ? 'ml-2' : 'mr-2'}`} />
+                    {t('browseProducts')}
+                    {currentLocale === "ar" ? <ArrowLeft className={`h-4 w-4 ${currentLocale === 'ar' ? 'mr-2 group-hover:-translate-x-1' : 'ml-2 group-hover:translate-x-1'} transition-transform`} /> : <ArrowRight className={`h-4 w-4 ${currentLocale === 'en' ? 'mr-2 group-hover:translate-x-1' : 'ml-2 group-hover:translate-x-1'} transition-transform`} />}
                   </Button>
                 </Link>
-                <Link href="/services">
-                  <Button variant="link" size="lg" className="group text-white">
-                    <Wrench className="h-5 w-5 mr-2" />
-                    Find Services
-                    <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                <Link href={`/${currentLocale}/services`}>
+                  <Button variant="link" size="lg" className={`group gap-2 text-white ${currentLocale === 'ar' ? 'flex-row-reverse' : ''}`}>
+                    <Wrench className={`h-5 w-5 ${currentLocale === 'ar' ? 'ml-2' : 'mr-2'}`} />
+                    {t('findServices')}
+                    {currentLocale === "ar" ? <ArrowLeft className={`h-4 w-4 ${currentLocale === 'ar' ? 'mr-2 group-hover:-translate-x-1' : 'ml-2 group-hover:translate-x-1'} transition-transform`} /> : <ArrowRight className={`h-4 w-4 ${currentLocale === 'en' ? 'mr-2 group-hover:translate-x-1' : 'ml-2 group-hover:translate-x-1'} transition-transform`} />}
                   </Button>
                 </Link>
               </div>
 
-              {/* Quick Action Links */}
-              <div className="flex flex-wrap gap-3 justify-center lg:justify-start mt-4">
-                <Link href="/search?q=brake+pads" className="text-sm text-white/80 hover:text-wrench-accent transition-colors">
-                  🔧 Brake Parts
-                </Link>
-                <Link href="/search?q=oil+filter" className="text-sm text-white/80 hover:text-wrench-accent transition-colors">
-                  🛢️ Filters & Fluids
-                </Link>
-                <Link href="/search?q=spark+plugs" className="text-sm text-white/80 hover:text-wrench-accent transition-colors">
-                  ⚡ Engine Parts
-                </Link>
-                <Link href="/search?q=tires" className="text-sm text-white/80 hover:text-wrench-accent transition-colors">
-                  🚗 Tires & Wheels
-                </Link>
-              </div>
 
               {/* Trust Indicators */}
-              <div className="flex flex-col sm:flex-row gap-8 text-center lg:text-left">
+              <div className={`flex flex-col sm:flex-row gap-8 ${currentLocale === 'ar' ? 'text-center lg:text-right' : 'text-center lg:text-left'}`}>
                 <div>
                   <div className="text-2xl font-bold text-wrench-accent">10,000+</div>
-                  <div className="text-sm text-white/80">Verified Sellers</div>
+                  <div className="text-sm text-white/80">{t('trust.verifiedSellers')}</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-wrench-accent">50,000+</div>
-                  <div className="text-sm text-white/80">Auto Parts</div>
+                  <div className="text-sm text-white/80">{t('trust.autoParts')}</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-wrench-accent">25,000+</div>
-                  <div className="text-sm text-white/80">Happy Customers</div>
+                  <div className="text-sm text-white/80">{t('trust.happyCustomers')}</div>
                 </div>
               </div>
             </div>
 
-            {/* Right Visual */}
-            <div className="relative">
-              <div className="relative z-10 bg-white/40 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-white/20">
-                <div className="space-y-6">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-wrench-accent rounded-xl flex items-center justify-center">
-                      <Search className="h-6 w-6 text-black" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">Quick Search</h3>
-                      <p className="text-sm text-gray-600">Find parts near you instantly</p>
-                    </div>
-                  </div>
+             {/* Right Visual */}
+             <div className="relative">
+               <div className="relative z-10 bg-white/40 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-white/20">
+                 <div className="space-y-6">
+                   <div className={`flex items-center ${currentLocale === 'ar' ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
+                     <div className="w-12 h-12 bg-wrench-accent rounded-xl flex items-center justify-center">
+                       <Search className="h-6 w-6 text-black" />
+                     </div>
+                     <div className={`${currentLocale === 'ar' ? 'text-center lg:text-right' : 'text-center lg:text-left'} p-2`}>
+                       <h3 className="font-semibold text-gray-900">{t('quickSearch')}</h3>
+                       <p className="text-sm text-gray-600">{t('quickSearchSubtitle')}</p>
+                     </div>
+                   </div>
 
-                  <form onSubmit={handleSearch} className="space-y-3">
-                    {/* Product Search */}
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search for brake pads, oil filters..."
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-wrench-accent focus:border-wrench-accent bg-white/40"
-                      />
-                      <Button
-                        type="submit"
-                        className="absolute right-2 top-1/2 transform -translate-y-1/2"
-                        size="sm"
-                      >
-                        <Search className="h-4 w-4" />
-                      </Button>
-                    </div>
+                   <form onSubmit={handleSearch} className="space-y-3">
+                     {/* Product Search */}
+                     <div className="relative">
+                       <input
+                         type="text"
+                         value={searchQuery}
+                         onChange={(e) => setSearchQuery(e.target.value)}
+                         placeholder={t('searchPlaceholder')}
+                         className={`w-full px-2 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-wrench-accent focus:border-wrench-accent bg-white/40 ${currentLocale === 'ar' ? 'text-right pr-4' : 'text-left pl-3'}`}
+                         dir={currentLocale === 'ar' ? 'rtl' : 'ltr'}
+                       />
+                       <Button
+                         type="submit"
+                         className={`absolute ${currentLocale === 'ar' ? 'left-2' : 'right-2'} top-1/2 transform -translate-y-1/2`}
+                         size="sm"
+                       >
+                         <Search className="h-4 w-4" />
+                       </Button>
+                     </div>
 
-                    
+                     {/* Location Status */}
+                     {coordinates && (
+                       <div className={`text-xs text-green-600 bg-green-50/80 px-2 py-1 rounded ${currentLocale === 'ar' ? 'text-right' : 'text-left'}`}>
+                         📍 {t('locationEnabled')}
+                       </div>
+                     )}
 
-                    {/* Location Status */}
-                    {coordinates && (
-                      <div className="text-xs text-green-600 bg-green-50/80 px-2 py-1 rounded">
-                        📍 Location-based search enabled
-                      </div>
-                    )}
-
-                    <div className="flex flex-wrap gap-2">
-                      {['Brake Pads', 'Oil Filters', 'Spark Plugs', 'Tires'].map(tag => (
-                        <button
-                          key={tag}
-                          type="button"
-                          onClick={() => handleQuickSearch(tag)}
-                          className="px-3 py-1 bg-wrench-accent/20 hover:bg-wrench-accent/30 rounded-full text-xs text-gray-600 hover:text-gray-800 transition-colors cursor-pointer"
-                        >
-                          {tag}
-                        </button>
-                      ))}
-                    </div>
-                  </form>
-                </div>
-              </div>
+                     <div className={`flex flex-wrap gap-2 ${currentLocale === 'ar' ? 'justify-end' : 'justify-start'}`}>
+                       {[
+                         { key: 'brakePads', query: 'brake+pads' },
+                         { key: 'oilFilters', query: 'oil+filter' },
+                         { key: 'sparkPlugs', query: 'spark+plugs' },
+                         { key: 'tires', query: 'tires' }
+                      ].map(({ key, query }) => (
+                         <button
+                           key={key}
+                           type="button"
+                           onClick={() => handleQuickSearch(t(`quickTags.${key}`))}
+                           className="px-3 py-1 bg-wrench-accent/20 hover:bg-wrench-accent/30 rounded-full text-xs text-gray-600 hover:text-gray-800 transition-colors cursor-pointer"
+                         >
+                          {t(`quickTags.${key}`)}
+                         </button>
+                       ))}
+                     </div>
+                   </form>
+                 </div>
+               </div>
 
               {/* Background decoration */}
               <div className="absolute -top-4 -right-4 w-72 h-72 bg-wrench-accent/20 rounded-full blur-3xl"></div>
@@ -243,10 +235,10 @@ export default function Home() {
         <div className="container-responsive">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-              Loved by <span className="text-wrench-accent">Thousands</span>
+              {t('testimonials.heading', { count: 'Thousands' })}
             </h2>
             <p className="text-xl text-text-secondary">
-              See what our community of car owners, mechanics, and dealers have to say
+              {t('testimonials.subheading')}
             </p>
           </div>
 
@@ -257,21 +249,21 @@ export default function Home() {
 
               <div className="text-center flex-1">
                 <div className="text-lg sm:text-xl md:text-2xl font-bold text-wrench-accent">4.9/5</div>
-                <div className="text-xs sm:text-sm text-text-secondary">Average Rating</div>
+                <div className="text-xs sm:text-sm text-text-secondary">{t('testimonials.averageRating')}</div>
               </div>
 
               <div className="w-px h-6 sm:h-8 bg-gray-200"></div>
 
               <div className="text-center flex-1">
                 <div className="text-lg sm:text-xl md:text-2xl font-bold text-wrench-accent">25,000+</div>
-                <div className="text-xs sm:text-sm text-text-secondary">Happy Customers</div>
+                <div className="text-xs sm:text-sm text-text-secondary">{t('testimonials.happyCustomers')}</div>
               </div>
 
               <div className="w-px h-6 sm:h-8 bg-gray-200"></div>
 
               <div className="text-center flex-1">
                 <div className="text-lg sm:text-xl md:text-2xl font-bold text-wrench-accent">98%</div>
-                <div className="text-xs sm:text-sm text-text-secondary">Satisfaction Rate</div>
+                <div className="text-xs sm:text-sm text-text-secondary">{t('testimonials.satisfactionRate')}</div>
               </div>
 
             </div>
@@ -284,9 +276,9 @@ export default function Home() {
       {!isAuthenticated && (
       <div className="container-responsive py-16">
         <div className="text-center space-y-8">
-          <h2 className="text-heading-2">Get Started Today</h2>
+          <h2 className="text-heading-2">{t('getStartedToday')}</h2>
           <p className="text-body text-text-secondary">
-            Join our marketplace as a buyer or seller
+            {t('getStartedSubtitle')}
           </p>
 
           <div className="grid-responsive-2 max-w-4xl mx-auto">
@@ -295,16 +287,16 @@ export default function Home() {
                 <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center mx-auto">
                   <ShoppingCart className="h-8 w-8 text-blue-600" />
                 </div>
-                <CardTitle>I want to buy auto parts & services</CardTitle>
+                <CardTitle>{t('buyerCardTitle')}</CardTitle>
                 <CardDescription>
-                  Browse products, book services, manage orders
+                  {t('buyerCardDesc')}
                 </CardDescription>
                 <Button 
                   variant="outline" 
                   className="w-full"
                   onClick={() => openAuthModal('buyer-register')}
                 >
-                  Register as Buyer
+                  {t('buyerRegister')}
                 </Button>
               </CardContent>
             </Card>
@@ -314,16 +306,16 @@ export default function Home() {
                 <div className="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center mx-auto">
                   <Wrench className="h-8 w-8 text-green-600" />
                 </div>
-                <CardTitle>I want to sell auto parts & services</CardTitle>
+                <CardTitle>{t('sellerCardTitle')}</CardTitle>
                 <CardDescription>
-                  List products, offer services, manage business
+                  {t('sellerCardDesc')}
                 </CardDescription>
                 <Button 
                   variant="primary" 
                   className="w-full"
                   onClick={() => openAuthModal('seller-register')}
                 >
-                  Register as Seller
+                  {t('sellerRegister')}
                 </Button>
               </CardContent>
             </Card>
@@ -331,13 +323,13 @@ export default function Home() {
 
           <div className="pt-8">
             <p className="text-body-sm text-text-muted">
-              Already have an account?{' '}
+              {t('alreadyHaveAccount')}{' '}
               <Button 
                 variant="link" 
                 className="p-0 h-auto"
                 onClick={() => openAuthModal('login')}
               >
-                Sign in here
+                {t('signInHere')}
               </Button>
             </p>
           </div>

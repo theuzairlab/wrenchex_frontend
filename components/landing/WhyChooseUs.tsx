@@ -10,7 +10,9 @@ import {
 } from 'lucide-react';
 import { GlowingEffect } from "@/components/ui/glowing-effect";
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Button } from '../ui/Button';
+import { useTranslations } from 'next-intl';
 
 interface GridItemProps {
     area: string;
@@ -24,6 +26,9 @@ interface GridItemProps {
 }
 
 const GridItem = ({ area, icon, title, description, bgColor = "bg-white", textColor = "text-wrench-text-primary", imgSrc, isCTA = false }: GridItemProps) => {
+    const pathname = usePathname();
+    const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
+    const t = useTranslations('common.whyChooseUs');
     return (
         <li className={`min-h-[14rem] list-none ${area}`}>
             <div className="relative h-full rounded-2xl border p-2 md:rounded-3xl md:p-3">
@@ -47,14 +52,14 @@ const GridItem = ({ area, icon, title, description, bgColor = "bg-white", textCo
                                 </p>
                             </div>
                             <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center items-center">
-                                <Link href="/services">
+                                <Link href={`/${currentLocale}/services`}>
                                     <Button variant="primary" className="text-sm md:text-base px-4 py-2">
-                                        Book Service Now
+                                        {t('bookServiceNow')}
                                     </Button>
                                 </Link>
-                                <Link href="/products">
+                                <Link href={`/${currentLocale}/products`}>
                                     <Button variant="link" className="text-sm md:text-base">
-                                        View Products
+                                        {t('viewProducts')}
                                     </Button>
                                 </Link>
                             </div>
@@ -87,18 +92,18 @@ const GridItem = ({ area, icon, title, description, bgColor = "bg-white", textCo
 };
 
 export function WhyChooseUs() {
+    const t = useTranslations('common.whyChooseUs');
+    
     return (
         <section className="py-4 sm:py-10 bg-gray-50">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="text-center mb-4 sm:mb-16">
                     <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-wrench-text-primary mb-4 sm:mb-6">
-                        Best Auto Workshop In Your Area
+                        {t('bestAutoWorkshop')}
                     </h2>
                     <p className="text-wrench-text-secondary text-base sm:text-lg max-w-4xl mx-auto leading-relaxed">
-                    WrenchEX is a leading auto workshop specializing in hybrid and 
-                    conventional vehicles. With expert mechanics and modern tools, 
-                    we deliver reliable on-site maintenance and the best service experience.
+                        {t('wrenchExDescription')}
                     </p>
                 </div>
 
@@ -108,8 +113,8 @@ export function WhyChooseUs() {
                         <GridItem
                             area="md:[grid-area:1/1/2/7] lg:[grid-area:1/1/2/5]"
                             icon={<Settings className="h-4 w-4 text-black" />}
-                            title="Best Equipment"
-                            description="We've invested in the most up-to-date diagnostic equipment, tools and software designed particularly for your vehicle needs."
+                            title={t('bestEquipment')}
+                            description={t('bestEquipmentDesc')}
                             bgColor="bg-wrench-accent"
                             textColor="text-black"
                         />
@@ -117,30 +122,30 @@ export function WhyChooseUs() {
                         <GridItem
                             area="md:[grid-area:1/7/2/13] lg:[grid-area:2/1/3/5]"
                             icon={<Award className="h-4 w-4 text-wrench-text-primary" />}
-                            title="Professional Standards"
-                            description="Our car repair facility can work on a wide range of vehicles. We only conduct the work that is required to resolve your issue."
+                            title={t('professionalStandards')}
+                            description={t('professionalStandardsDesc')}
                         />
 
                         <GridItem
                             area="md:[grid-area:2/1/3/7] lg:[grid-area:1/5/3/8]"
                             // icon={<Users className="h-4 w-4 text-wrench-text-primary" />}
-                            title="Expert & Professional Team"
-                            description="We are one of the leading auto workshop serving customers. All mechanical work performed by expert mechanics."
+                            title={t('expertTeam')}
+                            description={t('expertTeamDesc')}
                             imgSrc="car-service.webp"
                         />
 
                         <GridItem
                             area="md:[grid-area:2/7/3/13] lg:[grid-area:1/8/2/13]"
                             icon={<Wrench className="h-4 w-4 text-wrench-text-primary" />}
-                            title="Full Auto Servicing Facility"
-                            description="From fine-tuning engines to tackling major repairs, our Full Auto Servicing Facility ensures your vehicle runs smoothly every mile."
+                            title={t('fullServiceFacility')}
+                            description={t('fullServiceFacilityDesc')}
                         />
 
                         <GridItem
                             area="md:[grid-area:3/1/4/13] lg:[grid-area:2/8/3/13]"
                             icon={<Shield className="h-4 w-4 text-wrench-accent" />}
-                            title="Genuine Parts Available"
-                            description="Find peace of mind knowing that only genuine parts are available at our garage. Quality guaranteed for all repairs."
+                            title={t('genuineParts')}
+                            description={t('genuinePartsDesc')}
                             bgColor="bg-indigo-600"
                             textColor="text-white"
                         />
@@ -148,8 +153,8 @@ export function WhyChooseUs() {
                         {/* CTA Section as GridItem */}
                         <GridItem
                             area="md:[grid-area:3/1/4/13] lg:[grid-area:3/1/4/13]"
-                            title="Ready to Experience the Best Auto Service?"
-                            description="Join thousands of satisfied customers who trust us with their vehicle maintenance and repairs."
+                            title={t('readyToExperience')}
+                            description={t('readyToExperienceDesc')}
                             bgColor="bg-white"
                             textColor="text-wrench-text-primary"
                             isCTA={true}

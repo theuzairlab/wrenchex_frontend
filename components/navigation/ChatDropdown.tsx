@@ -2,10 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { MessageCircle, Package, X } from 'lucide-react';
 import { useAuthStore } from '@/lib/stores/auth';
 import { apiClient } from '@/lib/api/client';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import { useTranslations } from 'next-intl';
 
 interface ChatDropdownProps {
   isOpen: boolean;
@@ -15,6 +17,9 @@ interface ChatDropdownProps {
 }
 
 export function ChatDropdown({ isOpen, onClose, triggerRef, onConversationClick }: ChatDropdownProps) {
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
+  const t = useTranslations('chatDropdown');
   const { user } = useAuthStore();
   const { isConnected } = useWebSocket();
   const [conversations, setConversations] = useState<any[]>([]);
@@ -55,7 +60,7 @@ export function ChatDropdown({ isOpen, onClose, triggerRef, onConversationClick 
       }
     } catch (err: any) {
       console.error('Failed to load chat data:', err);
-      setError(err.message || 'Failed to load conversations');
+      setError(err.message || t('failedToLoadConversations'));
     } finally {
       setIsLoading(false);
     }
@@ -120,7 +125,7 @@ export function ChatDropdown({ isOpen, onClose, triggerRef, onConversationClick 
 
   // Get last message preview
   const getLastMessage = (chat: any) => {
-    if (!chat.messages || chat.messages.length === 0) return 'No messages yet';
+    if (!chat.messages || chat.messages.length === 0) return t('noMessagesYet');
     
     const lastMessage = chat.messages[0];
     const content = lastMessage.message || lastMessage.content || '';
@@ -135,9 +140,9 @@ export function ChatDropdown({ isOpen, onClose, triggerRef, onConversationClick 
   // Get chat route based on user role
   const getChatRoute = (chatId: string) => {
     if (user?.role === 'SELLER') {
-      return `/seller/chats/${chatId}`;
+      return `/${currentLocale}/seller/chats/${chatId}`;
     } else {
-      return `/buyer/chats/${chatId}`;
+      return `/${currentLocale}/buyer/chats/${chatId}`;
     }
   };
 
@@ -147,13 +152,13 @@ export function ChatDropdown({ isOpen, onClose, triggerRef, onConversationClick 
     const now = new Date();
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
     
-    if (diffInHours < 1) return 'Just now';
-    if (diffInHours < 24) return `${diffInHours}h ago`;
+    if (diffInHours < 1) return t('justNow');
+    if (diffInHours < 24) return t('hoursAgo', { hours: diffInHours });
     
     const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays < 7) return `${diffInDays}d ago`;
+    if (diffInDays < 7) return t('daysAgo', { days: diffInDays });
     
-    return date.toLocaleDateString();
+    return date.toLocaleDateString(currentLocale === 'ar' ? 'ar-AE' : 'en-US');
   };
 
   // Handle conversation click - mark as read and notify parent
@@ -196,7 +201,7 @@ export function ChatDropdown({ isOpen, onClose, triggerRef, onConversationClick 
           : ''
       }`}>
         <div className="flex items-center space-x-2">
-          <h3 className="font-semibold text-gray-900">Recent Conversations</h3>
+          <h3 className="font-semibold text-gray-900">{t('recentConversations')}</h3>
           {/* Total unread count badge */}
           {(() => {
             const totalUnread = conversations.reduce((sum, chat) => sum + (chat.unreadCount || 0), 0);
@@ -223,7 +228,7 @@ export function ChatDropdown({ isOpen, onClose, triggerRef, onConversationClick 
         {isLoading ? (
           <div className="p-4 text-center text-gray-500">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-wrench-orange-500 mx-auto mb-2"></div>
-            Loading conversations...
+            {t('loadingConversations')}
           </div>
         ) : error ? (
           <div className="p-4 text-center text-red-500">
@@ -232,14 +237,14 @@ export function ChatDropdown({ isOpen, onClose, triggerRef, onConversationClick 
               onClick={loadChatData}
               className="mt-2 text-xs text-wrench-orange-500 hover:text-wrench-orange-600 underline"
             >
-              Try again
+              {t('tryAgain')}
             </button>
           </div>
         ) : conversations.length === 0 ? (
           <div className="p-4 text-center text-gray-500">
             <MessageCircle className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-            <p className="text-sm">No conversations yet</p>
-            <p className="text-xs text-gray-400 mt-1">Start chatting about products!</p>
+            <p className="text-sm">{t('noConversationsYet')}</p>
+            <p className="text-xs text-gray-400 mt-1">{t('startChattingAboutProducts')}</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
@@ -292,7 +297,7 @@ export function ChatDropdown({ isOpen, onClose, triggerRef, onConversationClick 
                     </div>
                     
                     <p className="text-xs text-gray-500 truncate mt-1">
-                      {chat.product?.title || 'Product'}
+                      {chat.product?.title || t('product')}
                     </p>
                     
                     <p className="text-sm text-gray-600 truncate mt-1">
@@ -310,18 +315,18 @@ export function ChatDropdown({ isOpen, onClose, triggerRef, onConversationClick 
       <div className="p-3 border-t border-gray-200 bg-gray-50">
         <div className="flex items-center justify-between">
           <Link
-            href={user?.role === 'SELLER' ? '/seller/chats' : '/buyer/chats'}
+            href={user?.role === 'SELLER' ? `/${currentLocale}/seller/chats` : `/${currentLocale}/buyer/chats`}
             onClick={onClose}
             className="text-sm text-wrench-orange-600 hover:text-wrench-orange-700 font-medium"
           >
-            View All Conversations
+            {t('viewAllConversations')}
           </Link>
           {/* Total unread count in footer */}
           {(() => {
             const totalUnread = conversations.reduce((sum, chat) => sum + (chat.unreadCount || 0), 0);
             return totalUnread > 0 ? (
               <span className="text-xs text-gray-600">
-                {totalUnread} unread message{totalUnread !== 1 ? 's' : ''}
+                {t('unreadMessages', { count: totalUnread })}
               </span>
             ) : null;
           })()}

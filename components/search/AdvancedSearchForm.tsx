@@ -19,6 +19,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select } from '@/components/ui_backup/Select';
 import { cn } from '@/lib/utils';
 import { Category, Product } from '@/types';
+import { useTranslations } from 'next-intl';
 
 interface AdvancedSearchFormProps {
   categories: Category[];
@@ -52,6 +53,7 @@ const popularBrands = [
 
 const AdvancedSearchForm = ({ categories, featuredProducts }: AdvancedSearchFormProps) => {
   const router = useRouter();
+  const t = useTranslations('common');
   const [formData, setFormData] = useState<SearchFormData>({
     query: '',
     category: '',
@@ -123,10 +125,10 @@ const AdvancedSearchForm = ({ categories, featuredProducts }: AdvancedSearchForm
 
   // Quick search presets
   const quickSearches = [
-    { label: 'Brake Parts', filters: { category: 'brake-parts', query: 'brake' } },
-    { label: 'Engine Oil', filters: { query: 'engine oil', condition: 'NEW' } },
-    { label: 'Toyota Parts', filters: { vehicleMake: 'Toyota' } },
-    { label: 'Under AED 100', filters: { maxPrice: '100' } },
+    { label: t('searchAdvanced.presets.brakeParts'), filters: { category: 'brake-parts', query: 'brake' } },
+    { label: t('searchAdvanced.presets.engineOil'), filters: { query: 'engine oil', condition: 'NEW' } },
+    { label: t('searchAdvanced.presets.toyotaParts'), filters: { vehicleMake: 'Toyota' } },
+    { label: t('searchAdvanced.presets.underPrice', { currency: t('currency.aed'), price: 100 }) as string, filters: { maxPrice: '100' } },
   ];
 
   const currentYear = new Date().getFullYear();
@@ -139,10 +141,10 @@ const AdvancedSearchForm = ({ categories, featuredProducts }: AdvancedSearchForm
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Filter className="h-5 w-5 text-wrench-accent" />
-            <span>Advanced Search Filters</span>
+            <span>{t('searchAdvanced.title')}</span>
           </CardTitle>
           <CardDescription>
-            Use the filters below to narrow down your search and find exactly what you need.
+            {t('searchAdvanced.subtitle')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -151,17 +153,17 @@ const AdvancedSearchForm = ({ categories, featuredProducts }: AdvancedSearchForm
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                 <Search className="h-5 w-5 mr-2 text-gray-600" />
-                Basic Search
+                {t('searchAdvanced.basicSearch')}
               </h3>
               
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Search Keywords
+                    {t('searchAdvanced.searchKeywords')}
                   </label>
                   <Input
                     type="text"
-                    placeholder="e.g., brake pads, oil filter, spark plugs..."
+                    placeholder={t('searchAdvanced.searchPlaceholder')}
                     value={formData.query}
                     onChange={(e) => handleInputChange('query', e.target.value)}
                     className="w-full"
@@ -170,14 +172,14 @@ const AdvancedSearchForm = ({ categories, featuredProducts }: AdvancedSearchForm
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Category
+                    {t('searchAdvanced.category')}
                   </label>
                   <select
                     value={formData.category}
                     onChange={(e) => handleInputChange('category', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-wrench-accent focus:border-wrench-accent"
                   >
-                    <option value="">All Categories</option>
+                    <option value="">{t('searchAdvanced.allCategories')}</option>
                     {categories.map(category => (
                       <option key={category.id} value={category.id}>
                         {category.name}
@@ -192,20 +194,20 @@ const AdvancedSearchForm = ({ categories, featuredProducts }: AdvancedSearchForm
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                 <Car className="h-5 w-5 mr-2 text-gray-600" />
-                Vehicle Information
+                {t('searchAdvanced.vehicleInfo')}
               </h3>
               
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Vehicle Make
+                    {t('searchAdvanced.vehicleMake')}
                   </label>
                   <select
                     value={formData.vehicleMake}
                     onChange={(e) => handleInputChange('vehicleMake', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-wrench-accent focus:border-wrench-accent"
                   >
-                    <option value="">Any Make</option>
+                    <option value="">{t('searchAdvanced.anyMake')}</option>
                     {carMakes.map(make => (
                       <option key={make} value={make}>{make}</option>
                     ))}
@@ -214,11 +216,11 @@ const AdvancedSearchForm = ({ categories, featuredProducts }: AdvancedSearchForm
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Vehicle Model
+                    {t('searchAdvanced.vehicleModel')}
                   </label>
                   <Input
                     type="text"
-                    placeholder="e.g., Camry, Civic, Altima..."
+                    placeholder={t('searchAdvanced.vehicleModelPlaceholder')}
                     value={formData.vehicleModel}
                     onChange={(e) => handleInputChange('vehicleModel', e.target.value)}
                   />
@@ -226,14 +228,14 @@ const AdvancedSearchForm = ({ categories, featuredProducts }: AdvancedSearchForm
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Year From
+                    {t('searchAdvanced.yearFrom')}
                   </label>
                   <select
                     value={formData.minYear}
                     onChange={(e) => handleInputChange('minYear', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-wrench-accent focus:border-wrench-accent"
                   >
-                    <option value="">Any Year</option>
+                    <option value="">{t('searchAdvanced.anyYear')}</option>
                     {years.map(year => (
                       <option key={year} value={year}>{year}</option>
                     ))}
@@ -242,14 +244,14 @@ const AdvancedSearchForm = ({ categories, featuredProducts }: AdvancedSearchForm
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Year To
+                    {t('searchAdvanced.yearTo')}
                   </label>
                   <select
                     value={formData.maxYear}
                     onChange={(e) => handleInputChange('maxYear', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-wrench-accent focus:border-wrench-accent"
                   >
-                    <option value="">Any Year</option>
+                    <option value="">{t('searchAdvanced.anyYear')}</option>
                     {years.map(year => (
                       <option key={year} value={year}>{year}</option>
                     ))}
@@ -262,20 +264,20 @@ const AdvancedSearchForm = ({ categories, featuredProducts }: AdvancedSearchForm
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                 <Package className="h-5 w-5 mr-2 text-gray-600" />
-                Product Details
+                {t('searchAdvanced.productDetails')}
               </h3>
               
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Brand
+                    {t('searchAdvanced.brand')}
                   </label>
                   <select
                     value={formData.brand}
                     onChange={(e) => handleInputChange('brand', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-wrench-accent focus:border-wrench-accent"
                   >
-                    <option value="">Any Brand</option>
+                    <option value="">{t('searchAdvanced.anyBrand')}</option>
                     {popularBrands.map(brand => (
                       <option key={brand} value={brand}>{brand}</option>
                     ))}
@@ -284,35 +286,35 @@ const AdvancedSearchForm = ({ categories, featuredProducts }: AdvancedSearchForm
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Condition
+                    {t('searchAdvanced.condition')}
                   </label>
                   <select
                     value={formData.condition}
                     onChange={(e) => handleInputChange('condition', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-wrench-accent focus:border-wrench-accent"
                   >
-                    <option value="">Any Condition</option>
-                    <option value="NEW">New</option>
-                    <option value="USED">Used</option>
-                    <option value="REFURBISHED">Refurbished</option>
+                    <option value="">{t('searchAdvanced.anyCondition')}</option>
+                    <option value="NEW">{t('productDetail.new')}</option>
+                    <option value="USED">{t('productDetail.used')}</option>
+                    <option value="REFURBISHED">{t('productDetail.refurbished')}</option>
                   </select>
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Sort By
+                    {t('searchAdvanced.sortBy')}
                   </label>
                   <select
                     value={formData.sortBy}
                     onChange={(e) => handleInputChange('sortBy', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-wrench-accent focus:border-wrench-accent"
                   >
-                    <option value="relevance">Relevance</option>
-                    <option value="price_asc">Price: Low to High</option>
-                    <option value="price_desc">Price: High to Low</option>
-                    <option value="newest">Newest First</option>
-                    <option value="rating">Highest Rated</option>
-                    <option value="popularity">Most Popular</option>
+                    <option value="relevance">{t('searchAdvanced.sort.relevance')}</option>
+                    <option value="price_asc">{t('searchAdvanced.sort.priceAsc')}</option>
+                    <option value="price_desc">{t('searchAdvanced.sort.priceDesc')}</option>
+                    <option value="newest">{t('searchAdvanced.sort.newest')}</option>
+                    <option value="rating">{t('searchAdvanced.sort.rating')}</option>
+                    <option value="popularity">{t('searchAdvanced.sort.popularity')}</option>
                   </select>
                 </div>
               </div>
@@ -321,13 +323,13 @@ const AdvancedSearchForm = ({ categories, featuredProducts }: AdvancedSearchForm
             {/* Price Range */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                Price Range
+                {t('searchAdvanced.priceRange')}
               </h3>
               
               <div className="grid md:grid-cols-2 gap-4 max-w-md">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Minimum Price (AED)
+                    {t('searchAdvanced.minPrice', { currency: t('currency.aed') })}
                   </label>
                   <Input
                     type="number"
@@ -340,7 +342,7 @@ const AdvancedSearchForm = ({ categories, featuredProducts }: AdvancedSearchForm
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Maximum Price (AED)
+                    {t('searchAdvanced.maxPrice', { currency: t('currency.aed') })}
                   </label>
                   <Input
                     type="number"
@@ -364,12 +366,12 @@ const AdvancedSearchForm = ({ categories, featuredProducts }: AdvancedSearchForm
                 {isSearching ? (
                   <>
                     <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
-                    Searching...
+                    {t('searchAdvanced.searching')}
                   </>
                 ) : (
                   <>
                     <Search className="h-5 w-5 mr-2" />
-                    Search Products
+                    {t('searchAdvanced.searchProducts')}
                   </>
                 )}
               </Button>
@@ -381,7 +383,7 @@ const AdvancedSearchForm = ({ categories, featuredProducts }: AdvancedSearchForm
                 onClick={resetForm}
               >
                 <RotateCcw className="h-5 w-5 mr-2" />
-                Reset Filters
+                {t('searchAdvanced.resetFilters')}
               </Button>
             </div>
           </form>
@@ -393,10 +395,10 @@ const AdvancedSearchForm = ({ categories, featuredProducts }: AdvancedSearchForm
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <TrendingUp className="h-5 w-5 text-wrench-accent" />
-            <span>Quick Search</span>
+            <span>{t('searchAdvanced.quickSearch')}</span>
           </CardTitle>
           <CardDescription>
-            Popular search combinations to get you started quickly.
+            {t('searchAdvanced.quickSearchSubtitle')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -430,10 +432,10 @@ const AdvancedSearchForm = ({ categories, featuredProducts }: AdvancedSearchForm
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Star className="h-5 w-5 text-wrench-accent" />
-              <span>Featured Products</span>
+              <span>{t('products.featuredProducts')}</span>
             </CardTitle>
             <CardDescription>
-              Popular products you might be interested in.
+              {t('products.discoverOurTopRatedProductsWithTheBestReviews')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -464,7 +466,7 @@ const AdvancedSearchForm = ({ categories, featuredProducts }: AdvancedSearchForm
                         {product.title}
                       </h4>
                       <div className="text-lg font-bold text-wrench-accent">
-                        AED {product.price.toLocaleString()}
+                        {t('currency.aed')} {product.price.toLocaleString()}
                       </div>
                     </div>
                   </div>

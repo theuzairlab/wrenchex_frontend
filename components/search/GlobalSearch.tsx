@@ -4,10 +4,11 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, X, Clock, TrendingUp, Filter, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { cn } from '@/lib/utils';
+import { cn, formatPrice } from '@/lib/utils';
 import { apiClient } from '@/lib/api/client';
 import { Product, Category } from '@/types';
 import { useLocationContext } from '@/lib/contexts/LocationContext';
+import { useTranslations } from 'next-intl';
 
 interface SearchSuggestion {
   type: 'product' | 'service' | 'category' | 'brand' | 'recent' | 'trending';
@@ -29,7 +30,7 @@ interface GlobalSearchProps {
 type SearchType = 'products' | 'services';
 
 const GlobalSearch = ({ 
-  className, 
+  className,
   placeholder = "Search for auto parts, services, or categories...", 
   showFilters = true,
   autoFocus = false,
@@ -37,6 +38,7 @@ const GlobalSearch = ({
 }: GlobalSearchProps) => {
   const router = useRouter();
   const { location } = useLocationContext();
+  const t = useTranslations('globalSearch');
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
@@ -97,7 +99,7 @@ const GlobalSearch = ({
               type: 'product',
               id: product.id,
               title: product.title,
-              subtitle: `AED ${product.price?.toLocaleString() || '0'} • ${product.seller?.shopName || 'Auto Parts Store'}`,
+              subtitle: `${formatPrice(product.price || 0, product.currency || 'AED', 'en')} • ${product.seller?.shopName || 'Auto Parts Store'}`,
               image: product.images?.[0] || product.productImages?.[0]?.url,
               url: `/products/${product.id}`
             });
@@ -117,7 +119,7 @@ const GlobalSearch = ({
               type: 'service',
               id: service.id,
               title: service.title,
-              subtitle: `AED ${service.price?.toLocaleString() || '0'} • ${service.seller?.shopName || 'Service Provider'}`,
+              subtitle: `${formatPrice(service.price || 0, service.currency || 'AED', 'en')} • ${service.seller?.shopName || 'Service Provider'}`,
               image: service.images?.[0],
               url: `/services/${service.id}`
             });
@@ -311,7 +313,7 @@ const GlobalSearch = ({
               : "text-gray-600 hover:text-gray-900"
           )}
         >
-          Products
+{t('products')}
         </button>
         <button
           onClick={() => setSearchType('services')}
@@ -322,7 +324,7 @@ const GlobalSearch = ({
               : "text-gray-600 hover:text-gray-900"
           )}
         >
-          Services
+{t('services')}
         </button>
       </div>
 
@@ -339,9 +341,9 @@ const GlobalSearch = ({
           onChange={handleInputChange}
           onFocus={handleFocus}
           onKeyDown={handleKeyDown}
-          placeholder={location 
-            ? `Search near ${location.city || 'your location'}...`
-            : (searchType === 'products' ? "Search for auto parts, brands, or categories..." : "Search for automotive services, mechanics, or repairs...")
+placeholder={location 
+            ? t('searchNearLocation', { location: location.city || t('yourLocation') })
+            : (searchType === 'products' ? t('searchProductsPlaceholder') : t('searchServicesPlaceholder'))
           }
           autoFocus={autoFocus}
           className="block w-full pl-10 pr-6 py-3 border border-gray-300 rounded-lg bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-wrench-accent focus:border-wrench-accent text-sm"
@@ -352,7 +354,7 @@ const GlobalSearch = ({
           <div className="absolute bottom-0 left-10 transform translate-y-full">
             <div className="flex items-center text-xs text-green-600 bg-green-50 px-2 py-1 rounded-b border border-t-0 border-green-200">
               <MapPin className="h-3 w-3 mr-1" />
-              Location-based search enabled
+{t('locationBasedSearchEnabled')}
             </div>
           </div>
         )}
@@ -379,7 +381,7 @@ const GlobalSearch = ({
           {isLoading ? (
             <div className="p-4 text-center">
               <div className="animate-spin h-5 w-5 border-2 border-wrench-accent border-t-transparent rounded-full mx-auto"></div>
-              <p className="text-sm text-gray-500 mt-2">Searching...</p>
+              <p className="text-sm text-gray-500 mt-2">{t('searching')}</p>
             </div>
           ) : suggestions.length > 0 ? (
             <div>
@@ -433,13 +435,13 @@ const GlobalSearch = ({
             </div>
           ) : query ? (
             <div className="p-4 text-center">
-              <p className="text-sm text-gray-500 mb-3">No suggestions found</p>
+              <p className="text-sm text-gray-500 mb-3">{t('noSuggestionsFound')}</p>
               <Button
                 size="sm"
                 onClick={() => handleSearch()}
                 className="w-full"
               >
-                Search for "{query}"
+{t('searchFor', { query })}
               </Button>
             </div>
           ) : (
@@ -448,7 +450,7 @@ const GlobalSearch = ({
               {recentSearches.length > 0 && (
                 <div className="mb-4">
                   <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                    Recent Searches
+{t('recentSearches')}
                   </h4>
                   <div className="space-y-1">
                     {recentSearches.map((search, index) => (
@@ -473,7 +475,7 @@ const GlobalSearch = ({
               {/* Trending Searches */}
               <div>
                 <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                  Trending Searches
+{t('trendingSearches')}
                 </h4>
                 <div className="space-y-1">
                   {trendingSearches.map((search, index) => (

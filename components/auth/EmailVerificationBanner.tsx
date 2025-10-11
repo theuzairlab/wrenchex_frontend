@@ -5,6 +5,7 @@ import { AlertTriangle, Mail, CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/lib/stores/auth';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 
 interface EmailVerificationBannerProps {
   onResendEmail?: () => void;
@@ -15,6 +16,7 @@ export function EmailVerificationBanner({
   onResendEmail,
   className = '' 
 }: EmailVerificationBannerProps) {
+  const t = useTranslations('common');
   const { user, resendVerificationEmail, isLoading } = useAuthStore();
 
   // Don't show banner if user is verified or doesn't exist
@@ -28,7 +30,7 @@ export function EmailVerificationBanner({
       onResendEmail?.();
     } catch (error: any) {
       console.error('Failed to resend verification email:', error);
-      toast.error(error.message || 'Failed to resend verification email');
+      toast.error(error.message || t('auth.loginFailed'));
     }
   };
 
@@ -40,14 +42,14 @@ export function EmailVerificationBanner({
         </div>
         <div className="ml-3 flex-1">
           <h3 className="text-sm font-medium text-amber-800">
-            Email Verification Required
+            {t('auth.verifyEmail')}
           </h3>
           <div className="mt-2 text-sm text-amber-700">
             <p>
-              Please verify your email address <span className="font-medium">{user.email}</span> to access all features.
+              {t('auth.verifyEmail')}
             </p>
             <p className="mt-1">
-              Check your email inbox and spam folder for the verification link.
+              {t('auth.emailVerificationCheck', { default: 'Check your email inbox and spam folder for the verification link.' })}
             </p>
           </div>
           <div className="mt-4">
@@ -61,12 +63,12 @@ export function EmailVerificationBanner({
               {isLoading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-amber-600 mr-2"></div>
-                  Sending...
+                  {t('auth.sending', { default: 'Sending...' })}
                 </>
               ) : (
                 <>
                   <Mail className="h-4 w-4 mr-2" />
-                  Resend Verification Email
+                  {t('auth.resendVerificationEmail', { default: 'Resend Verification Email' })}
                 </>
               )}
             </Button>
@@ -80,6 +82,7 @@ export function EmailVerificationBanner({
 export function EmailVerificationSuccess({ 
   className = '' 
 }: { className?: string }) {
+  const t = useTranslations('common');
   return (
     <div className={`bg-green-50 border border-green-200 rounded-lg p-4 ${className}`}>
       <div className="flex items-center">
@@ -88,10 +91,10 @@ export function EmailVerificationSuccess({
         </div>
         <div className="ml-3">
           <h3 className="text-sm font-medium text-green-800">
-            Email Verified Successfully
+            {t('auth.emailVerified', { default: 'Email Verified Successfully' })}
           </h3>
           <p className="mt-1 text-sm text-green-700">
-            Your email address has been verified. You now have access to all features.
+            {t('auth.emailVerifiedDesc', { default: 'Your email address has been verified. You now have access to all features.' })}
           </p>
         </div>
       </div>
@@ -108,6 +111,7 @@ export function EmailVerificationError({
   onRetry?: () => void;
   className?: string;
 }) {
+  const t = useTranslations('common');
   return (
     <div className={`bg-red-50 border border-red-200 rounded-lg p-4 ${className}`}>
       <div className="flex items-start">
@@ -116,14 +120,14 @@ export function EmailVerificationError({
         </div>
         <div className="ml-3 flex-1">
           <h3 className="text-sm font-medium text-red-800">
-            Email Verification Failed
+            {t('auth.emailVerificationFailed', { default: 'Email Verification Failed' })}
           </h3>
           <div className="mt-2 text-sm text-red-700">
             <p>
-              {error || 'There was an error verifying your email address.'}
+              {error || t('auth.emailVerificationError', { default: 'There was an error verifying your email address.' })}
             </p>
             <p className="mt-1">
-              Please try again or contact support if the problem persists.
+              {t('auth.emailVerificationTryAgain', { default: 'Please try again or contact support if the problem persists.' })}
             </p>
           </div>
           {onRetry && (
@@ -135,7 +139,7 @@ export function EmailVerificationError({
                 className="text-red-700 border-red-300 hover:bg-red-100"
               >
                 <Mail className="h-4 w-4 mr-2" />
-                Try Again
+                {t('auth.tryAgain', { default: 'Try Again' })}
               </Button>
             </div>
           )}

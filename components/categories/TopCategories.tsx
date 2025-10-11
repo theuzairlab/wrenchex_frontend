@@ -4,7 +4,6 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api/client';
 import type { Category } from '@/types';
-import { Card, CardContent } from '@/components/ui/Card';
 import {
   Car,
   Wrench,
@@ -16,8 +15,12 @@ import {
   Truck,
   Filter,
   Boxes,
+  ArrowLeft,
+  ArrowRight,
 } from 'lucide-react';
 import { HoverBorderGradient } from '../ui/hover-border-gradient';
+import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
 type IconType = React.ComponentType<{ className?: string }>;
 
@@ -51,6 +54,10 @@ export function TopCategories() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
+  const t = useTranslations('common.categories');
+  const tCommon = useTranslations('common');
 
   useEffect(() => {
     let mounted = true;
@@ -84,8 +91,8 @@ export function TopCategories() {
     <section className="py-12 sm:py-16 bg-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-6 sm:mb-10">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-wrench-text-primary">Top Categories</h2>
-          <p className="text-wrench-text-secondary mt-2 text-sm sm:text-base">Browse our most popular categories</p>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-wrench-text-primary">{t('topCategories')}</h2>
+          <p className="text-wrench-text-secondary mt-2 text-sm sm:text-base">{t('browseOurMostPopularCategories')}</p>
         </div>
 
         {isLoading ? (
@@ -101,19 +108,19 @@ export function TopCategories() {
             {/* Controls (md and up) */}
             <button
               type="button"
-              aria-label="Scroll left"
+              aria-label={tCommon('aria.scrollLeft')}
               onClick={() => scrollByAmount('left')}
               className="hidden md:flex absolute left-0 -top-6 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-white border border-gray-200 shadow-wrench-card hover:shadow-wrench-hover"
             >
-              ‹
+              <ArrowLeft className="h-4 w-4" />
             </button>
             <button
               type="button"
-              aria-label="Scroll right"
+              aria-label={tCommon('aria.scrollRight')}
               onClick={() => scrollByAmount('right')}
               className="hidden md:flex absolute right-0 -top-6 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-white border border-gray-200 shadow-wrench-card hover:shadow-wrench-hover"
             >
-              ›
+              <ArrowRight className="h-4 w-4" />
             </button>
             <div
               ref={scrollerRef}
@@ -123,7 +130,7 @@ export function TopCategories() {
                 {items.map((cat) => {
                   const Icon = getIconFor(cat.name || '');
                   return (
-                    <Link key={cat.id} href={`/products?category=${encodeURIComponent(cat.id)}`} className="snap-start">
+                    <Link key={cat.id} href={`/${currentLocale}/products?category=${encodeURIComponent(cat.id)}`} className="snap-start">
                       <HoverBorderGradient
                         containerClassName="rounded-full p-[1px]"
                         className="bg-white text-black"

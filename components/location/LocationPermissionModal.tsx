@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { MapPin, X, Navigation, Globe, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { LocationService } from '@/lib/services/locationService';
+import { useTranslations } from 'next-intl';
 
 interface LocationPermissionModalProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ export function LocationPermissionModal({
 }: LocationPermissionModalProps) {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'request' | 'processing' | 'success' | 'fallback'>('request');
+  const t = useTranslations('common.location');
 
   const handleAllowLocation = async () => {
     setLoading(true);
@@ -126,10 +128,10 @@ export function LocationPermissionModal({
                   <MapPin className="h-8 w-8 text-blue-600" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  Find Auto Parts Near You
+                  {t('findAutoPartsNearYou')}
                 </h3>
                 <p className="text-gray-600 text-sm">
-                  Allow location access to discover products and services in your area and get personalized recommendations.
+                  {t('allowLocationAccess')}
                 </p>
               </div>
 
@@ -138,22 +140,22 @@ export function LocationPermissionModal({
                 <div className="flex items-start space-x-3">
                   <Navigation className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-gray-900 text-sm">Nearby Products & Services</p>
-                    <p className="text-gray-600 text-xs">See what's available in your area</p>
+                    <p className="font-medium text-gray-900 text-sm">{t('nearbyProductsServices')}</p>
+                    <p className="text-gray-600 text-xs">{t('seeWhatsAvailable')}</p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
                   <MapPin className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-gray-900 text-sm">Distance-Based Search</p>
-                    <p className="text-gray-600 text-xs">Filter by distance from your location</p>
+                    <p className="font-medium text-gray-900 text-sm">{t('distanceBasedSearch')}</p>
+                    <p className="text-gray-600 text-xs">{t('filterByDistance')}</p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
                   <Globe className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-gray-900 text-sm">Local Shop Discovery</p>
-                    <p className="text-gray-600 text-xs">Find shops and mechanics near you</p>
+                    <p className="font-medium text-gray-900 text-sm">{t('localShopDiscovery')}</p>
+                    <p className="text-gray-600 text-xs">{t('findShopsAndMechanics')}</p>
                   </div>
                 </div>
               </div>
@@ -166,7 +168,7 @@ export function LocationPermissionModal({
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   <Navigation className="h-4 w-4 mr-2" />
-                  Allow Precise Location
+                  {t('allowPreciseLocation')}
                 </Button>
                 
                 <Button
@@ -176,7 +178,7 @@ export function LocationPermissionModal({
                   className="w-full"
                 >
                   <Globe className="h-4 w-4 mr-2" />
-                  Use Approximate Location
+                  {t('useApproximateLocation')}
                 </Button>
                 
                 <Button
@@ -184,13 +186,13 @@ export function LocationPermissionModal({
                   onClick={handleDenyLocation}
                   className="w-full text-gray-600 hover:text-gray-800"
                 >
-                  Skip for Now
+                  {t('skipForNow')}
                 </Button>
               </div>
 
               {/* Privacy note */}
               <p className="text-xs text-gray-500 text-center mt-4">
-                We respect your privacy. Your location is only used to improve your shopping experience and is never shared with third parties.
+                {t('privacyNote')}
               </p>
             </>
           )}
@@ -201,10 +203,10 @@ export function LocationPermissionModal({
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Getting Your Location...
+                {t('gettingYourLocation')}
               </h3>
               <p className="text-gray-600 text-sm">
-                This may take a few seconds
+                {t('thisMayTakeFewSeconds')}
               </p>
             </div>
           )}
@@ -215,10 +217,10 @@ export function LocationPermissionModal({
                 <CheckCircle className="h-8 w-8 text-green-600" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Location Detected!
+                {t('locationDetected')}!
               </h3>
               <p className="text-gray-600 text-sm">
-                Now showing products and services near you
+                {t('nowShowingProducts')}
               </p>
             </div>
           )}
@@ -229,10 +231,10 @@ export function LocationPermissionModal({
                 <Globe className="h-8 w-8 text-yellow-600" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Using Approximate Location
+                {t('usingApproximateLocation')}
               </h3>
               <p className="text-gray-600 text-sm">
-                Based on your internet connection
+                {t('basedOnInternetConnection')}
               </p>
             </div>
           )}

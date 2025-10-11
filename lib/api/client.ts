@@ -63,6 +63,25 @@ class APIClient {
     this.setAuthToken(null);
   }
 
+  private getCurrentLanguage(): string | null {
+    if (typeof window === 'undefined') return 'en';
+    
+    // Try to get language from URL path
+    const path = window.location.pathname;
+    const segments = path.split('/').filter(Boolean);
+    if (segments.length > 0 && (segments[0] === 'en' || segments[0] === 'ar')) {
+      return segments[0];
+    }
+    
+    // Fallback to localStorage or default
+    return localStorage.getItem('language') || 'en';
+  }
+
+  setLanguage(language: 'en' | 'ar'): void {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('language', language);
+  }
+
   private async request<T = any>(
     endpoint: string, 
     config: RequestConfig = {}
@@ -70,11 +89,15 @@ class APIClient {
     const url = `${config.baseURL || this.baseURL}${endpoint}`;
     const token = this.getAuthToken();
     
+    // Get current language from URL or localStorage
+    const currentLanguage = this.getCurrentLanguage();
+    
     const requestConfig: RequestInit = {
       ...config,
       headers: {
       ...this.defaultHeaders,
         ...(token && { Authorization: `Bearer ${token}` }),
+        ...(currentLanguage && { 'Accept-Language': currentLanguage }),
         ...config.headers,
       },
     };
@@ -166,7 +189,21 @@ class APIClient {
 
   // ===== CATEGORIES =====
   async getCategories(): Promise<ApiResponse<Category[]>> {
-    return this.get('/categories');
+    const currentLanguage = this.getCurrentLanguage();
+    const endpoint = currentLanguage ? `/categories?lang=${currentLanguage}` : '/categories';
+    return this.get(endpoint);
+  }
+
+  async createCategory(data: { name: string; description?: string; parentId?: string; imageUrl?: string }): Promise<ApiResponse<any>> {
+    return this.post('/categories', data);
+  }
+
+  async updateCategory(id: string, data: { name?: string; description?: string; parentId?: string; imageUrl?: string; isActive?: boolean }): Promise<ApiResponse<any>> {
+    return this.put(`/categories/${id}`, data);
+  }
+
+  async deleteCategory(id: string): Promise<ApiResponse<any>> {
+    return this.delete(`/categories/${id}`);
   }
 
   async getCategoryById(id: string): Promise<ApiResponse<Category>> {
@@ -176,6 +213,12 @@ class APIClient {
   // ===== PRODUCTS =====
   async getProducts(filters: ProductFilters = {}): Promise<ApiResponse<ProductSearchResult>> {
     const params = new URLSearchParams();
+    
+    // Add language parameter
+    const currentLanguage = this.getCurrentLanguage();
+    if (currentLanguage) {
+      params.append('lang', currentLanguage);
+    }
     
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== '') {
@@ -199,19 +242,32 @@ class APIClient {
   }
 
   async getFeaturedProducts(limit = 8): Promise<ApiResponse<Product[]>> {
-    return this.get(`/products/featured?limit=${limit}`);
+    const currentLanguage = this.getCurrentLanguage();
+    const langParam = currentLanguage ? `&lang=${currentLanguage}` : '';
+    return this.get(`/products/featured?limit=${limit}${langParam}`);
   }
 
-  async getProductById(id: string): Promise<ApiResponse<Product>> {
-    return this.get(`/products/${id}`);
+  async getProductById(id: string, lang?: 'en' | 'ar'): Promise<ApiResponse<Product>> {
+    const language = lang || this.getCurrentLanguage();
+    const langParam = language ? `?lang=${language}` : '';
+    return this.get(`/products/${id}${langParam}`);
   }
 
   async getRelatedProducts(productId: string, limit = 4): Promise<ApiResponse<Product[]>> {
-    return this.get(`/products/${productId}/related?limit=${limit}`);
+    const currentLanguage = this.getCurrentLanguage();
+    const langParam = currentLanguage ? `&lang=${currentLanguage}` : '';
+    return this.get(`/products/${productId}/related?limit=${limit}${langParam}`);
   }
 
   async getMyProducts(filters: ProductFilters = {}): Promise<ApiResponse<ProductSearchResult>> {
     const params = new URLSearchParams();
+
+    // Add language parameter
+    const currentLanguage = this.getCurrentLanguage();
+    if (currentLanguage) {
+      params.append('lang', currentLanguage);
+    }
+
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== '') {
         params.append(key, value.toString());
@@ -222,8 +278,12 @@ class APIClient {
     return this.get(endpoint);
   }
 
-  async createProduct(productData: CreateProductData): Promise<ApiResponse<Product>> {
-    return this.post('/products', productData);
+  async createProduct(productData: CreateProductData & { language?: 'en' | 'ar' }): Promise<ApiResponse<Product>> {
+    const dataWithLanguage = {
+      ...productData,
+      language: productData.language || this.getCurrentLanguage() || 'en'
+    };
+    return this.post('/products', dataWithLanguage);
   }
 
   async updateProduct(productData: UpdateProductData): Promise<ApiResponse<Product>> {
@@ -241,6 +301,13 @@ class APIClient {
   // ===== SERVICES =====
   async getServices(filters: ServiceFilters = {}): Promise<ApiResponse<ServiceSearchResult>> {
     const params = new URLSearchParams();
+    
+    // Add language parameter
+    const currentLanguage = this.getCurrentLanguage();
+    if (currentLanguage) {
+      params.append('lang', currentLanguage);
+    }
+    
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== '') {
         params.append(key, value.toString());
@@ -251,12 +318,17 @@ class APIClient {
     return this.get(endpoint);
   }
 
-  async getServiceById(id: string): Promise<ApiResponse<Service>> {
-    return this.get(`/services/${id}`);
+  async getServiceById(id: string, lang?: 'en' | 'ar'): Promise<ApiResponse<Service>> {
+    const language = lang || this.getCurrentLanguage() || 'en';
+    return this.get(`/services/${id}?lang=${language}`);
   }
 
-  async createService(serviceData: CreateServiceData): Promise<ApiResponse<Service>> {
-    return this.post('/services', serviceData);
+  async createService(serviceData: CreateServiceData & { language?: 'en' | 'ar' }): Promise<ApiResponse<Service>> {
+    const dataWithLanguage = {
+      ...serviceData,
+      language: serviceData.language || this.getCurrentLanguage() || 'en'
+    };
+    return this.post('/services', dataWithLanguage);
   }
 
   async updateService(serviceData: UpdateServiceData): Promise<ApiResponse<Service>> {
@@ -317,6 +389,13 @@ class APIClient {
   // ===== SERVICES =====
   async getSellerServices(filters: any = {}): Promise<ApiResponse<any>> {
     const queryString = new URLSearchParams();
+
+    // Add language parameter
+    const currentLanguage = this.getCurrentLanguage();
+    if (currentLanguage) {
+      queryString.append('lang', currentLanguage);
+    }
+
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== undefined && value !== '') {
         queryString.append(key, String(value));
@@ -493,6 +572,23 @@ class APIClient {
     return this.get(endpoint);
   }
 
+  async getUserById(userId: string): Promise<ApiResponse<any>> {
+    return this.get(`/admin/users/${userId}`);
+  }
+
+  async updateUserRole(userId: string, role: string): Promise<ApiResponse<any>> {
+    return this.put(`/admin/users/${userId}/role`, { role });
+  }
+
+  async createAdminUser(userData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+  }): Promise<ApiResponse<any>> {
+    return this.post('/admin/users/create-admin', userData);
+  }
+
   async getAdminSellers(filters: {
     isApproved?: boolean;
     search?: string;
@@ -611,6 +707,93 @@ class APIClient {
 
   async getReviewSummary(entityType: string, entityId: string): Promise<ApiResponse<any>> {
     return this.get(`/reviews/summary/${entityType}/${entityId}`);
+  }
+
+  // ===== TRANSLATION MANAGEMENT =====
+  async getProductTranslationStatus(productId: string): Promise<ApiResponse<any>> {
+    return this.get(`/translations/products/${productId}/status`);
+  }
+
+  async getServiceTranslationStatus(serviceId: string): Promise<ApiResponse<any>> {
+    return this.get(`/translations/services/${serviceId}/status`);
+  }
+
+  async getCategoryTranslationStatus(categoryId: string): Promise<ApiResponse<any>> {
+    return this.get(`/translations/categories/${categoryId}/status`);
+  }
+
+  async approveProductTranslation(productId: string, data: {
+    language: 'en' | 'ar';
+    editedFields?: Record<string, string>;
+  }): Promise<ApiResponse<any>> {
+    return this.post(`/translations/products/${productId}/approve`, data);
+  }
+
+  async rejectProductTranslation(productId: string, data: {
+    language: 'en' | 'ar';
+    reason: string;
+  }): Promise<ApiResponse<any>> {
+    return this.post(`/translations/products/${productId}/reject`, data);
+  }
+
+  async approveServiceTranslation(serviceId: string, data: {
+    language: 'en' | 'ar';
+    editedFields?: Record<string, string>;
+  }): Promise<ApiResponse<any>> {
+    return this.post(`/translations/services/${serviceId}/approve`, data);
+  }
+
+  async rejectServiceTranslation(serviceId: string, data: {
+    language: 'en' | 'ar';
+    reason: string;
+  }): Promise<ApiResponse<any>> {
+    return this.post(`/translations/services/${serviceId}/reject`, data);
+  }
+
+  async approveCategoryTranslation(categoryId: string, data: {
+    language: 'en' | 'ar';
+    editedFields?: Record<string, string>;
+  }): Promise<ApiResponse<any>> {
+    return this.post(`/translations/categories/${categoryId}/approve`, data);
+  }
+
+  async rejectCategoryTranslation(categoryId: string, data: {
+    language: 'en' | 'ar';
+    reason: string;
+  }): Promise<ApiResponse<any>> {
+    return this.post(`/translations/categories/${categoryId}/reject`, data);
+  }
+
+  async getPendingProductTranslations(): Promise<ApiResponse<any>> {
+    return this.get('/translations/pending/products');
+  }
+
+  async getPendingServiceTranslations(): Promise<ApiResponse<any>> {
+    return this.get('/translations/pending/services');
+  }
+
+  async getPendingCategoryTranslations(): Promise<ApiResponse<any>> {
+    return this.get('/translations/pending/categories');
+  }
+
+  async getCurrentMonthTranslationUsage(): Promise<ApiResponse<any>> {
+    return this.get('/translations/usage/current-month');
+  }
+
+  async getTranslationUsageHistory(): Promise<ApiResponse<any>> {
+    return this.get('/translations/usage/history');
+  }
+
+  async backfillProductTranslations(): Promise<ApiResponse<any>> {
+    return this.post('/translations/backfill/products', {});
+  }
+
+  async backfillServiceTranslations(): Promise<ApiResponse<any>> {
+    return this.post('/translations/backfill/services', {});
+  }
+
+  async backfillCategoryTranslations(): Promise<ApiResponse<any>> {
+    return this.post('/translations/backfill/categories', {});
   }
 }
 

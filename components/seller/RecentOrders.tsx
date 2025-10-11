@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { SellerOrder } from '@/types';
@@ -15,6 +17,9 @@ interface RecentOrdersProps {
 
 export function RecentOrders({ orders, onRefresh }: RecentOrdersProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
+  const t = useTranslations('recentOrders');
 
   const handleRefresh = async () => {
     if (onRefresh) {
@@ -63,7 +68,7 @@ export function RecentOrders({ orders, onRefresh }: RecentOrdersProps) {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
-            Recent Orders
+{t('recentOrders')}
           </CardTitle>
           <Button
             variant="outline"
@@ -73,7 +78,7 @@ export function RecentOrders({ orders, onRefresh }: RecentOrdersProps) {
             className="gap-2"
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Refresh
+{t('refresh')}
           </Button>
         </div>
       </CardHeader>
@@ -127,7 +132,7 @@ export function RecentOrders({ orders, onRefresh }: RecentOrdersProps) {
                     </div>
                     <p className="text-sm text-gray-600">{order.buyer.email}</p>
                     <p className="text-sm text-gray-500">
-                      {formatDate(order.createdAt)} • {order.orderItems.length} items
+                      {formatDate(order.createdAt)} • {order.orderItems.length} {t('items')}
                     </p>
                   </div>
                 </div>
@@ -136,10 +141,10 @@ export function RecentOrders({ orders, onRefresh }: RecentOrdersProps) {
                   <p className="font-semibold text-gray-900">
                     {formatCurrency(order.totalAmount)}
                   </p>
-                  <Link href={`/seller/orders/${order.id}`}>
+                  <Link href={`/${currentLocale}/seller/orders/${order.id}`}>
                     <Button variant="outline" size="sm" className="mt-2 gap-2">
                       <ExternalLink className="h-3 w-3" />
-                      View
+{t('view')}
                     </Button>
                   </Link>
                 </div>
@@ -148,9 +153,9 @@ export function RecentOrders({ orders, onRefresh }: RecentOrdersProps) {
 
             {/* View All Orders Link */}
             <div className="pt-4 border-t">
-              <Link href="/seller/orders">
+              <Link href={`/${currentLocale}/seller/orders`}>
                 <Button variant="outline" className="w-full">
-                  View All Orders
+{t('viewAllOrders')}
                 </Button>
               </Link>
             </div>
@@ -158,9 +163,9 @@ export function RecentOrders({ orders, onRefresh }: RecentOrdersProps) {
         ) : (
           <div className="text-center py-8">
             <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 mb-2">No recent orders</p>
+            <p className="text-gray-600 mb-2">{t('noRecentOrders')}</p>
             <p className="text-sm text-gray-500">
-              Your orders will appear here once customers start purchasing.
+              {t('ordersWillAppearHereOnceCustomersStartPurchasing')}
             </p>
           </div>
         )}

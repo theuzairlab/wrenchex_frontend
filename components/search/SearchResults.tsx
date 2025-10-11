@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { 
   Grid3X3, 
   List, 
@@ -17,6 +18,7 @@ import { Button } from '@/components/ui/Button';
 import ProductCatalog from '@/components/products/ProductCatalog';
 import { cn } from '@/lib/utils';
 import { ProductSearchResult } from '@/types';
+import { useTranslations } from 'next-intl';
 
 interface SearchResultsProps {
   searchResult: ProductSearchResult;
@@ -25,6 +27,9 @@ interface SearchResultsProps {
 }
 
 const SearchSuggestions = ({ searchQuery }: { searchQuery: string }) => {
+  const t = useTranslations('common.search');
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
   // Generate smart suggestions based on the search query
   const suggestions = [
     `${searchQuery} filter`,
@@ -48,18 +53,18 @@ const SearchSuggestions = ({ searchQuery }: { searchQuery: string }) => {
     <div className="bg-gray-50 rounded-lg p-4 mb-6">
       <div className="flex items-center space-x-2 mb-3">
         <Lightbulb className="h-4 w-4 text-wrench-accent" />
-        <h3 className="font-medium text-gray-900">Search Suggestions</h3>
+        <h3 className="font-medium text-gray-900">{t('suggestions')}</h3>
       </div>
       
       <div className="space-y-3">
         {suggestions.length > 0 && (
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-2">Related to "{searchQuery}"</h4>
+            <h4 className="text-sm font-medium text-gray-700 mb-2">{t('relatedTo', { query: searchQuery })}</h4>
             <div className="flex flex-wrap gap-2">
               {suggestions.map((suggestion, index) => (
                 <Link
                   key={index}
-                  href={`/search?q=${encodeURIComponent(suggestion)}`}
+                  href={`/${currentLocale}/search?q=${encodeURIComponent(suggestion)}`}
                   className="inline-flex items-center px-3 py-1 bg-white border border-gray-300 rounded-full text-sm text-gray-700 hover:border-wrench-accent hover:text-wrench-accent transition-colors"
                 >
                   <Tag className="h-3 w-3 mr-1" />
@@ -71,12 +76,12 @@ const SearchSuggestions = ({ searchQuery }: { searchQuery: string }) => {
         )}
         
         <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-2">Popular Searches</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-2">{t('popularSearches')}</h4>
           <div className="flex flex-wrap gap-2">
             {relatedSearches.slice(0, 4).map((search, index) => (
               <Link
                 key={index}
-                href={`/search?q=${encodeURIComponent(search)}`}
+                href={`/${currentLocale}/search?q=${encodeURIComponent(search)}`}
                 className="inline-flex items-center px-3 py-1 bg-white border border-gray-300 rounded-full text-sm text-gray-700 hover:border-wrench-accent hover:text-wrench-accent transition-colors"
               >
                 <TrendingUp className="h-3 w-3 mr-1" />
@@ -97,31 +102,32 @@ const SearchStats = ({
   searchResult: ProductSearchResult; 
   searchQuery: string;
 }) => {
+  const t = useTranslations('common.search');
   const { total: totalCount, page: currentPage, pages: totalPages } = searchResult.pagination || {};
   
   return (
     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-      <h3 className="font-medium text-blue-900 mb-2">Search Statistics</h3>
+      <h3 className="font-medium text-blue-900 mb-2">{t('statistics')}</h3>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
         <div>
           <div className="font-semibold text-blue-900">{(totalCount || 0).toLocaleString()}</div>
-          <div className="text-blue-700">Total Results</div>
+          <div className="text-blue-700">{t('totalResults')}</div>
         </div>
         <div>
           <div className="font-semibold text-blue-900">{totalPages || 0}</div>
-          <div className="text-blue-700">Pages</div>
+          <div className="text-blue-700">{t('pages')}</div>
         </div>
         <div>
           <div className="font-semibold text-blue-900">
             0
           </div>
-          <div className="text-blue-700">Categories</div>
+          <div className="text-blue-700">{t('categories')}</div>
         </div>
         <div>
           <div className="font-semibold text-blue-900">
             0
           </div>
-          <div className="text-blue-700">Brands</div>
+          <div className="text-blue-700">{t('brands')}</div>
         </div>
       </div>
     </div>
@@ -129,6 +135,9 @@ const SearchStats = ({
 };
 
 const NoResultsMessage = ({ searchQuery }: { searchQuery: string }) => {
+  const t = useTranslations('common.search');
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
   return (
     <div className="text-center py-12">
       <div className="max-w-md mx-auto">
@@ -137,31 +146,29 @@ const NoResultsMessage = ({ searchQuery }: { searchQuery: string }) => {
         </div>
         
         <h3 className="text-xl font-semibold text-gray-900 mb-4">
-          No results found for "{searchQuery}"
+          {t('noProducts')}
         </h3>
         
         <div className="space-y-4 text-gray-600">
-          <p>We couldn't find any products matching your search.</p>
+          <p>{t('noProducts')}</p>
           
           <div className="bg-gray-50 rounded-lg p-4 text-left">
-            <h4 className="font-medium text-gray-900 mb-2">Try these suggestions:</h4>
+            <h4 className="font-medium text-gray-900 mb-2">{t('tryAdjusting')}</h4>
             <ul className="space-y-1 text-sm">
-              <li>• Check your spelling</li>
-              <li>• Use more general terms (e.g., "brake" instead of "brake pad")</li>
-              <li>• Try different keywords or synonyms</li>
-              <li>• Browse our categories to discover products</li>
+              <li>• {t('startSearching')}</li>
+              <li>• {t('enterKeywords')}</li>
             </ul>
           </div>
           
           <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
-            <Link href="/products">
+            <Link href={`/${currentLocale}/products`}>
               <Button variant="primary">
-                Browse All Products
+                {t('browseAllProducts')}
               </Button>
             </Link>
-            <Link href="/search/advanced">
+            <Link href={`/${currentLocale}/search/advanced`}>
               <Button variant="outline">
-                Advanced Search
+                {t('search')}
               </Button>
             </Link>
           </div>

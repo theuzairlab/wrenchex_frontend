@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { Navigation, MapPin, ExternalLink, Route, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useLocationContext } from '@/lib/contexts/LocationContext';
-import { LocationData } from '@/lib/services/locationService';
+import { useTranslations } from 'next-intl';
+import { usePathname } from 'next/navigation';
 
 interface DirectionButtonProps {
   destination: {
@@ -28,6 +29,10 @@ export function DirectionButton({
 }: DirectionButtonProps) {
   const { location } = useLocationContext();
   const [loading, setLoading] = useState(false);
+  
+  const t = useTranslations('directionButton');
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
 
   const handleGetDirections = async () => {
     setLoading(true);
@@ -142,7 +147,7 @@ export function DirectionButton({
         )}
         {showText && (
           <span className="">
-            {loading ? 'Opening...' : 'Directions'}
+            {loading ? t('opening') : t('directions')}
           </span>
         )}
       </Button>

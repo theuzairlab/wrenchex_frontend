@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
+import { useTranslations } from 'next-intl';
+import { usePathname } from 'next/navigation';
 import { 
   Bell, 
   Mail, 
@@ -119,6 +121,9 @@ const demoNotifications: Notification[] = [
 
 export default function AdminNotificationsPage() {
   const { isLoading, isAuthenticated } = useAuthStore();
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
+  const t = useTranslations('adminNotifications');
 
   const [notifications, setNotifications] = useState<Notification[]>(demoNotifications);
   const [categoryFilter, setCategoryFilter] = useState<string>('');
@@ -168,10 +173,10 @@ export default function AdminNotificationsPage() {
 
   const getPriorityBadge = (priority: string) => {
     const priorityConfig = {
-      low: { color: 'bg-gray-100 text-gray-800', text: 'Low' },
-      medium: { color: 'bg-blue-100 text-blue-800', text: 'Medium' },
-      high: { color: 'bg-orange-100 text-orange-800', text: 'High' },
-      urgent: { color: 'bg-red-100 text-red-800', text: 'Urgent' }
+      low: { color: 'bg-gray-100 text-gray-800', text: t('priorityLow') },
+      medium: { color: 'bg-blue-100 text-blue-800', text: t('priorityMedium') },
+      high: { color: 'bg-orange-100 text-orange-800', text: t('priorityHigh') },
+      urgent: { color: 'bg-red-100 text-red-800', text: t('priorityUrgent') }
     };
 
     const config = priorityConfig[priority as keyof typeof priorityConfig] || priorityConfig.low;
@@ -199,7 +204,7 @@ export default function AdminNotificationsPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString(currentLocale === 'ar' ? 'ar-AE' : 'en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -213,7 +218,7 @@ export default function AdminNotificationsPage() {
       <div className="flex items-center justify-center py-12">
         <div className="flex flex-col items-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-wrench-accent"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">{t('loading')}</p>
         </div>
       </div>
     );
@@ -224,8 +229,8 @@ export default function AdminNotificationsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Notification Center</h1>
-          <p className="text-gray-600">Monitor platform alerts and system notifications</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('notificationCenter')}</h1>
+          <p className="text-gray-600">{t('monitorPlatformAlertsAndSystemNotifications')}</p>
         </div>
         <div className="flex gap-2">
           <Button 
@@ -233,13 +238,13 @@ export default function AdminNotificationsPage() {
             variant="outline" 
             leftIcon={<CheckCircle className="h-4 w-4" />}
           >
-            Mark All Read
+            {t('markAllRead')}
           </Button>
           <Button 
             variant="primary" 
             leftIcon={<Bell className="h-4 w-4" />}
           >
-            Send Notification
+            {t('sendNotification')}
           </Button>
         </div>
       </div>
@@ -250,9 +255,9 @@ export default function AdminNotificationsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Notifications</p>
+                <p className="text-sm font-medium text-gray-600">{t('totalNotifications')}</p>
                 <p className="text-2xl font-bold text-gray-900">{notifications.length}</p>
-                <p className="text-sm text-gray-500">All time</p>
+                <p className="text-sm text-gray-500">{t('allTime')}</p>
               </div>
               <Bell className="h-8 w-8 text-blue-600" />
             </div>
@@ -263,9 +268,9 @@ export default function AdminNotificationsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Unread</p>
+                <p className="text-sm font-medium text-gray-600">{t('unread')}</p>
                 <p className="text-2xl font-bold text-gray-900">{unreadCount}</p>
-                <p className="text-sm text-yellow-600">Requires attention</p>
+                <p className="text-sm text-yellow-600">{t('requiresAttention')}</p>
               </div>
               <Mail className="h-8 w-8 text-yellow-600" />
             </div>
@@ -276,9 +281,9 @@ export default function AdminNotificationsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Urgent</p>
+                <p className="text-sm font-medium text-gray-600">{t('urgent')}</p>
                 <p className="text-2xl font-bold text-gray-900">{urgentCount}</p>
-                <p className="text-sm text-red-600">Immediate action needed</p>
+                <p className="text-sm text-red-600">{t('immediateActionNeeded')}</p>
               </div>
               <AlertTriangle className="h-8 w-8 text-red-600" />
             </div>
@@ -289,9 +294,9 @@ export default function AdminNotificationsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">System Health</p>
-                <p className="text-2xl font-bold text-gray-900">Good</p>
-                <p className="text-sm text-green-600">All systems operational</p>
+                <p className="text-sm font-medium text-gray-600">{t('systemHealth')}</p>
+                <p className="text-2xl font-bold text-gray-900">{t('good')}</p>
+                <p className="text-sm text-green-600">{t('allSystemsOperational')}</p>
               </div>
               <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
@@ -305,11 +310,11 @@ export default function AdminNotificationsPage() {
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Search
+                {t('search')}
               </label>
               <Input
                 type="text"
-                placeholder="Search notifications..."
+                placeholder={t('searchNotificationsPlaceholder')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -317,53 +322,53 @@ export default function AdminNotificationsPage() {
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Category
+                {t('category')}
               </label>
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wrench-accent focus:border-transparent"
               >
-                <option value="">All Categories</option>
-                <option value="system">System</option>
-                <option value="user">User</option>
-                <option value="payment">Payment</option>
-                <option value="security">Security</option>
-                <option value="content">Content</option>
+                <option value="">{t('allCategories')}</option>
+                <option value="system">{t('categorySystem')}</option>
+                <option value="user">{t('categoryUser')}</option>
+                <option value="payment">{t('categoryPayment')}</option>
+                <option value="security">{t('categorySecurity')}</option>
+                <option value="content">{t('categoryContent')}</option>
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Priority
+                {t('priority')}
               </label>
               <select
                 value={priorityFilter}
                 onChange={(e) => setPriorityFilter(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wrench-accent focus:border-transparent"
               >
-                <option value="">All Priorities</option>
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="urgent">Urgent</option>
+                <option value="">{t('allPriorities')}</option>
+                <option value="low">{t('priorityLow')}</option>
+                <option value="medium">{t('priorityMedium')}</option>
+                <option value="high">{t('priorityHigh')}</option>
+                <option value="urgent">{t('priorityUrgent')}</option>
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Type
+                {t('type')}
               </label>
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wrench-accent focus:border-transparent"
               >
-                <option value="">All Types</option>
-                <option value="info">Info</option>
-                <option value="success">Success</option>
-                <option value="warning">Warning</option>
-                <option value="error">Error</option>
+                <option value="">{t('allTypes')}</option>
+                <option value="info">{t('typeInfo')}</option>
+                <option value="success">{t('typeSuccess')}</option>
+                <option value="warning">{t('typeWarning')}</option>
+                <option value="error">{t('typeError')}</option>
               </select>
             </div>
 
@@ -378,7 +383,7 @@ export default function AdminNotificationsPage() {
                 variant="outline" 
                 className="w-full"
               >
-                Clear Filters
+                {t('clearFilters')}
               </Button>
             </div>
           </div>
@@ -390,14 +395,14 @@ export default function AdminNotificationsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Bell className="h-5 w-5" />
-            Notifications ({filteredNotifications.length})
+            {t('notifications', { count: filteredNotifications.length })}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {filteredNotifications.length === 0 ? (
             <div className="text-center py-8">
               <Bell className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">No notifications found</p>
+              <p className="text-gray-600">{t('noNotificationsFound')}</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -424,7 +429,7 @@ export default function AdminNotificationsPage() {
                             {getPriorityBadge(notification.priority)}
                             <div className="flex items-center gap-1 text-xs text-gray-500">
                               {getCategoryIcon(notification.category)}
-                              <span className="capitalize">{notification.category}</span>
+                              <span className="capitalize">{t(`category${notification.category.charAt(0).toUpperCase() + notification.category.slice(1)}`)}</span>
                             </div>
                           </div>
                           
@@ -440,7 +445,7 @@ export default function AdminNotificationsPage() {
                         <span>{formatDate(notification.createdAt)}</span>
                         {notification.actionUrl && (
                           <span className="text-blue-600 hover:underline cursor-pointer">
-                            View Details →
+                            {t('viewDetails')} →
                           </span>
                         )}
                       </div>
@@ -453,7 +458,7 @@ export default function AdminNotificationsPage() {
                           size="sm" 
                           onClick={() => markAsRead(notification.id)}
                         >
-                          Mark Read
+                          {t('markRead')}
                         </Button>
                       )}
                       <Button 
@@ -463,7 +468,7 @@ export default function AdminNotificationsPage() {
                         onClick={() => deleteNotification(notification.id)}
                         className="text-red-600 border-red-200 hover:bg-red-50"
                       >
-                        Delete
+                        {t('delete')}
                       </Button>
                     </div>
                   </div>
@@ -480,9 +485,9 @@ export default function AdminNotificationsPage() {
           <div className="flex items-start gap-3">
             <Bell className="h-5 w-5 text-blue-600 mt-0.5" />
             <div>
-              <h4 className="font-medium text-blue-800">Demo Mode</h4>
+              <h4 className="font-medium text-blue-800">{t('demoMode')}</h4>
               <p className="text-sm text-blue-700 mt-1">
-                This page displays sample notification data for demonstration purposes. In production, this would show real-time system alerts, user notifications, and platform events.
+                {t('demoModeDesc')}
               </p>
             </div>
           </div>

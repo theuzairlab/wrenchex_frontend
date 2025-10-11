@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { apiClient } from '@/lib/api/client';
 import { ReviewSummary as ReviewSummaryType } from '@/types';
 import { Star, Filter } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface ReviewSummaryProps {
   entityType: 'product' | 'service' | 'seller';
@@ -21,6 +22,7 @@ export default function ReviewSummary({
   onRatingFilter,
   selectedRating
 }: ReviewSummaryProps) {
+  const t = useTranslations('common');
   const [summary, setSummary] = useState<ReviewSummaryType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -77,14 +79,15 @@ export default function ReviewSummary({
   };
 
   const getRatingText = (rating: number): string => {
-    const texts = {
-      5: 'Excellent',
-      4: 'Good',
-      3: 'Average',
-      2: 'Poor',
-      1: 'Very Poor'
+    const keyMap: Record<number, string> = {
+      5: 'excellent',
+      4: 'good',
+      3: 'average',
+      2: 'poor',
+      1: 'veryPoor',
     };
-    return texts[rating as keyof typeof texts] || '';
+    const key = keyMap[rating];
+    return key ? t(`reviews.ratingLabels.${key}`) : '';
   };
 
   if (isLoading) {
@@ -115,7 +118,7 @@ export default function ReviewSummary({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Star className="h-5 w-5 text-yellow-500" />
-            Customer Reviews
+            {t('reviews.customerReviews')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -124,8 +127,8 @@ export default function ReviewSummary({
             <div className="flex justify-center mb-2">
               {renderStars(0, 'lg')}
             </div>
-            <p className="text-gray-600 mb-4">No reviews yet</p>
-            <p className="text-sm text-gray-500">Be the first to share your experience!</p>
+            <p className="text-gray-600 mb-4">{t('reviews.noReviewsYet')}</p>
+            <p className="text-sm text-gray-500">{t('reviews.shareYourExperienceSubtitle')}</p>
           </div>
         </CardContent>
       </Card>
@@ -137,7 +140,7 @@ export default function ReviewSummary({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Star className="h-5 w-5 text-yellow-500" />
-          Customer Reviews
+          {t('reviews.customerReviews')}
         </CardTitle>
       </CardHeader>
       
@@ -151,14 +154,14 @@ export default function ReviewSummary({
             {renderStars(Math.round(summary.averageRating), 'lg')}
           </div>
           <p className="text-gray-600">
-            Based on {summary.totalReviews} review{summary.totalReviews !== 1 ? 's' : ''}
+            {t('reviews.basedOnReviews', { count: summary.totalReviews })}
           </p>
         </div>
 
         {/* Rating Breakdown */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h4 className="font-medium text-gray-900">Rating Breakdown</h4>
+            <h4 className="font-medium text-gray-900">{t('reviews.ratingBreakdown')}</h4>
             {onRatingFilter && (
               <Button
                 variant="ghost"
@@ -167,7 +170,7 @@ export default function ReviewSummary({
                 className={`text-xs ${!selectedRating ? 'bg-gray-100' : ''}`}
               >
                 <Filter className="h-3 w-3 mr-1" />
-                All
+                {t('reviews.all')}
               </Button>
             )}
           </div>
@@ -222,13 +225,13 @@ export default function ReviewSummary({
               <div className="text-lg font-semibold text-green-600">
                 {Math.round((summary.ratingBreakdown[5] || 0) / summary.totalReviews * 100)}%
               </div>
-              <div className="text-xs text-gray-500">Excellent Reviews</div>
+              <div className="text-xs text-gray-500">{t('reviews.excellentReviews')}</div>
             </div>
             <div>
               <div className="text-lg font-semibold text-blue-600">
                 {Math.round(((summary.ratingBreakdown[4] || 0) + (summary.ratingBreakdown[5] || 0)) / summary.totalReviews * 100)}%
               </div>
-              <div className="text-xs text-gray-500">Positive Reviews</div>
+              <div className="text-xs text-gray-500">{t('reviews.positiveReviews')}</div>
             </div>
           </div>
         </div>

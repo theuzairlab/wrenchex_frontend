@@ -17,10 +17,11 @@ import {
 } from '@/lib/validations/auth';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import AddressInput from '@/components/location/AddressInput';
 import { HierarchicalLocationPicker } from '@/components/location/HierarchicalLocationPicker';
 import { LocationData } from '@/lib/services/locationService';
+import { useTranslations } from 'next-intl';
 
 interface SellerRegisterFormProps {
   onSuccess?: () => void;
@@ -35,11 +36,14 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
   const [useHierarchicalPicker, setUseHierarchicalPicker] = useState(true);
   const { register: registerUser, isLoading, error, clearError, user } = useAuthStore();
   const router = useRouter();
+  const t = useTranslations('common.auth');
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
 
   // Toast on hierarchical location confirm
   useEffect(() => {
     const handler = () => {
-      toast.success('Location confirmed');
+      toast.success(t('locationDetected'));
     };
     if (typeof window !== 'undefined') {
       window.addEventListener('seller-location-confirmed', handler as EventListener);
@@ -129,7 +133,7 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
       await registerUser(submissionData);
       
       // Show success message with email verification info
-      toast.success('Seller account created successfully! Please check your email to verify your account.');
+      toast.success(t('sellerAccountCreatedSuccessfully'));
       
       // Redirect seller to seller dashboard (they'll see verification banner)
       router.push('/dashboard');
@@ -139,7 +143,7 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
       console.error('Registration error:', err);
       
       // Show user-friendly error message
-      const errorMessage = err?.message || 'Registration failed. Please try again.';
+      const errorMessage = err?.message || t('registrationFailed');
       toast.error(errorMessage);
       
       setError('root', {
@@ -156,7 +160,7 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
         <div className="flex items-center justify-center w-12 h-12 bg-wrench-accent/10 rounded-full mx-auto mb-4">
           <Store className="h-6 w-6 text-wrench-accent" />
         </div>
-        <p className="text-wrench-text-secondary">Start your business journey with us</p>
+        <p className="text-wrench-text-secondary">{t('startBusinessJourney')}</p>
       </div>
 
       {/* Error Message */}
@@ -173,14 +177,14 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label htmlFor="firstName" className="text-sm font-medium text-wrench-text-primary">
-              First Name
+              {t('firstName')}
             </label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-wrench-text-secondary" />
               <Input
                 id="firstName"
                 type="text"
-                placeholder="First name"
+                placeholder={t('firstName')}
                 className="pl-10"
                 autoComplete="given-name"
                 {...register('firstName')}
@@ -193,14 +197,14 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
 
           <div className="space-y-2">
             <label htmlFor="lastName" className="text-sm font-medium text-wrench-text-primary">
-              Last Name
+              {t('lastName')}
             </label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-wrench-text-secondary" />
               <Input
                 id="lastName"
                 type="text"
-                placeholder="Last name"
+                placeholder={t('lastName')}
                 className="pl-10"
                 autoComplete="family-name"
                 {...register('lastName')}
@@ -215,14 +219,14 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
         {/* Email */}
         <div className="space-y-2">
           <label htmlFor="email" className="text-sm font-medium text-wrench-text-primary">
-            Email Address
+            {t('emailAddress')}
           </label>
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-wrench-text-secondary" />
             <Input
               id="email"
               type="email"
-              placeholder="Enter your email"
+              placeholder={t('enterEmail')}
               className="pl-10"
               autoComplete="email"
               {...register('email')}
@@ -236,14 +240,14 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
         {/* Phone */}
         <div className="space-y-2">
           <label htmlFor="phone" className="text-sm font-medium text-wrench-text-primary">
-            Phone Number
+            {t('phoneNumber')}
           </label>
           <div className="relative">
             <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-wrench-text-secondary" />
             <Input
               id="phone"
               type="tel"
-              placeholder="Enter your phone number"
+              placeholder={t('enterPhoneNumber')}
               className="pl-10"
               autoComplete="tel"
               {...register('phone')}
@@ -258,14 +262,14 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label htmlFor="shopName" className="text-sm font-medium text-wrench-text-primary">
-              Shop Name
+              {t('shopName')}
             </label>
             <div className="relative">
               <Store className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-wrench-text-secondary" />
               <Input
                 id="shopName"
                 type="text"
-                placeholder="Enter your shop name"
+                placeholder={t('enterShopName')}
                 className="pl-10"
                 autoComplete="organization"
                 {...register('shopName')}
@@ -278,7 +282,7 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
 
           <div className="space-y-2">
             <label htmlFor="businessType" className="text-sm font-medium text-wrench-text-primary">
-              Business Type
+              {t('businessType')}
             </label>
             <div className="relative">
               <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-wrench-text-secondary" />
@@ -288,7 +292,7 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
                 autoComplete="off"
                 {...register('businessType')}
               >
-                <option value="">Select business type</option>
+                <option value="">{t('selectBusinessType')}</option>
                 {businessTypeOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
@@ -306,14 +310,14 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <label className="text-sm font-medium text-wrench-text-primary">
-              Shop Location *
+              {t('shopLocation')} *
             </label>
             <button
               type="button"
               onClick={() => setUseHierarchicalPicker(!useHierarchicalPicker)}
               className="text-xs text-blue-600 hover:text-blue-800 underline"
             >
-              {useHierarchicalPicker ? 'Use Simple Address Input' : 'Use Step-by-Step Selection'}
+              {useHierarchicalPicker ? t('useSimpleAddressInput') : t('useStepByStepSelection')}
             </button>
           </div>
 
@@ -322,7 +326,7 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
             <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
               <div className="mb-3 flex items-center gap-2 text-sm text-gray-600">
                 <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                <span>Select your location step by step for better accuracy</span>
+                <span>{t('selectLocationStepByStep')}</span>
               </div>
               <HierarchicalLocationPicker
                 onLocationSelect={(location) => {
@@ -341,7 +345,7 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
                 value={watch('shopAddress')}
                 onChange={(value) => setValue('shopAddress', value)}
                 onLocationChange={handleLocationChange}
-                placeholder="Enter your complete shop address"
+                placeholder={t('enterCompleteShopAddress')}
                 error={errors.shopAddress?.message}
                 required
                 showCurrentLocationButton={true}
@@ -349,7 +353,7 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
                 requireActivation={true}
               />
               <p className="text-xs text-gray-500">
-                We'll use this to help customers find you and calculate distances
+                {t('locationHelpText')}
               </p>
             </div>
           )}
@@ -359,14 +363,14 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label htmlFor="city" className="text-sm font-medium text-wrench-text-primary">
-              City *
+              {t('city')} *
             </label>
             <div className="relative">
               <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-wrench-text-secondary" />
               <Input
                 id="city"
                 type="text"
-                placeholder="City name"
+                placeholder={t('cityName')}
                 className="pl-10"
                 autoComplete="address-level2"
                 {...register('city')}
@@ -379,14 +383,14 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
 
           <div className="space-y-2">
             <label htmlFor="area" className="text-sm font-medium text-wrench-text-primary">
-              Area *
+              {t('area')} *
             </label>
             <div className="relative">
               <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-wrench-text-secondary" />
               <Input
                 id="area"
                 type="text"
-                placeholder="Area/District"
+                placeholder={t('areaDistrict')}
                 className="pl-10"
                 autoComplete="address-level3"
                 {...register('area')}
@@ -403,10 +407,10 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
           <div className="bg-green-50 border border-green-200 rounded-lg p-3">
             <div className="flex items-center gap-2 text-green-700">
               <Navigation className="h-4 w-4" />
-              <span className="text-sm font-medium">Location Detected</span>
+              <span className="text-sm font-medium">{t('locationDetected')}</span>
             </div>
             <p className="text-xs text-green-600 mt-1">
-              Coordinates: {locationData.latitude?.toFixed(6)}, {locationData.longitude?.toFixed(6)}
+              {t('coordinates')}: {locationData.latitude?.toFixed(6)}, {locationData.longitude?.toFixed(6)}
             </p>
           </div>
         )}
@@ -415,13 +419,13 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
         {/* Description */}
         <div className="space-y-2">
           <label htmlFor="description" className="text-sm font-medium text-wrench-text-primary">
-            Business Description
+            {t('businessDescription')}
           </label>
           <div className="relative">
             <FileText className="absolute left-3 top-3 h-4 w-4 text-wrench-text-secondary" />
             <textarea
               id="description"
-              placeholder="Describe your business and services"
+              placeholder={t('describeBusinessAndServices')}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wrench-accent focus:border-wrench-accent resize-none"
               rows={3}
               autoComplete="off"
@@ -436,14 +440,14 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
         {/* Password */}
         <div className="space-y-2">
           <label htmlFor="password" className="text-sm font-medium text-wrench-text-primary">
-            Password
+            {t('password')}
           </label>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-wrench-text-secondary" />
+            <Lock className={`absolute ${currentLocale === 'ar' ? 'left-3' : 'right-3'} top-1/2 transform -translate-y-1/2 h-4 w-4 text-wrench-text-secondary`} />
             <Input
               id="password"
               type={showPassword ? 'text' : 'password'}
-              placeholder="Create a password"
+              placeholder={t('createPassword')}
               className="pl-10 pr-10"
               autoComplete="new-password"
               {...register('password')}
@@ -451,7 +455,7 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-wrench-text-secondary hover:text-wrench-text-primary"
+              className={`absolute ${currentLocale === 'ar' ? 'left-3' : 'right-3'} top-1/2 transform -translate-y-1/2 text-wrench-text-secondary hover:text-wrench-text-primary ${showPassword ? 'text-wrench-text-primary' : 'text-wrench-text-secondary'}`}
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
@@ -464,14 +468,14 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
         {/* Confirm Password */}
         <div className="space-y-2">
           <label htmlFor="confirmPassword" className="text-sm font-medium text-wrench-text-primary">
-            Confirm Password
+            {t('confirmPassword')}
           </label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-wrench-text-secondary" />
             <Input
               id="confirmPassword"
               type={showConfirmPassword ? 'text' : 'password'}
-              placeholder="Confirm your password"
+              placeholder={t('confirmYourPassword')}
               className="pl-10 pr-10"
               autoComplete="new-password"
               {...register('confirmPassword')}
@@ -479,7 +483,7 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-wrench-text-secondary hover:text-wrench-text-primary"
+              className={`absolute ${currentLocale === 'ar' ? 'left-3' : 'right-3'} top-1/2 transform -translate-y-1/2 text-wrench-text-secondary hover:text-wrench-text-primary ${showConfirmPassword ? 'text-wrench-text-primary' : 'text-wrench-text-secondary'}`}
             >
               {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
@@ -498,10 +502,10 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
           {isSubmitting || isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Creating Account...
+              {t('creatingAccount')}
             </>
           ) : (
-            'Create Seller Account'
+            t('createSellerAccount')
           )}
         </Button>
       </form>
@@ -510,13 +514,13 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
       {/* Footer */}
       <div className="text-center space-y-4">
         <p className="text-sm text-wrench-text-secondary">
-          Already have an account?{' '}
+          {t('dontHaveAccount')}{' '}
           <button
             type="button"
             onClick={onSwitchToLogin}
             className="text-wrench-accent hover:text-wrench-accent-hover font-medium"
           >
-            Sign in here
+            {t('signInHere')}
           </button>
         </p>
         
@@ -525,18 +529,18 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
             <div className="w-full border-t border-gray-200" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-2 text-wrench-text-secondary">Or</span>
+            <span className="bg-white px-2 text-wrench-text-secondary">{t('or')}</span>
           </div>
         </div>
 
         <p className="text-sm text-wrench-text-secondary">
-          Want to shop instead?{' '}
+          {t('wantToShopInstead')}{' '}
           <button
             type="button"
             onClick={onSwitchToBuyer}
             className="text-wrench-accent hover:text-wrench-accent-hover font-medium"
           >
-            Register as Customer
+            {t('registerAsCustomer')}
           </button>
         </p>
       </div>

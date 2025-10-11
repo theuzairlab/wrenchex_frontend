@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/lib/stores/auth';
 import { apiClient } from '@/lib/api/client';
@@ -27,6 +28,7 @@ export function SocialAccountManager({
   onAccountDisconnected 
 }: SocialAccountManagerProps) {
   const { user, linkGoogleAccount, unlinkSocialAccount, googleLogin } = useAuthStore();
+  const t = useTranslations('socialAccountManager');
   const [connectedAccounts, setConnectedAccounts] = useState<ConnectedAccount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -69,7 +71,7 @@ export function SocialAccountManager({
       setConnectedAccounts(accounts);
     } catch (error) {
       console.error('Failed to fetch connected accounts:', error);
-      toast.error('Failed to load connected accounts');
+      toast.error(t('loadConnectedAccountsFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -99,7 +101,7 @@ export function SocialAccountManager({
         setErrorMessage('This Google account email is already registered with another user. Please use a different Google account.');
         return;
       } else {
-        setErrorMessage(error.message || 'Failed to connect Google account');
+        setErrorMessage(error.message || t('connectGoogleAccountFailed'));
       }
     } finally {
       setIsConnecting(false);
@@ -116,7 +118,7 @@ export function SocialAccountManager({
       onAccountDisconnected?.();
     } catch (error: any) {
       console.error('Failed to disconnect account:', error);
-      toast.error(error.message || 'Failed to disconnect account');
+      toast.error(error.message || t('disconnectAccountFailed'));
     }
   };
 
@@ -134,7 +136,7 @@ export function SocialAccountManager({
         });
       } catch (error: any) {
         console.error('Failed to login to existing account:', error);
-        toast.error('Failed to login to existing account');
+        toast.error(t('loginToExistingAccountFailed'));
       } finally {
         setIsConnecting(false);
       }
@@ -156,12 +158,12 @@ export function SocialAccountManager({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Connected Accounts</CardTitle>
+          <CardTitle>{t('connectedAccounts')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-            <span className="ml-2 text-gray-500">Loading connected accounts...</span>
+            <span className="ml-2 text-gray-500">{t('loadingConnectedAccounts')}</span>
           </div>
         </CardContent>
       </Card>
@@ -172,9 +174,9 @@ export function SocialAccountManager({
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Connected Accounts</CardTitle>
+          <CardTitle>{t('connectedAccounts')}</CardTitle>
           <p className="text-sm text-gray-600">
-            Connect your social accounts for easier login and account verification
+{t('connectSocialAccountsDesc')}
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -201,11 +203,11 @@ export function SocialAccountManager({
               </div>
               <div>
                 <div className="flex items-center space-x-2">
-                  <span className="font-medium text-gray-900">Google</span>
+                  <span className="font-medium text-gray-900">{t('google')}</span>
                   {isGoogleConnected && (
                     <div className="flex items-center space-x-1 text-green-600">
                       <Check className="h-4 w-4" />
-                      <span className="text-sm">Connected</span>
+                      <span className="text-sm">{t('connected')}</span>
                     </div>
                   )}
                 </div>
@@ -226,7 +228,7 @@ export function SocialAccountManager({
                   className="text-red-600 border-red-300 hover:bg-red-50"
                 >
                   <Unlink className="h-4 w-4 mr-1" />
-                  Disconnect
+{t('disconnect')}
                 </Button>
               ) : (
                 <div className="w-48">
@@ -237,7 +239,7 @@ export function SocialAccountManager({
                     }
                   }}
                   onError={() => {
-                    toast.error('Google login was cancelled or failed');
+                    toast.error(t('googleLoginCancelledOrFailed'));
                   }}
                   useOneTap={false}
                   width="100%"
@@ -261,20 +263,19 @@ export function SocialAccountManager({
 
           {/* Account Benefits */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="font-medium text-blue-900 mb-2">Benefits of connecting accounts:</h4>
+            <h4 className="font-medium text-blue-900 mb-2">{t('benefitsOfConnectingAccounts')}</h4>
             <ul className="text-sm text-blue-800 space-y-1">
-              <li>• Faster login with one click</li>
-              <li>• Automatic email verification</li>
-              <li>• Enhanced account security</li>
-              <li>• Easy account recovery</li>
+              <li>• {t('fasterLoginWithOneClick')}</li>
+              <li>• {t('automaticEmailVerification')}</li>
+              <li>• {t('enhancedAccountSecurity')}</li>
+              <li>• {t('easyAccountRecovery')}</li>
             </ul>
           </div>
 
           {/* Security Note */}
           <div className="text-xs text-gray-500">
             <p>
-              Your social accounts are securely linked and can be disconnected at any time. 
-              We only access basic profile information for authentication purposes.
+{t('securityNote')}
             </p>
           </div>
         </CardContent>

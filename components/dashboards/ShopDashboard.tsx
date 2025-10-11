@@ -3,13 +3,18 @@ import { Button } from "../ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/Card";
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from 'next/navigation';
 import { PendingApproval } from "../seller/PendingApproval";
+import { useTranslations } from 'next-intl';
 
 
 
 // Seller Dashboard Content  
 export function ShopDashboard({ User, Loading, dashboardData, error, formatDateTime, formatCurrency, sellerProfile }: { User: any, Loading: any, dashboardData: any, error: any, formatDateTime: any, formatCurrency: any, sellerProfile?: any }) {
     const user = User();
+    const t = useTranslations('common.dashboard');
+    const pathname = usePathname();
+    const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
     
   
     
@@ -18,7 +23,7 @@ export function ShopDashboard({ User, Loading, dashboardData, error, formatDateT
       return (
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-wrench-accent mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading Shop Dashboard...</p>
+          <p className="text-gray-600">{t('loadingShopDashboard')}</p>
         </div>
       );
     }
@@ -42,7 +47,7 @@ export function ShopDashboard({ User, Loading, dashboardData, error, formatDateT
             <svg className="w-12 h-12 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
             </svg>
-            <p className="text-lg font-medium">Error loading dashboard</p>
+            <p className="text-lg font-medium">{t('errorLoadingDashboard')}</p>
             <p className="text-sm text-gray-600">{error}</p>
           </div>
         </div>
@@ -52,7 +57,7 @@ export function ShopDashboard({ User, Loading, dashboardData, error, formatDateT
     if (!dashboardData) {
       return (
         <div className="text-center py-12">
-          <p className="text-gray-600">No dashboard data available</p>
+          <p className="text-gray-600">{t('noDashboardDataAvailable')}</p>
         </div>
       );
     }
@@ -62,15 +67,15 @@ export function ShopDashboard({ User, Loading, dashboardData, error, formatDateT
         {/* Welcome Section */}
         <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-6 border border-green-200">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Welcome back, {dashboardData.seller.shopName}! 🚀
+            {t('welcomeBackShop', { shopName: dashboardData.seller.shopName })}
           </h2>
           <p className="text-gray-600 mb-4">
-            Manage your business, track performance, and grow your sales on WrenchEX.
+            {t('manageBusiness')}
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
-            <Link href="/seller/products/add">
+            <Link href={`/${currentLocale}/seller/products/add`}>
               <Button variant="primary" leftIcon={<Plus className="h-4 w-4" />}>
-                Add Product
+{t('addProduct')}
               </Button>
             </Link>
 
@@ -83,14 +88,14 @@ export function ShopDashboard({ User, Loading, dashboardData, error, formatDateT
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Active Products</p>
+                  <p className="text-sm font-medium text-gray-600">{t('activeProducts')}</p>
                   <p className="text-2xl font-bold text-gray-900">
                     {dashboardData.stats.products || 0}
                   </p>
                   <p className="text-sm text-green-600">
                     {dashboardData.stats.products > 0 
-                      ? 'Products available for sale' 
-                      : 'No active products'}
+                      ? t('productsAvailableForSale') 
+                      : t('noActiveProducts')}
                   </p>
                 </div>
                 <Package className="h-8 w-8 text-green-600" />
@@ -102,12 +107,12 @@ export function ShopDashboard({ User, Loading, dashboardData, error, formatDateT
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Chats</p>
+                  <p className="text-sm font-medium text-gray-600">{t('totalChats')}</p>
                   <p className="text-2xl font-bold text-gray-900">
                     {dashboardData.stats.chats || 0}
                   </p>
                   <p className="text-sm text-blue-600">
-                    {dashboardData.stats.unreadMessages || 0} unread messages
+                    {t('unreadMessagesCount', { count: dashboardData.stats.unreadMessages || 0 })}
                   </p>
                 </div>
                 <MessageCircle className="h-8 w-8 text-blue-600" />
@@ -119,12 +124,12 @@ export function ShopDashboard({ User, Loading, dashboardData, error, formatDateT
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Appointments</p>
+                  <p className="text-sm font-medium text-gray-600">{t('appointments')}</p>
                   <p className="text-2xl font-bold text-gray-900">
                     {dashboardData.stats.appointments || 0}
                   </p>
                   <p className="text-sm text-purple-600">
-                    Upcoming bookings
+                    {t('upcomingBookings')}
                   </p>
                 </div>
                 <Calendar className="h-8 w-8 text-purple-600" />
@@ -136,12 +141,12 @@ export function ShopDashboard({ User, Loading, dashboardData, error, formatDateT
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Shop Rating</p>
+                  <p className="text-sm font-medium text-gray-600">{t('shopRating')}</p>
                   <p className="text-2xl font-bold text-gray-900">
                     {dashboardData.seller.ratingAverage?.toFixed(1) || 'N/A'}
                   </p>
                   <p className="text-sm text-yellow-600">
-                    {dashboardData.seller.ratingCount} reviews
+                    {dashboardData.seller.ratingCount} {t('reviews')}
                   </p>
                 </div>
                 <Star className="h-8 w-8 text-yellow-500" />
@@ -156,10 +161,10 @@ export function ShopDashboard({ User, Loading, dashboardData, error, formatDateT
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Recent Chats</CardTitle>
-                <Link href="/seller/chats">
+                <CardTitle>{t('recentChats')}</CardTitle>
+                <Link href={`/${currentLocale}/seller/chats`}>
                   <Button variant="ghost" size="sm" rightIcon={<ArrowRight className="h-4 w-4" />}>
-                    View All
+{t('viewAll')}
                   </Button>
                 </Link>
               </div>
@@ -174,10 +179,10 @@ export function ShopDashboard({ User, Loading, dashboardData, error, formatDateT
                     >
                       <div className="flex-1">
                         <p className="font-medium text-gray-900">
-                          {chat.product?.title || 'Product Chat'}
+                          {chat.product?.title || t('productChat')}
                         </p>
                         <p className="text-sm text-gray-500">
-                          with {chat.buyer?.firstName} {chat.buyer?.lastName}
+                          {t('with')} {chat.buyer?.firstName} {chat.buyer?.lastName}
                         </p>
                         {chat.lastMessage && (
                           <p className="text-xs text-gray-400 mt-1 truncate">
@@ -192,7 +197,7 @@ export function ShopDashboard({ User, Loading, dashboardData, error, formatDateT
                           </span>
                         )}
                         <p className="text-xs text-gray-500 mt-1">
-                          {formatDateTime ? formatDateTime(chat.updatedAt) : 'Recent'}
+                          {formatDateTime ? formatDateTime(chat.updatedAt) : t('recentChats')}
                         </p>
                       </div>
                     </div>
@@ -201,10 +206,10 @@ export function ShopDashboard({ User, Loading, dashboardData, error, formatDateT
               ) : (
                 <div className="text-center py-8">
                   <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">No recent chats</p>
-                  <Link href="/seller/products/add">
+                  <p className="text-gray-500">{t('noRecentChats')}</p>
+                  <Link href={`/${currentLocale}/seller/products/add`}>
                     <Button variant="outline" size="sm" className="mt-3">
-                      Add Products
+                      {t('addProducts')}
                     </Button>
                   </Link>
                 </div>
@@ -216,10 +221,10 @@ export function ShopDashboard({ User, Loading, dashboardData, error, formatDateT
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Recent Appointments</CardTitle>
-                <Link href="/seller/appointments">
+                <CardTitle>{t('recentAppointments')}</CardTitle>
+                <Link href={`/${currentLocale}/seller/appointments`}>
                   <Button variant="ghost" size="sm" rightIcon={<ArrowRight className="h-4 w-4" />}>
-                    View All
+{t('viewAll')}
                   </Button>
                 </Link>
               </div>
@@ -255,10 +260,10 @@ export function ShopDashboard({ User, Loading, dashboardData, error, formatDateT
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <p className="text-gray-500">No recent appointments</p>
-                  <Link href="/seller/services">
+                  <p className="text-gray-500">{t('noRecentAppointments')}</p>
+                  <Link href={`/${currentLocale}/seller/services`}>
                     <Button variant="outline" size="sm" className="mt-3">
-                      Add Services
+                      {t('addServices')}
                     </Button>
                   </Link>
                 </div>

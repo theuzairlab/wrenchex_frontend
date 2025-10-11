@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Star, MapPin, Calendar, AlertTriangle, CheckCircle, Edit } from 'lucide-react';
@@ -18,6 +19,8 @@ interface SellerProfileCardProps {
 }
 
 export function SellerProfileCard({ seller }: SellerProfileCardProps) {
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -131,7 +134,7 @@ export function SellerProfileCard({ seller }: SellerProfileCardProps) {
 
             {/* Actions */}
             <div className="flex gap-3">
-              <Link href="/seller/profile">
+              <Link href={`/${currentLocale}/seller/profile`}>
                 <Button variant="outline" className="gap-2">
                   <Edit className="h-4 w-4" />
                   Edit Profile

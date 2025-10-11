@@ -1,23 +1,24 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { useTranslations } from 'next-intl';
+import { useParams, useRouter, usePathname } from 'next/navigation';
+import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Textarea } from '@/components/ui/Textarea';
 import { apiClient } from '@/lib/api/client';
 import { useAuthStore } from '@/lib/stores/auth';
-import { Service, CreateAppointmentData } from '@/types';
+import { Service } from '@/types';
 import { toast } from 'sonner';
 import { useAuthModal } from '@/components/auth';
+import { formatPrice } from '@/lib/utils';
 import { 
   ArrowLeft, Star, Clock, MapPin, 
   Calendar, CheckCircle, Shield, Wrench, User,
-  Store, ChevronLeft, ChevronRight, Phone,
-  Award, Zap, Heart, MessageCircle, 
-  ArrowRight, Play, Pause, RotateCcw,
-  Truck, CreditCard, Timer, Users
+  ChevronLeft, ChevronRight,
+  Zap, Play,
+  Award,
+  Phone,
+  Store
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -29,18 +30,18 @@ import SmartReviewButton from '@/components/reviews/SmartReviewButton';
 import ServiceBookingModal from '@/components/services/ServiceBookingModal';
 import { useScrollSpy } from '@/hooks/useScrollSpy';
 
-interface TimeSlot {
-  startTime: string;
-  endTime: string;
-  isAvailable: boolean;
-}
-
 export default function ServiceDetailPage() {
+  const t = useTranslations('serviceDetail');
+  const tCurrency = useTranslations('common.currency');
+  const tReviews = useTranslations('common.reviews');
   const params = useParams();
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
   const { openAuthModal } = useAuthModal();
   const serviceId = params.id as string;
+  
+  const pathname = usePathname();
+  const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
 
   const [service, setService] = useState<Service | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -59,37 +60,31 @@ export default function ServiceDetailPage() {
 
   useEffect(() => {
     loadService();
-  }, [serviceId]);
+  }, [serviceId, currentLocale]);
 
 
   const loadService = async () => {
     try {
       setIsLoading(true);
-      const response = await apiClient.getServiceById(serviceId);
+      const response = await apiClient.getServiceById(serviceId, currentLocale);
       
       if (response.success && response.data) {
         setService(response.data);
       } else {
-        toast.error('Service not found');
-        router.push('/services');
+        toast.error(t('noResults'));
+        router.push(`/${currentLocale}/services`);
       }
     } catch (error) {
       console.error('Failed to load service:', error);
-      toast.error('Failed to load service');
-      router.push('/services');
+      toast.error(t('unableToLoad'));
+      router.push(`/${currentLocale}/services`);
     } finally {
       setIsLoading(false);
     }
   };
 
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'AED',
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
+  // use shared formatter with locale and service currency
 
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
@@ -122,8 +117,8 @@ export default function ServiceDetailPage() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent mx-auto mb-6"></div>
-          <h2 className="text-xl font-semibold text-gray-800">Loading Service Details...</h2>
-          <p className="text-gray-600 mt-2">Please wait while we fetch the information</p>
+          <h2 className="text-xl font-semibold text-gray-800">{t('loading')}</h2>
+          <p className="text-gray-600 mt-2">{t('pleaseTryLater')}</p>
         </div>
       </div>
     );
@@ -150,7 +145,7 @@ export default function ServiceDetailPage() {
                 className="hover:bg-white/20"
               >
                 <ArrowLeft className="h-5 w-5 mr-2" />
-                Back to Services
+                {t('browseAllServices')}
               </Button>
             </div>
 
@@ -162,7 +157,7 @@ export default function ServiceDetailPage() {
                 <div className="relative aspect-square rounded-3xl overflow-hidden shadow-2xl">
                   <Image
                     src={primaryImage}
-                    alt={service?.title || 'Service'}
+                    alt={service?.title || t('service')}
                     fill
                     className="object-cover"
                   />
@@ -205,7 +200,7 @@ export default function ServiceDetailPage() {
                     <div className="absolute bottom-4 left-4">
                       <div className="bg-green-500 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2">
                         <MapPin className="h-4 w-4" />
-                        Mobile Service
+                        {t('mobileBadge')}
                       </div>
                     </div>
                   )}
@@ -226,7 +221,7 @@ export default function ServiceDetailPage() {
                       >
                         <Image
                           src={image}
-                          alt={`${service?.title || 'Service'} - Image ${index + 1}`}
+                          alt={`${service?.title || t('service')} - ${t('image')} ${index + 1}`}
                           width={64}
                           height={64}
                           className="w-full h-full object-cover"
@@ -256,19 +251,19 @@ export default function ServiceDetailPage() {
                  {/* Service Stats */}
                  <div className="grid grid-cols-3 gap-6">
                    <div className="text-center">
-                     <div className="text-3xl font-bold  mb-1">{formatPrice(service?.price || 0)}</div>
-                     <div className=" text-sm">Starting Price</div>
+                     <div className="text-3xl font-bold  mb-1">{formatPrice(service?.price || 0, service?.currency || 'AED', currentLocale)}</div>
+                    <div className=" text-sm">{t('startingPrice')}</div>
                    </div>
                    <div className="text-center">
                      <div className="text-3xl font-bold  mb-1">{formatDuration(service?.durationMinutes || 0)}</div>
-                     <div className=" text-sm">Duration</div>
+                     <div className=" text-sm">{t('duration')}</div>
                    </div>
                    <div className="text-center">
                      <div className="flex items-center justify-center gap-1 mb-1">
                        <Star className="h-8 w-8 text-wrench-accent fill-current" />
-                       <span className="text-3xl font-bold ">{service?.ratingAverage || 'New'}</span>
+                      <span className="text-3xl font-bold ">{service?.ratingAverage || t('new')}</span>
                      </div>
-                     <div className=" text-sm">Rating</div>
+                     <div className=" text-sm">{t('rating')}</div>
                    </div>
                  </div>
 
@@ -276,8 +271,8 @@ export default function ServiceDetailPage() {
                  <div className="mt-8">
                    <Card className="shadow-lg border-0 bg-white">
                      <CardHeader className="text-center pb-4">
-                       <div className="text-4xl font-bold mb-2 text-black">{formatPrice(service?.price || 0)}</div>
-                       <div className="text-gray-600">per service</div>
+                       <div className="text-4xl font-bold mb-2 text-black">{formatPrice(service?.price || 0, service?.currency || 'AED', currentLocale)}</div>
+                     <div className="text-gray-600">{t('perService')}</div>
                      </CardHeader>
                      <CardContent className="space-y-4">
                        <Button
@@ -286,17 +281,17 @@ export default function ServiceDetailPage() {
                          size="lg"
                        >
                          <Calendar className="h-5 w-5 mr-2" />
-                         Book This Service
+                         {t('bookNow')}
                        </Button>
                        
                        <div className="text-center text-gray-600 text-sm">
                          <div className="flex items-center justify-center gap-2 mb-2">
                            <CheckCircle className="h-4 w-4" />
-                           <span>Instant Confirmation</span>
+                          <span>{t('instantConfirmation')}</span>
                          </div>
                          <div className="flex items-center justify-center gap-2">
                            <Shield className="h-4 w-4" />
-                           <span>Secure Booking</span>
+                          <span>{t('secureBooking')}</span>
                          </div>
                        </div>
                      </CardContent>
@@ -312,12 +307,12 @@ export default function ServiceDetailPage() {
       {/* Sticky Navigation */}
       <div className="sticky top-20 w-auto z-40 bg-wrench-bg-primary/60 backdrop-blur-sm border-b border-gray-200 shadow-sm">
         <div className="container-responsive">
-          <nav className="flex space-x-8 overflow-x-auto">
+          <nav className="flex gap-6">
             {[
-              { id: 'overview', label: 'Overview', icon: Zap },
-              { id: 'process', label: 'How It Works', icon: Play },
-              { id: 'reviews', label: 'Reviews', icon: Star },
-              { id: 'provider', label: 'Provider', icon: User },
+              { id: 'overview', label: t('overview'), icon: Zap },
+              { id: 'process', label: t('howItWorks'), icon: Play },
+              { id: 'reviews', label: tReviews('customerReviews'), icon: Star },
+              { id: 'provider', label: t('provider'), icon: User },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -343,7 +338,7 @@ export default function ServiceDetailPage() {
           <div className="container-responsive">
             <div className="max-w-4xl mx-auto space-y-8">
                 <div>
-                  <h2 className="text-3xl font-bold text-gray-900 mb-6">Service Overview</h2>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-6">{t('serviceOverview')}</h2>
                   <div className="bg-white rounded-2xl p-8 shadow-lg">
                     <p className="text-gray-700 leading-relaxed text-lg mb-6">
                       {service?.description || ''}
@@ -355,7 +350,7 @@ export default function ServiceDetailPage() {
                           <Clock className="h-6 w-6 text-blue-600" />
                         </div>
                         <div>
-                          <div className="font-semibold text-gray-900">Duration</div>
+                          <div className="font-semibold text-gray-900">{t('duration')}</div>
                           <div className="text-gray-600">{formatDuration(service?.durationMinutes || 0)}</div>
                         </div>
                       </div>
@@ -365,8 +360,8 @@ export default function ServiceDetailPage() {
                           <Award className="h-6 w-6 text-green-600" />
                         </div>
                         <div>
-                          <div className="font-semibold text-gray-900">Quality</div>
-                          <div className="text-gray-600">Professional Service</div>
+                          <div className="font-semibold text-gray-900">{t('quality')}</div>
+                          <div className="text-gray-600">{t('professionalService')}</div>
                         </div>
                       </div>
                       
@@ -375,8 +370,8 @@ export default function ServiceDetailPage() {
                           <Shield className="h-6 w-6 text-purple-600" />
                         </div>
                         <div>
-                          <div className="font-semibold text-gray-900">Guarantee</div>
-                          <div className="text-gray-600">100% Satisfaction</div>
+                          <div className="font-semibold text-gray-900">{t('guarantee')}</div>
+                          <div className="text-gray-600">{t('satisfaction')}</div>
                         </div>
                       </div>
                       
@@ -386,8 +381,8 @@ export default function ServiceDetailPage() {
                             <MapPin className="h-6 w-6 text-orange-600" />
                           </div>
                           <div>
-                            <div className="font-semibold text-gray-900">Location</div>
-                            <div className="text-gray-600">We Come to You</div>
+                            <div className="font-semibold text-gray-900">{t('location')}</div>
+                            <div className="text-gray-600">{t('mobileBadge')}</div>
                           </div>
                         </div>
                       )}
@@ -402,9 +397,9 @@ export default function ServiceDetailPage() {
         <section id="process" className="scroll-mt-32">
           <div className="container-responsive py-20 bg-white rounded-2xl shadow-lg">
             <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">How It Works</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('howItWorks')}</h2>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Simple steps to get your service booked and completed
+                {t('howItWorksSub')}
               </p>
             </div>
 
@@ -416,9 +411,9 @@ export default function ServiceDetailPage() {
                   </div>
                  
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">Book Your Service</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">{t('bookYourService')}</h3>
                 <p className="text-gray-600">
-                  Select your preferred date and time slot. We'll confirm your booking instantly.
+                  {t('serveceCompleteSubtitle')}
                 </p>
               </div>
 
@@ -429,9 +424,9 @@ export default function ServiceDetailPage() {
                   </div>
                   
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">Meet Your Expert</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">{t('provider')}</h3>
                 <p className="text-gray-600">
-                  Our professional technician arrives at your location or you visit our shop.
+                  {t('serviceProviderSubtitle')}
                 </p>
               </div>
 
@@ -442,9 +437,9 @@ export default function ServiceDetailPage() {
                   </div>
                   
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">Service Complete</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">{t('serviceComplete')}</h3>
                 <p className="text-gray-600">
-                  Your service is completed with quality guarantee. Leave a review to help others.
+                  {t('serviceCompleteSubtitle')}
                 </p>
               </div>
             </div>
@@ -455,9 +450,9 @@ export default function ServiceDetailPage() {
         <section id="reviews" className="scroll-mt-32">
           <div className="container-responsive">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Customer Reviews</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">{tReviews('customerReviews')}</h2>
               <p className="text-xl text-gray-600">
-                See what our customers say about this service
+                {t('discoverOurTopRatedServicesWithTheBestReviews')}
               </p>
             </div>
 
@@ -475,10 +470,10 @@ export default function ServiceDetailPage() {
                 <Card className="mt-6 shadow-lg">
                   <CardContent className="p-6 text-center">
                     <h4 className="font-semibold text-gray-900 mb-2">
-                      Share Your Experience
+                      {t('shareYourExperience')}
                     </h4>
                     <p className="text-sm text-gray-600 mb-4">
-                      Help others by reviewing this service
+                      {t('helpOthersByReviewingThisService')}
                     </p>
                     <SmartReviewButton
                       entityType="service"
@@ -496,7 +491,7 @@ export default function ServiceDetailPage() {
               <div className="lg:col-span-2">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-xl font-semibold text-gray-900">
-                    All Reviews
+                    {tReviews('customerReviews')}
                   </h3>
                   {selectedRatingFilter && (
                     <Button
@@ -504,7 +499,7 @@ export default function ServiceDetailPage() {
                       size="sm"
                       onClick={() => setSelectedRatingFilter(null)}
                     >
-                      Clear Filter
+                      {t('clearFilter')}
                     </Button>
                   )}
                 </div>
@@ -527,9 +522,9 @@ export default function ServiceDetailPage() {
         <section id="provider" className="scroll-mt-32 ">
           <div className="container-responsive py-20">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Service Provider</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('serviceProvider')}</h2>
               <p className="text-xl text-gray-600">
-                Meet the professional behind this service
+                {t('serviceProviderSubtitle')}
               </p>
             </div>
 
@@ -545,8 +540,8 @@ export default function ServiceDetailPage() {
                       <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
                         <div className="flex items-center gap-1">
                           <Star className="h-5 w-5 text-white fill-current" />
-                          <span className="font-semibold">{service?.seller?.ratingAverage || 'New'}</span>
-                          <span className="text-black/70">({service?.seller?.ratingCount || 0} reviews)</span>
+                          <span className="font-semibold">{service?.seller?.ratingAverage || t('new')}</span>
+                          <span className="text-black/70">({service?.seller?.ratingCount || 0} {t('reviews')})</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <MapPin className="h-4 w-4" />
@@ -556,7 +551,7 @@ export default function ServiceDetailPage() {
                         </div>
                       </div>
                       <p className="text-black/70">
-                        Professional service provider with years of experience in {service?.category?.name || 'services'}
+                        {t('providerSubtitle')} {service?.category?.name || t('services')}
                       </p>
                     </div>
                   </div>
@@ -564,14 +559,14 @@ export default function ServiceDetailPage() {
                 
                 <CardContent className="p-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-4">Contact Information</h4>
+                    <div className={currentLocale === 'ar' ? 'ltr' : 'rtl'}>
+                      <h4 className={`font-semibold text-gray-900 mb-4 ${currentLocale === 'ar' ? 'text-right' : 'text-left'}`}>{t('contactInformation')}</h4>
                       <div className="space-y-3">
-                        <div className="flex items-center gap-3">
+                        <div className={`flex items-center gap-3 ${currentLocale === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
                           <Phone className="h-5 w-5 text-gray-400" />
                           <span className="text-gray-700">{service?.seller?.user?.phone || 'N/A'}</span>
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className={`flex items-center gap-3 ${currentLocale === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
                           <MapPin className="h-5 w-5 text-gray-400" />
                           <span className="text-gray-700">
                             {service?.seller?.shopAddress || `${service?.seller?.area}, ${service?.seller?.city}`}
@@ -580,13 +575,13 @@ export default function ServiceDetailPage() {
                       </div>
                     </div>
                     
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-4">Quick Actions</h4>
+                    <div className={currentLocale === 'ar' ? 'text-right' : 'text-left'}>
+                      <h4 className={`font-semibold text-gray-900 mb-4 ${currentLocale === 'ar' ? 'text-right' : 'text-left'}`}>{t('quickActions')}</h4>
                       <div className="space-y-3">
-                        <Link href={`/shop/${service?.sellerId}`} className="block">
-                          <Button variant="outline" className="w-full justify-start">
-                            <Store className="h-4 w-4 mr-2" />
-                            View Shop
+                        <Link href={`/${currentLocale}/shop/${service?.sellerId}`} className="block">
+                          <Button variant="outline" className={`w-full ${currentLocale === 'ar' ? 'justify-end' : 'justify-start'}`}>
+                            <Store className={`h-4 w-4 ${currentLocale === 'ar' ? 'ml-2' : 'mr-2'}`} />
+                            {t('viewShop')}
                           </Button>
                         </Link>
                         {service?.seller?.latitude && service?.seller?.longitude && (
@@ -597,7 +592,7 @@ export default function ServiceDetailPage() {
                               name: service?.seller?.shopName || '',
                               address: service?.seller?.shopAddress || `${service?.seller?.area}, ${service?.seller?.city}`
                             }}
-                            className="w-full justify-start"
+                            className={`w-full ${currentLocale === 'ar' ? 'justify-end' : 'justify-start'}`}
                             variant="outline"
                             size="sm"
                             showText={true}
