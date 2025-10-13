@@ -142,7 +142,7 @@ export function FeaturedProducts() {
                               type="product"
                               title={product.title}
                               price={product.price}
-                            currency={product.currency}
+                              currency={product.currency}
                               image={product.images?.[0] || ''}
                               category={product.category?.name}
                               sellerName={product.seller.shopName}
@@ -154,8 +154,10 @@ export function FeaturedProducts() {
 
                       <CardContent className="pt-2">
                         <Link href={`/${currentLocale}/products/${product.id}`}>
-                          <Button variant="link" className="font-semibold p-0 text-gray-900 mb-2 line-clamp-2">
-                            {product.title}
+                          <Button variant="link" className="font-semibold p-0 text-gray-900 mb-2 block overflow-hidden text-start">
+                            <span className="line-clamp-2">
+                              {product.title}
+                            </span>
                           </Button>
                         </Link>
 

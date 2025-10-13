@@ -535,7 +535,7 @@ export default function ServiceDetailPage() {
                     <div className="w-24 h-24 bg-white/30 rounded-full flex items-center justify-center text-3xl font-bold text-black">
                       {service?.seller?.shopName?.charAt(0).toUpperCase() || 'S'}
                     </div>
-                    <div className="flex-1 text-center md:text-left">
+                    <div className="flex flex-col">
                       <h3 className="text-2xl font-bold mb-2">{service?.seller?.shopName || ''}</h3>
                       <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
                         <div className="flex items-center gap-1">
@@ -564,7 +564,7 @@ export default function ServiceDetailPage() {
                       <div className="space-y-3">
                         <div className={`flex items-center gap-3 ${currentLocale === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
                           <Phone className="h-5 w-5 text-gray-400" />
-                          <span className="text-gray-700">{service?.seller?.user?.phone || 'N/A'}</span>
+                          <span className="text-gray-700">{service?.seller.user?.phone || 'N/A'}</span>
                         </div>
                         <div className={`flex items-center gap-3 ${currentLocale === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
                           <MapPin className="h-5 w-5 text-gray-400" />
@@ -576,7 +576,7 @@ export default function ServiceDetailPage() {
                     </div>
                     
                     <div className={currentLocale === 'ar' ? 'text-right' : 'text-left'}>
-                      <h4 className={`font-semibold text-gray-900 mb-4 ${currentLocale === 'ar' ? 'text-right' : 'text-left'}`}>{t('quickActions')}</h4>
+                      <h4 className={`font-semibold text-gray-900 mb-4 text-center`}>{t('quickActions')}</h4>
                       <div className="space-y-3">
                         <Link href={`/${currentLocale}/shop/${service?.sellerId}`} className="block">
                           <Button variant="outline" className={`w-full ${currentLocale === 'ar' ? 'justify-end' : 'justify-start'}`}>

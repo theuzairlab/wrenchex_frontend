@@ -418,7 +418,7 @@
       "basedOnInternetConnection": "بناءً على اتصالك بالإنترنت"
     },
     "reviews": {
-      "writeReview": "اكتب تقييماً",
+      "reviews": "تقييمات",
       "rateYourExperience": "قيم تجربتك",
       "selectRating": "يرجى اختيار تقييم",
       "reviewTitle": "عنوان التقييم",
@@ -438,6 +438,8 @@
       "basedOnReviews": "بناءً على {count, plural, =1 {# تقييم} other {# تقييمات}}",
       "ratingBreakdown": "تفصيل التقييمات",
       "all": "الكل",
+      "shareYourExperienceWith": "شارك تجربتك مع {entityName}",
+      "writeReview": "اكتب تقييماً",
       "ratingLabels": {
         "veryPoor": "ضعيف جداً",
         "poor": "ضعيف",
@@ -562,7 +564,9 @@
       "beFirstToReview": "كن أول من يقيم هذا المتجر",
       "loading": "جاري التحميل...",
       "error": "خطأ",
-      "tryAgain": "حاول مرة أخرى"
+      "tryAgain": "حاول مرة أخرى",
+      "month": "شهر",
+      "getDirectionsAddressOnly": "الاتجاهات (العنوان فقط)"
     },
     "whyChooseUs": {
       "bestAutoWorkshop": "أفضل ورشة سيارات في منطقتك",

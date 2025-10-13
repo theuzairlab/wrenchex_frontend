@@ -444,6 +444,7 @@
       "basedOnInternetConnection": "Based on your internet connection"
     },
     "reviews": {
+      "reviews": "Reviews",
       "writeReview": "Write a Review",
       "rateYourExperience": "Rate your experience",
       "selectRating": "Please select a rating",
@@ -464,6 +465,7 @@
       "basedOnReviews": "Based on {count, plural, =1 {# review} other {# reviews}}",
       "ratingBreakdown": "Rating Breakdown",
       "all": "All",
+      "shareYourExperienceWith": "Share your experience with {entityName}",
       "ratingLabels": {
         "veryPoor": "Very Poor",
         "poor": "Poor",
@@ -588,7 +590,9 @@
       "beFirstToReview": "Be the first to review this shop",
       "loading": "Loading...",
       "error": "Error",
-      "tryAgain": "Try Again"
+      "tryAgain": "Try Again",
+      "month": "Month",
+      "getDirectionsAddressOnly": "Get Directions (Address Only)"
     },
     "whyChooseUs": {
       "bestAutoWorkshop": "Best Auto Workshop In Your Area",

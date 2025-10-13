@@ -46,7 +46,7 @@ interface ShopPageData {
 }
 
 export default function ShopPage() {
-  const t = useTranslations('shopDetail');
+  const t = useTranslations('common.shopDetail');
   const tReviews = useTranslations('common.reviews');
   const params = useParams();
   const sellerId = params.id as string;
@@ -205,7 +205,7 @@ export default function ShopPage() {
                         ))}
                       </div>
                       <span className="text-sm font-medium">{stats.totalRating.toFixed(1)}</span>
-                      <span className="text-sm text-gray-600">({stats.totalReviews} {t('reviews')})</span>
+                      <span className="text-sm text-gray-600">({stats.totalReviews} {tReviews('reviews')})</span>
                     </div>
                   )}
                   
@@ -259,7 +259,7 @@ export default function ShopPage() {
                   }}
                 >
                   <Navigation className="h-4 w-4 mr-2" />
-                  Get Directions (Address Only)
+                  {t('getDirectionsAddressOnly')}
                 </Button>
               )}
               
@@ -276,7 +276,7 @@ export default function ShopPage() {
                 }}
               >
                 <Phone className="h-4 w-4" />
-                Contact Shop
+                {t('contactShop')}
               </Button>
             </div>
           </div>
@@ -289,11 +289,11 @@ export default function ShopPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
             <div className="text-center">
               <div className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalProducts}</div>
-              <div className="text-xs sm:text-sm text-gray-600">Products</div>
+              <div className="text-xs sm:text-sm text-gray-600">{t('products')}</div>
             </div>
             <div className="text-center">
               <div className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalServices}</div>
-              <div className="text-xs sm:text-sm text-gray-600">Services</div>
+              <div className="text-xs sm:text-sm text-gray-600">{t('services')}</div>
             </div>
             <div className="text-center">
               <div className="text-lg sm:text-2xl font-bold text-gray-900">{stats.responseTime}</div>

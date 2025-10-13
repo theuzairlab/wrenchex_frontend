@@ -94,25 +94,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           )}
         </div>
 
-        {/* Rating */}
-        {product.ratingAverage && product.ratingCount > 0 && (
-          <div className="flex items-center space-x-1 mb-2">
-            <div className="flex">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className={cn(
-                    "h-3 w-3",
-                    i < Math.floor(product.ratingAverage!)
-                      ? "text-yellow-400 fill-current"
-                      : "text-gray-300"
-                  )}
-                />
-              ))}
-            </div>
-            <span className="text-xs text-gray-600">({product.ratingCount})</span>
-          </div>
-        )}
+        
 
         {/* Seller & Distance */}
         <div className="mb-3">
@@ -121,12 +103,12 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </div>
           
           {/* Shop Address */}
-          {(product.seller.shopAddress || product.seller.area || product.seller.city) && (
+          {/* {(product.seller.shopAddress || product.seller.area || product.seller.city) && (
             <div className="text-xs text-gray-500 mb-1 line-clamp-1">
               <MapPin className="h-3 w-3 inline mr-1" />
               {product.seller.shopAddress || `${product.seller.area}, ${product.seller.city}`}
             </div>
-          )}
+          )} */}
           
           <div className="flex items-center justify-between">
             <DistanceDisplay
