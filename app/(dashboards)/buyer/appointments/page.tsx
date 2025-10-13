@@ -81,27 +81,27 @@ export default function BuyerAppointmentsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6 px-4 sm:px-0">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <Calendar className="text-blue-600" />
-              {t('myAppointments')}
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+              <span className="text-lg sm:text-2xl">{t('myAppointments')}</span>
             </h1>
-            <p className="text-gray-600">
+            <p className="text-sm sm:text-base text-gray-600">
               {t('manageAppointments')}
             </p>
           </div>
           <Link href={`/${currentLocale}/services`}>
-            <Button leftIcon={<Plus className="h-4 w-4" />}>
-              {t('bookService')}
+            <Button leftIcon={<Plus className="h-4 w-4" />} className="w-full sm:w-auto">
+              <span className="text-sm sm:text-base">{t('bookService')}</span>
             </Button>
           </Link>
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
+        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-full sm:w-fit overflow-x-auto">
           {[
             { key: 'upcoming', label: t('upcoming') },
             { key: 'past', label: t('past') },
@@ -110,10 +110,11 @@ export default function BuyerAppointmentsPage() {
             <button
               key={tab.key}
               onClick={() => setFilter(tab.key as any)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${filter === tab.key
+              className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
+                filter === tab.key
                   ? 'bg-white text-blue-600 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
-                }`}
+              }`}
             >
               {tab.label}
             </button>
@@ -122,26 +123,28 @@ export default function BuyerAppointmentsPage() {
 
         {/* Appointments List */}
         {isLoading ? (
-          <div className="text-center py-12">
-            <div className="text-gray-500">{t('loadingAppointments')}</div>
+          <div className="text-center py-8 sm:py-12">
+            <div className="text-sm sm:text-base text-gray-500">{t('loadingAppointments')}</div>
           </div>
         ) : filteredAppointments.length === 0 ? (
           <Card>
-            <CardContent className="text-center py-12">
-              <Calendar className="mx-auto mb-4 text-gray-400" size={48} />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <CardContent className="text-center py-8 sm:py-12 p-4 sm:p-6">
+              <Calendar className="mx-auto mb-4 text-gray-400 h-10 w-10 sm:h-12 sm:w-12" />
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
                 {t(`noAppointments${filter === 'all' ? 'All' : filter.charAt(0).toUpperCase() + filter.slice(1)}`)}
               </h3>
-              <p className="text-gray-600 mb-4">
+              <p className="text-sm sm:text-base text-gray-600 mb-4">
                 {t(`noAppointmentsDescription${filter === 'all' ? 'All' : filter.charAt(0).toUpperCase() + filter.slice(1)}`)}
               </p>
               <Link href={`/${currentLocale}/services`}>
-                <Button>{t('bookFirstService')}</Button>
+                <Button className="w-full sm:w-auto">
+                  <span className="text-sm sm:text-base">{t('bookFirstService')}</span>
+                </Button>
               </Link>
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {filteredAppointments.map((appointment) => (
               <AppointmentCard
                 key={appointment.id}

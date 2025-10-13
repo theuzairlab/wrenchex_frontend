@@ -537,14 +537,14 @@ export function InteractiveMap({
         
         <div style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;">
           <a href="/${localePrefix}/shop/${seller.id}" target="_blank" style="display: inline-block; background: #3B82F6; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 500;">
-            🏪 {t('viewShop')}
+            🏪 ${t('viewShop')}
           </a>
           <button onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${shop.position.lat},${shop.position.lng}', '_blank')" style="background: #10B981; color: white; padding: 6px 12px; border-radius: 6px; border: none; font-size: 12px; font-weight: 500; cursor: pointer;">
-            🧭 {t('directions')}
+            🧭 ${t('directions')}
           </button>
           ${!location ? `
             <button onclick="window.parent.postMessage({type: 'REQUEST_LOCATION'}, '*')" style="background: #F59E0B; color: white; padding: 6px 12px; border-radius: 6px; border: none; font-size: 12px; font-weight: 500; cursor: pointer;">
-              📍 {t('enableLocation')}
+              📍 ${t('enableLocation')}
             </button>
           ` : ''}
         </div>

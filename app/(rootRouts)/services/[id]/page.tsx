@@ -136,25 +136,25 @@ export default function ServiceDetailPage() {
         <div className="absolute inset-0"></div>
         <div className="absolute inset-0 "></div>
         
-        <div className="relative pt-20 pb-16">
-          <div className="container-responsive">
-            <div className="flex items-center gap-4 mb-8">
+        <div className="relative pt-16 sm:pt-20 pb-8 sm:pb-16">
+          <div className="container-responsive px-4 sm:px-0">
+            <div className="flex items-center gap-4 mb-6 sm:mb-8">
               <Button
                 variant="ghost"
                 onClick={() => router.back()}
-                className="hover:bg-white/20"
+                className="hover:bg-white/20 text-sm sm:text-base"
               >
-                <ArrowLeft className="h-5 w-5 mr-2" />
-                {t('browseAllServices')}
+                <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                <span className="text-xs sm:text-base">{t('browseAllServices')}</span>
               </Button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12">
              
 
               {/* Service Image */}
               <div className="relative">
-                <div className="relative aspect-square rounded-3xl overflow-hidden shadow-2xl">
+                <div className="relative aspect-square rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl">
                   <Image
                     src={primaryImage}
                     alt={service?.title || t('service')}
@@ -168,15 +168,15 @@ export default function ServiceDetailPage() {
                     <>
                       <button
                         onClick={goToPreviousImage}
-                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full backdrop-blur-sm transition-all"
+                        className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-2 sm:p-3 rounded-full backdrop-blur-sm transition-all"
                       >
-                        <ChevronLeft className="h-6 w-6" />
+                        <ChevronLeft className="h-4 w-4 sm:h-6 sm:w-6" />
                       </button>
                       <button
                         onClick={goToNextImage}
-                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full backdrop-blur-sm transition-all"
+                        className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-2 sm:p-3 rounded-full backdrop-blur-sm transition-all"
                       >
-                        <ChevronRight className="h-6 w-6" />
+                        <ChevronRight className="h-4 w-4 sm:h-6 sm:w-6" />
                       </button>
                     </>
                   )}
@@ -197,10 +197,10 @@ export default function ServiceDetailPage() {
 
                   {/* Mobile Service Badge */}
                   {service?.isMobileService && (
-                    <div className="absolute bottom-4 left-4">
-                      <div className="bg-green-500 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2">
-                        <MapPin className="h-4 w-4" />
-                        {t('mobileBadge')}
+                    <div className="absolute bottom-2 sm:bottom-4 left-2 sm:left-4">
+                      <div className="bg-green-500 text-white px-2 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2">
+                        <MapPin className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <span className="text-xs sm:text-sm">{t('mobileBadge')}</span>
                       </div>
                     </div>
                   )}
@@ -208,12 +208,12 @@ export default function ServiceDetailPage() {
 
                 {/* Image Thumbnails */}
                 {images.length > 1 && (
-                  <div className="flex gap-3 mt-4 justify-center">
+                  <div className="flex gap-2 sm:gap-3 mt-3 sm:mt-4 justify-center">
                     {images.slice(0, 4).map((image, index) => (
                       <button
                         key={index}
                         onClick={() => setSelectedImageIndex(index)}
-                        className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                        className={`w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden border-2 transition-all ${
                           selectedImageIndex === index
                             ? "border-wrench-accent scale-110"
                             : "border-white/30 hover:border-white/60"
@@ -234,64 +234,64 @@ export default function ServiceDetailPage() {
               </div>
 
                {/* Service Info */}
-               <div className="space-y-8">
+               <div className="space-y-6 sm:space-y-8">
                 <div>
-                  <div className="flex items-center gap-3 mb-4">
+                  <div className="flex items-center gap-3 mb-3 sm:mb-4">
                     <div className="p-2 bg-white/20 rounded-lg">
-                      <Wrench className="h-6 w-6 " />
+                      <Wrench className="h-5 w-5 sm:h-6 sm:w-6" />
                     </div>
-                    <span className=" font-medium">{service?.category?.name || ''}</span>
+                    <span className="text-sm sm:text-base font-medium">{service?.category?.name || ''}</span>
                   </div>
                   
-                  <h1 className="text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+                  <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6 leading-tight">
                     {service?.title || ''}
                   </h1>
                 </div>
 
                  {/* Service Stats */}
-                 <div className="grid grid-cols-3 gap-6">
+                 <div className="grid grid-cols-3 gap-4 sm:gap-6">
                    <div className="text-center">
-                     <div className="text-3xl font-bold  mb-1">{formatPrice(service?.price || 0, service?.currency || 'AED', currentLocale)}</div>
-                    <div className=" text-sm">{t('startingPrice')}</div>
+                     <div className="text-xl sm:text-3xl font-bold mb-1">{formatPrice(service?.price || 0, service?.currency || 'AED', currentLocale)}</div>
+                    <div className="text-xs sm:text-sm">{t('startingPrice')}</div>
                    </div>
                    <div className="text-center">
-                     <div className="text-3xl font-bold  mb-1">{formatDuration(service?.durationMinutes || 0)}</div>
-                     <div className=" text-sm">{t('duration')}</div>
+                     <div className="text-xl sm:text-3xl font-bold mb-1">{formatDuration(service?.durationMinutes || 0)}</div>
+                     <div className="text-xs sm:text-sm">{t('duration')}</div>
                    </div>
                    <div className="text-center">
                      <div className="flex items-center justify-center gap-1 mb-1">
-                       <Star className="h-8 w-8 text-wrench-accent fill-current" />
-                      <span className="text-3xl font-bold ">{service?.ratingAverage || t('new')}</span>
+                       <Star className="h-5 w-5 sm:h-8 sm:w-8 text-wrench-accent fill-current" />
+                      <span className="text-xl sm:text-3xl font-bold">{service?.ratingAverage || t('new')}</span>
                      </div>
-                     <div className=" text-sm">{t('rating')}</div>
+                     <div className="text-xs sm:text-sm">{t('rating')}</div>
                    </div>
                  </div>
 
                  {/* Booking Section */}
-                 <div className="mt-8">
+                 <div className="mt-6 sm:mt-8">
                    <Card className="shadow-lg border-0 bg-white">
-                     <CardHeader className="text-center pb-4">
-                       <div className="text-4xl font-bold mb-2 text-black">{formatPrice(service?.price || 0, service?.currency || 'AED', currentLocale)}</div>
-                     <div className="text-gray-600">{t('perService')}</div>
+                     <CardHeader className="text-center pb-3 sm:pb-4 p-4 sm:p-6">
+                       <div className="text-2xl sm:text-4xl font-bold mb-2 text-black">{formatPrice(service?.price || 0, service?.currency || 'AED', currentLocale)}</div>
+                     <div className="text-sm sm:text-base text-gray-600">{t('perService')}</div>
                      </CardHeader>
-                     <CardContent className="space-y-4">
+                     <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
                        <Button
                          onClick={() => setShowBookingModal(true)}
-                         className="w-full bg-wrench-accent hover:bg-wrench-accent/90 text-black font-semibold py-4 text-lg"
+                         className="w-full bg-wrench-accent hover:bg-wrench-accent/90 text-black font-semibold py-3 sm:py-4 text-base sm:text-lg"
                          size="lg"
                        >
-                         <Calendar className="h-5 w-5 mr-2" />
-                         {t('bookNow')}
+                         <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                         <span className="text-sm sm:text-lg">{t('bookNow')}</span>
                        </Button>
                        
-                       <div className="text-center text-gray-600 text-sm">
+                       <div className="text-center text-gray-600 text-xs sm:text-sm">
                          <div className="flex items-center justify-center gap-2 mb-2">
-                           <CheckCircle className="h-4 w-4" />
-                          <span>{t('instantConfirmation')}</span>
+                           <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <span className="text-xs sm:text-sm">{t('instantConfirmation')}</span>
                          </div>
                          <div className="flex items-center justify-center gap-2">
-                           <Shield className="h-4 w-4" />
-                          <span>{t('secureBooking')}</span>
+                           <Shield className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <span className="text-xs sm:text-sm">{t('secureBooking')}</span>
                          </div>
                        </div>
                      </CardContent>
@@ -305,9 +305,9 @@ export default function ServiceDetailPage() {
       </div>
 
       {/* Sticky Navigation */}
-      <div className="sticky top-20 w-auto z-40 bg-wrench-bg-primary/60 backdrop-blur-sm border-b border-gray-200 shadow-sm">
-        <div className="container-responsive">
-          <nav className="flex gap-6">
+      <div className="sticky top-16 sm:top-20 w-auto z-40 bg-wrench-bg-primary/60 backdrop-blur-sm border-b border-gray-200 shadow-sm">
+        <div className="container-responsive px-4 sm:px-0">
+          <nav className="flex gap-2 sm:gap-6 overflow-x-auto">
             {[
               { id: 'overview', label: t('overview'), icon: Zap },
               { id: 'process', label: t('howItWorks'), icon: Play },
@@ -317,14 +317,14 @@ export default function ServiceDetailPage() {
               <button
                 key={tab.id}
                 onClick={() => scrollToSection(tab.id)}
-                className={`flex items-center gap-2 py-4 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                className={`flex items-center gap-1 sm:gap-2 py-3 sm:py-4 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap px-2 sm:px-0 ${
                   activeSection === tab.id
                     ? 'border-wrench-accent text-wrench-accent'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                <tab.icon className="h-4 w-4" />
-                <span>{tab.label}</span>
+                <tab.icon className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="text-xs sm:text-sm">{tab.label}</span>
               </button>
             ))}
           </nav>
@@ -332,57 +332,57 @@ export default function ServiceDetailPage() {
       </div>
 
       {/* Content Sections */}
-      <div className="space-y-20 py-16">
+      <div className="space-y-12 sm:space-y-20 py-8 sm:py-16">
         {/* Overview Section */}
-        <section id="overview" className="scroll-mt-32">
-          <div className="container-responsive">
-            <div className="max-w-4xl mx-auto space-y-8">
+        <section id="overview" className="scroll-mt-24 sm:scroll-mt-32">
+          <div className="container-responsive px-4 sm:px-0">
+            <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
                 <div>
-                  <h2 className="text-3xl font-bold text-gray-900 mb-6">{t('serviceOverview')}</h2>
-                  <div className="bg-white rounded-2xl p-8 shadow-lg">
-                    <p className="text-gray-700 leading-relaxed text-lg mb-6">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-6">{t('serviceOverview')}</h2>
+                  <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-8 shadow-lg">
+                    <p className="text-gray-700 leading-relaxed text-base sm:text-lg mb-4 sm:mb-6">
                       {service?.description || ''}
                     </p>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-xl">
-                        <div className="p-3 bg-blue-100 rounded-lg">
-                          <Clock className="h-6 w-6 text-blue-600" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                      <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-blue-50 rounded-lg sm:rounded-xl">
+                        <div className="p-2 sm:p-3 bg-blue-100 rounded-lg">
+                          <Clock className="h-4 w-4 sm:h-6 sm:w-6 text-blue-600" />
                         </div>
                         <div>
-                          <div className="font-semibold text-gray-900">{t('duration')}</div>
-                          <div className="text-gray-600">{formatDuration(service?.durationMinutes || 0)}</div>
+                          <div className="font-semibold text-gray-900 text-sm sm:text-base">{t('duration')}</div>
+                          <div className="text-gray-600 text-xs sm:text-sm">{formatDuration(service?.durationMinutes || 0)}</div>
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-4 p-4 bg-green-50 rounded-xl">
-                        <div className="p-3 bg-green-100 rounded-lg">
-                          <Award className="h-6 w-6 text-green-600" />
+                      <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-green-50 rounded-lg sm:rounded-xl">
+                        <div className="p-2 sm:p-3 bg-green-100 rounded-lg">
+                          <Award className="h-4 w-4 sm:h-6 sm:w-6 text-green-600" />
                         </div>
                         <div>
-                          <div className="font-semibold text-gray-900">{t('quality')}</div>
-                          <div className="text-gray-600">{t('professionalService')}</div>
+                          <div className="font-semibold text-gray-900 text-sm sm:text-base">{t('quality')}</div>
+                          <div className="text-gray-600 text-xs sm:text-sm">{t('professionalService')}</div>
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-4 p-4 bg-purple-50 rounded-xl">
-                        <div className="p-3 bg-purple-100 rounded-lg">
-                          <Shield className="h-6 w-6 text-purple-600" />
+                      <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-purple-50 rounded-lg sm:rounded-xl">
+                        <div className="p-2 sm:p-3 bg-purple-100 rounded-lg">
+                          <Shield className="h-4 w-4 sm:h-6 sm:w-6 text-purple-600" />
                         </div>
                         <div>
-                          <div className="font-semibold text-gray-900">{t('guarantee')}</div>
-                          <div className="text-gray-600">{t('satisfaction')}</div>
+                          <div className="font-semibold text-gray-900 text-sm sm:text-base">{t('guarantee')}</div>
+                          <div className="text-gray-600 text-xs sm:text-sm">{t('satisfaction')}</div>
                         </div>
                       </div>
                       
                       {service?.isMobileService && (
-                        <div className="flex items-center gap-4 p-4 bg-orange-50 rounded-xl">
-                          <div className="p-3 bg-orange-100 rounded-lg">
-                            <MapPin className="h-6 w-6 text-orange-600" />
+                        <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-orange-50 rounded-lg sm:rounded-xl">
+                          <div className="p-2 sm:p-3 bg-orange-100 rounded-lg">
+                            <MapPin className="h-4 w-4 sm:h-6 sm:w-6 text-orange-600" />
                           </div>
                           <div>
-                            <div className="font-semibold text-gray-900">{t('location')}</div>
-                            <div className="text-gray-600">{t('mobileBadge')}</div>
+                            <div className="font-semibold text-gray-900 text-sm sm:text-base">{t('location')}</div>
+                            <div className="text-gray-600 text-xs sm:text-sm">{t('mobileBadge')}</div>
                           </div>
                         </div>
                       )}

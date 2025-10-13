@@ -139,9 +139,6 @@ export function LocationFilter({
               </button>
             )}
           </div>
-          <Button type="submit" variant="outline" size="sm">
-            {t('apply')}
-          </Button>
         </form>
       </div>
 

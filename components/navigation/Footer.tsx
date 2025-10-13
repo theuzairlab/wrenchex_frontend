@@ -52,8 +52,8 @@ export function Footer() {
 
             {/* Quick Links */}
             <div>
-              <h3 className={`font-semibold mb-6 ${currentLocale === 'ar' ? 'text-right' : 'text-left'}`}>{t('quickLinks')}</h3>
-              <ul className={`space-y-4 text-gray-300 ${currentLocale === 'ar' ? 'text-right' : 'text-left'}`}>
+              <h3 className={`font-semibold mb-6 `}>{t('quickLinks')}</h3>
+              <ul className={`space-y-4 text-gray-300 `}>
                 <li><Link href={`/${currentLocale}/about`} className="hover:text-wrench-accent transition-colors block py-2 px-1">{t('aboutUs')}</Link></li>
                 <li><Link href={`/${currentLocale}/how-it-works`} className="hover:text-wrench-accent transition-colors block py-2 px-1">{t('howItWorks')}</Link></li>
                 <li><Link href={`/${currentLocale}/pricing`} className="hover:text-wrench-accent transition-colors block py-2 px-1">{t('pricing')}</Link></li>

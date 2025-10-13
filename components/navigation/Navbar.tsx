@@ -446,6 +446,8 @@ const Navbar = ({ className }: NavbarProps) => {
               <Search className="h-4 w-4" />
             </Button>
 
+            <LanguageSwitcher />
+
             {/* Mobile Menu Toggle */}
             <Button
               variant="ghost"

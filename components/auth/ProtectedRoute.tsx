@@ -18,16 +18,31 @@ export function ProtectedRoute({
   requireAuth = true,
   redirectTo 
 }: ProtectedRouteProps) {
-  const { user, isAuthenticated, isLoading } = useAuthStore();
+  const { user, isAuthenticated, isLoading, refreshAuth } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
+  const [isValidatingToken, setIsValidatingToken] = useState(false);
 
   useEffect(() => {
     // Don't redirect while loading
-    if (isLoading) return;
+    if (isLoading || isValidatingToken) return;
+
+    // If we have a token but no user data, try to refresh auth
+    if (requireAuth && !isAuthenticated && !user) {
+      const token = localStorage.getItem('token');
+      if (token) {
+        console.log('ProtectedRoute: Token found but no user data, refreshing auth');
+        setIsValidatingToken(true);
+        refreshAuth().finally(() => {
+          setIsValidatingToken(false);
+        });
+        return;
+      }
+    }
 
     // Check if authentication is required
     if (requireAuth && !isAuthenticated) {
+      console.log('ProtectedRoute: User not authenticated, redirecting to home');
       // Redirect to home page since auth is now handled via popups
       router.push(redirectTo || '/');
       return;
@@ -40,21 +55,24 @@ export function ProtectedRoute({
         : user.role === requiredRole;
 
       if (!hasAccess) {
+        console.log('ProtectedRoute: User does not have required role, redirecting');
         // Redirect to the general dashboard - it handles role-based content
         const defaultRedirect = '/dashboard';
         router.push(redirectTo || defaultRedirect);
         return;
       }
     }
-  }, [user, isAuthenticated, isLoading, requiredRole, requireAuth, router, pathname, redirectTo]);
+  }, [user, isAuthenticated, isLoading, isValidatingToken, requiredRole, requireAuth, router, pathname, redirectTo, refreshAuth]);
 
-  // Show loading while checking authentication
-  if (isLoading) {
+  // Show loading while checking authentication or validating token
+  if (isLoading || isValidatingToken) {
     return (
       <div className="min-h-screen bg-wrench-bg-primary flex items-center justify-center">
         <div className="flex flex-col items-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#D4F142]"></div>
-          <p className="text-gray-600">Checking permissions...</p>
+          <p className="text-gray-600">
+            {isValidatingToken ? 'Validating session...' : 'Checking permissions...'}
+          </p>
         </div>
       </div>
     );

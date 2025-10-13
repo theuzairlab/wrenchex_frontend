@@ -178,7 +178,7 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
               <>
                 <button
                   onClick={goToPreviousImage}
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-50 group-hover:opacity-100 transition-opacity duration-200"
                   aria-label={t('aria.scrollLeft')}
                 >
                   <ChevronLeft className="h-6 w-6" />
@@ -186,7 +186,7 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
 
                 <button
                   onClick={goToNextImage}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-50 group-hover:opacity-100 transition-opacity duration-200"
                   aria-label={t('aria.scrollRight')}
                 >
                   <ChevronRight className="h-6 w-6" />
@@ -289,22 +289,6 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
           </div>
 
 
-          {/* Condition Badge */}
-          {/* {product.condition && (
-            <div className="flex items-center space-x-2">
-              <Package className="h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-600">Condition:</span>
-              <span className={cn(
-                "px-3 py-1 rounded-full text-sm font-medium",
-                product.condition === 'NEW' ? 'bg-green-100 text-green-700' :
-                product.condition === 'USED' ? 'bg-yellow-100 text-yellow-700' :
-                'bg-blue-100 text-blue-700'
-              )}>
-                {product.condition}
-              </span>
-            </div>
-          )} */}
-
           {/* Quantity */}
           {isInStock && (
             <div className="space-y-4">
@@ -318,21 +302,24 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
                   className="w-full sm:flex-1"
                 />
 
-                <WishlistIcon
-                  id={product.id}
-                  type="product"
-                  title={product.title}
-                  price={product.price}
-                  image={primaryImage}
-                  category={product.category?.name}
-                  sellerName={product.seller.shopName}
-                  size="lg"
-                  className="static w-12 h-12 flex items-center justify-center self-center sm:self-auto"
-                />
+                <div className="flex items-center justify-center space-x-2">
 
-                <Button variant="outline" size="lg" onClick={handleShare} className="w-full sm:w-auto">
-                  <Share2 className="h-5 w-5" />
-                </Button>
+                  <WishlistIcon
+                    id={product.id}
+                    type="product"
+                    title={product.title}
+                    price={product.price}
+                    image={primaryImage}
+                    category={product.category?.name}
+                    sellerName={product.seller.shopName}
+                    size="lg"
+                    className="static w-12 h-12 flex items-center justify-center self-center sm:self-auto"
+                  />
+
+                  <Button variant="outline" size="lg" onClick={handleShare} className="">
+                    <Share2 className="h-5 w-5" />
+                  </Button>
+                </div>
               </div>
             </div>
           )}
@@ -514,7 +501,7 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
         {/* Buying & Selling Policy */}
         <section id="shipping" className="scroll-mt-32">
           <div className="">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">{tProduct('buyingSellingPolicy')}</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">{tProduct('buyingSellingPolicy')}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* How It Works */}
               <div className="bg-gray-50 p-6 rounded-lg">

@@ -188,7 +188,9 @@
       "viewAllProducts": "View All Products",
       "topRatedProducts": "Top Rated Products",
       "productBadge": "Product",
-      "paginationSummary": "Showing {start}-{end} of {total} products"
+      "paginationSummary": "Showing {start}-{end} of {total} products",
+      "noResults": "No products found",
+      "tryAdjusting": "Try adjusting your search criteria or location"
     },
     "aria": {
       "scrollLeft": "Scroll left",

@@ -315,35 +315,37 @@ export default function AdminCategoriesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 px-4 sm:px-0">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('categoryManagement')}</h1>
-          <p className="text-gray-600">{t('createEditAndManageProductCategories')}</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{t('categoryManagement')}</h1>
+          <p className="text-sm sm:text-base text-gray-600">{t('createEditAndManageProductCategories')}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Button 
             onClick={fetchCategories} 
             variant="outline" 
             leftIcon={<RefreshCw className="h-4 w-4" />}
             disabled={loading}
+            className="w-full sm:w-auto"
           >
-            {t('refresh')}
+            <span className="text-sm sm:text-base">{t('refresh')}</span>
           </Button>
           <Button 
             onClick={() => setShowCreateModal(true)} 
             variant="primary" 
             leftIcon={<Plus className="h-4 w-4" />}
+            className="w-full sm:w-auto"
           >
-            {t('addCategory')}
+            <span className="text-sm sm:text-base">{t('addCategory')}</span>
           </Button>
         </div>
       </div>
 
       {/* Search */}
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="p-4 sm:p-6">
           <div className="max-w-md">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               {t('searchCategories')}
@@ -353,6 +355,7 @@ export default function AdminCategoriesPage() {
               placeholder={t('searchPlaceholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              className="text-sm sm:text-base"
             />
           </div>
         </CardContent>
@@ -360,13 +363,13 @@ export default function AdminCategoriesPage() {
 
       {/* Categories List */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Tag className="h-5 w-5" />
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Tag className="h-4 w-4 sm:h-5 sm:w-5" />
             {t('categories', { count: filteredCategories.length })}
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-6">
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <div className="flex flex-col items-center space-y-2">
@@ -391,29 +394,31 @@ export default function AdminCategoriesPage() {
               {paginatedCategories.map((category) => (
                 <div
                   key={category.id}
-                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                  <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-medium text-gray-900">{category.name}</h3>
-                        {getStatusBadge(category.isActive)}
-                        {category.parent && (
-                          <Badge className="bg-blue-100 text-blue-800">
-                            {t('subcategoryOf', { parentName: category.parent.name })}
-                          </Badge>
-                        )}
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                        <h3 className="font-medium text-gray-900 text-sm sm:text-base break-words">{category.name}</h3>
+                        <div className="flex flex-wrap gap-2">
+                          {getStatusBadge(category.isActive)}
+                          {category.parent && (
+                            <Badge className="bg-blue-100 text-blue-800 text-xs">
+                              {t('subcategoryOf', { parentName: category.parent.name })}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                       
                       {category.description && (
-                        <p className="text-sm text-gray-600 mb-3">
+                        <p className="text-xs sm:text-sm text-gray-600 mb-3 break-words">
                           {category.description}
                         </p>
                       )}
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 text-xs sm:text-sm">
                         <div className="flex items-center gap-2">
-                          <FolderOpen className="h-4 w-4 text-gray-500" />
+                          <FolderOpen className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500 flex-shrink-0" />
                           <div>
                             <p className="font-medium text-gray-700">{t('products')}</p>
                             <p className="text-gray-600">{t('items', { count: category.productCount || 0 })}</p>
@@ -422,7 +427,7 @@ export default function AdminCategoriesPage() {
                         
                         {category.imageUrl && (
                           <div className="flex items-center gap-2">
-                            <Image className="h-4 w-4 text-gray-500" />
+                            <Image className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500 flex-shrink-0" />
                             <div>
                               <p className="font-medium text-gray-700">{t('image')}</p>
                               <p className="text-gray-600">{t('hasImage')}</p>
@@ -431,7 +436,7 @@ export default function AdminCategoriesPage() {
                         )}
                         
                         <div className="flex items-center gap-2">
-                          <Tag className="h-4 w-4 text-gray-500" />
+                          <Tag className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500 flex-shrink-0" />
                           <div>
                             <p className="font-medium text-gray-700">{t('created')}</p>
                             <p className="text-gray-600">{formatDate(category.createdAt)}</p>
@@ -440,24 +445,25 @@ export default function AdminCategoriesPage() {
                       </div>
                     </div>
                     
-                    <div className="flex flex-col gap-2 min-w-fit">
+                    <div className="flex flex-col sm:flex-row xl:flex-col gap-2 min-w-fit">
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        leftIcon={<Edit className="h-4 w-4" />}
+                        leftIcon={<Edit className="h-3 w-3 sm:h-4 sm:w-4" />}
                         onClick={() => openEditModal(category)}
+                        className="w-full sm:w-auto"
                       >
-                        {t('edit')}
+                        <span className="text-xs sm:text-sm">{t('edit')}</span>
                       </Button>
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        leftIcon={<Trash2 className="h-4 w-4" />}
+                        leftIcon={<Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />}
                         onClick={() => handleDeleteCategory(category.id)}
                         disabled={deletingCategory === category.id}
-                        className="text-red-600 border-red-200 hover:bg-red-50"
+                        className="text-red-600 border-red-200 hover:bg-red-50 w-full sm:w-auto"
                       >
-                        {deletingCategory === category.id ? t('deleting') : t('delete')}
+                        <span className="text-xs sm:text-sm">{deletingCategory === category.id ? t('deleting') : t('delete')}</span>
                       </Button>
                     </div>
                   </div>
@@ -472,8 +478,8 @@ export default function AdminCategoriesPage() {
       {pagination.pages > 1 && (
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-xs sm:text-sm text-gray-600 text-center sm:text-left">
                 {t('showingResults', { 
                   start: ((currentPage - 1) * pagination.limit) + 1,
                   end: Math.min(currentPage * pagination.limit, filteredCategories.length),
@@ -487,12 +493,13 @@ export default function AdminCategoriesPage() {
                   size="sm"
                   onClick={() => setCurrentPage(currentPage - 1)}
                   disabled={currentPage === 1}
+                  className="text-xs sm:text-sm"
                 >
-                  <ChevronLeft className="h-4 w-4" />
-                  {t('previous')}
+                  <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">{t('previous')}</span>
                 </Button>
                 
-                <span className="text-sm text-gray-600">
+                <span className="text-xs sm:text-sm text-gray-600">
                   {t('pageOf', { current: currentPage, total: pagination.pages })}
                 </span>
                 
@@ -501,9 +508,10 @@ export default function AdminCategoriesPage() {
                   size="sm"
                   onClick={() => setCurrentPage(currentPage + 1)}
                   disabled={currentPage === pagination.pages}
+                  className="text-xs sm:text-sm"
                 >
-                  {t('next')}
-                  <ChevronRight className="h-4 w-4" />
+                  <span className="hidden sm:inline">{t('next')}</span>
+                  <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
               </div>
             </div>
@@ -513,8 +521,8 @@ export default function AdminCategoriesPage() {
 
       {/* Create Category Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold mb-4">{t('createNewCategory')}</h3>
             <form onSubmit={handleCreateCategory} className="space-y-4">
               <div>
@@ -610,8 +618,8 @@ export default function AdminCategoriesPage() {
 
       {/* Edit Category Modal */}
       {showEditModal && editingCategory && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold mb-4">{t('editCategory')}</h3>
             <form onSubmit={handleEditCategory} className="space-y-4">
               <div>

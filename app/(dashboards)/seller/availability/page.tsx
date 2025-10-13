@@ -104,22 +104,22 @@ export default function SellerAvailabilityPage() {
   }
 
   return (
-      <div className="space-y-8">
+      <div className="space-y-4 sm:space-y-8 px-4 sm:px-0">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-xl sm:text-3xl font-bold text-gray-900">
             {t('availabilityManagement')}
           </h1>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-sm sm:text-base text-gray-600">
             {t('manageWorkingHoursDescription')}
           </p>
         </div>
 
         {/* Tab Navigation */}
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="border-b border-gray-200">
-              <nav className="-mb-px flex space-x-8">
+              <nav className="-mb-px flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-8">
                 <button
                   onClick={() => setActiveTab('schedule')}
                   className={`py-2 px-1 border-b-2 font-medium text-sm ${
@@ -128,9 +128,9 @@ export default function SellerAvailabilityPage() {
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center sm:justify-start gap-2">
                     <Clock className="h-4 w-4" />
-                    {t('weeklySchedule')}
+                    <span className="text-xs sm:text-sm">{t('weeklySchedule')}</span>
                   </div>
                 </button>
                 <button
@@ -141,9 +141,9 @@ export default function SellerAvailabilityPage() {
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center sm:justify-start gap-2">
                     <Plus className="h-4 w-4" />
-                    {t('timeOff')}
+                    <span className="text-xs sm:text-sm">{t('timeOff')}</span>
                   </div>
                 </button>
                 <button
@@ -154,9 +154,9 @@ export default function SellerAvailabilityPage() {
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center sm:justify-start gap-2">
                     <Calendar className="h-4 w-4" />
-                    {t('calendarView')}
+                    <span className="text-xs sm:text-sm">{t('calendarView')}</span>
                   </div>
                 </button>
               </nav>

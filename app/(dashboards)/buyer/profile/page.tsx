@@ -148,7 +148,7 @@ export default function BuyerProfilePage() {
         <SocialAccountManager />
 
         {/* Account Settings */}
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle>{t('accountSettings')}</CardTitle>
           </CardHeader>
@@ -185,7 +185,7 @@ export default function BuyerProfilePage() {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
     </ProtectedRoute>
   );

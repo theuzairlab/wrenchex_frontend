@@ -125,6 +125,14 @@ class APIClient {
         data = { error: { message: 'Invalid response format' } };
       }
 
+      // Handle token expiration (401 Unauthorized)
+      if (response.status === 401) {
+        console.warn('API Client: Token expired or invalid, triggering logout');
+        this.handleTokenExpiration();
+        const errorMessage = data?.error?.message || data?.message || 'Session expired. Please login again.';
+        throw new Error(errorMessage);
+      }
+
       if (!response.ok) {
         const errorMessage = data?.error?.message || data?.message || `HTTP error! status: ${response.status}`;
         throw new Error(errorMessage);
@@ -134,6 +142,16 @@ class APIClient {
     } catch (error: any) {
       console.error('API Request failed:', error);
       throw error;
+    }
+  }
+
+  private handleTokenExpiration(): void {
+    // Remove token from localStorage
+    this.removeAuthToken();
+    
+    // Dispatch custom event to notify auth store
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('tokenExpired'));
     }
   }
 

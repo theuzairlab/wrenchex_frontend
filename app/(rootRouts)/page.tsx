@@ -91,26 +91,26 @@ export default function Home() {
         <div className="container mx-auto px-4 py-20 relative z-10 mt-10">
           <div className={`grid lg:grid-cols-2 gap-12 items-center ${currentLocale === 'ar' ? 'rtl' : 'ltr'}`}>
             {/* Left Content */}
-            <div className={`space-y-8 ${currentLocale === 'ar' ? 'text-center lg:text-right' : 'text-center lg:text-left'}`}>
+            <div className={`space-y-8 ${currentLocale === 'ar' ? ' lg:text-right' : ' lg:text-left'}`}>
               <div className="space-y-6">
-                <div className={`inline-flex items-center px-4 py-2 bg-wrench-accent/20 backdrop-blur-sm rounded-full text-sm font-medium text-white border border-wrench-accent/30 ${currentLocale === 'ar' ? 'flex-row-reverse' : ''}`}>
+                <div className={`inline-flex px-4 py-2 bg-wrench-accent/20 backdrop-blur-sm rounded-full text-sm font-medium text-white border border-wrench-accent/30 ${currentLocale === 'ar' ? 'flex-row-reverse' : ''}`}>
                   <Wrench className={`h-4 w-4 ${currentLocale === 'ar' ? 'ml-2' : 'mr-2'}`} />
                   {t('heroBadge')}
                 </div>
 
-                <h1 className={`text-4xl lg:text-6xl font-bold leading-tight text-white ${currentLocale === 'ar' ? 'text-center lg:text-right' : 'text-center lg:text-left'}`}>
+                <h1 className={`text-4xl lg:text-6xl font-bold leading-tight text-white ${currentLocale === 'ar' ? ' lg:text-right' : ' lg:text-left'}`}>
                   {t('heroTitleBefore')}{' '}
                   <span className="text-wrench-accent">{t('heroTitleHighlighted')}</span>{' '}
                   {t('heroTitleAfter')}
                 </h1>
 
-                <p className={`text-xl text-white/90 max-w-xl ${currentLocale === 'ar' ? 'text-center lg:text-right' : 'text-center lg:text-left'}`}>
+                <p className={`text-xl text-white/90 max-w-xl ${currentLocale === 'ar' ? ' lg:text-right' : 'lg:text-left'}`}>
                   {t('heroSubtitle')}
                 </p>
               </div>
 
               {/* Enhanced CTAs */}
-              <div className={`flex flex-col sm:flex-row gap-4 ${currentLocale === 'ar' ? 'justify-center lg:justify-start' : 'justify-center lg:justify-start'}`}>
+              <div className={`flex flex-col sm:flex-row gap-4 ${currentLocale === 'ar' ? 'lg:justify-start' : 'lg:justify-start'}`}>
                 <Link href={`/${currentLocale}/products`}>
                   <Button variant="primary" size="lg" className={`group gap-2 ${currentLocale === 'ar' ? 'flex-row-reverse' : ''}`}>
                     <Search className={`h-5 w-5 ${currentLocale === 'ar' ? 'ml-2' : 'mr-2'}`} />
@@ -129,7 +129,7 @@ export default function Home() {
 
 
               {/* Trust Indicators */}
-              <div className={`flex flex-col sm:flex-row gap-8 ${currentLocale === 'ar' ? 'text-center lg:text-right' : 'text-center lg:text-left'}`}>
+              {/* <div className={`flex flex-col sm:flex-row gap-8 ${currentLocale === 'ar' ? 'text-center lg:text-right' : 'text-center lg:text-left'}`}>
                 <div>
                   <div className="text-2xl font-bold text-wrench-accent">10,000+</div>
                   <div className="text-sm text-white/80">{t('trust.verifiedSellers')}</div>
@@ -142,7 +142,7 @@ export default function Home() {
                   <div className="text-2xl font-bold text-wrench-accent">25,000+</div>
                   <div className="text-sm text-white/80">{t('trust.happyCustomers')}</div>
                 </div>
-              </div>
+              </div> */}
             </div>
 
              {/* Right Visual */}
@@ -244,7 +244,7 @@ export default function Home() {
 
           <AnimatedTestimonialsDemo />
 
-          <div className="text-center mt-12">
+          <div className="text-center mt-12 px-4">
             <div className="flex flex-row w-full max-w-4xl mx-auto justify-center items-center space-x-2 sm:space-x-4 md:space-x-8 bg-white rounded-xl px-3 sm:px-6 py-3 sm:py-4 shadow-md">
 
               <div className="text-center flex-1">

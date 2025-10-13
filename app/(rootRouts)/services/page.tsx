@@ -448,8 +448,10 @@ function ServiceCard({
 
       <CardContent className="pt-2">
         <Link href={`/${currentLocale}/services/${service.id}`}>
-          <Button variant="link" className="font-semibold p-0 text-gray-900 mb-2 line-clamp-2">
-            {service.title}
+          <Button variant="link" className="font-semibold p-0 text-gray-900 mb-2 block text-left overflow-hidden">
+            <span className="line-clamp-2">
+              {service.title}
+            </span>
           </Button>
         </Link>
 

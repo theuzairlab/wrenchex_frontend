@@ -279,33 +279,33 @@ export default function TranslationManagement({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold flex items-center">
-          <Languages className="w-6 h-6 mr-2" />
-          {t('translationManagement')}
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h2 className="text-lg sm:text-2xl font-bold flex items-center">
+          <Languages className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
+          <span className="text-base sm:text-2xl">{t('translationManagement')}</span>
         </h2>
-        <Button onClick={fetchTranslations} variant="outline" size="sm">
-          {t('refresh')}
+        <Button onClick={fetchTranslations} variant="outline" size="sm" className="w-full sm:w-auto">
+          <span className="text-sm sm:text-base">{t('refresh')}</span>
         </Button>
       </div>
 
       {items.map((item) => (
         <Card key={item.id}>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>{item.title}</span>
-              <Badge variant="outline">{t(item.type)}</Badge>
+          <CardHeader className="p-3 sm:p-6">
+            <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <span className="text-sm sm:text-base font-medium break-words">{item.title}</span>
+              <Badge variant="outline" className="text-xs w-fit">{t(item.type)}</Badge>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+          <CardContent className="p-3 sm:p-6">
+            <div className="space-y-3 sm:space-y-4">
               {item.translations.map((translation) => (
-                <div key={translation.id} className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-lg">{getLanguageFlag(translation.language)}</span>
-                      <span className="font-medium">{translation.language.toUpperCase()}</span>
+                <div key={translation.id} className="border rounded-lg p-3 sm:p-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-base sm:text-lg">{getLanguageFlag(translation.language)}</span>
+                      <span className="font-medium text-sm sm:text-base">{translation.language.toUpperCase()}</span>
                       {translation.isOriginal && (
                         <Badge variant="outline" className="text-xs">
                           {t('original')}
@@ -317,7 +317,7 @@ export default function TranslationManagement({
                         </Badge>
                       )}
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       {getStatusBadge(translation.status)}
                       {translation.confidence && (
                         <span className="text-xs text-gray-500">
@@ -329,77 +329,78 @@ export default function TranslationManagement({
 
                   {editingTranslation?.translationId === translation.id ? (
                     // Edit mode
-                    <div className="space-y-3">
+                    <div className="space-y-3 sm:space-y-4">
                       <div>
-                        <label className="block text-sm font-medium mb-1">{t('title')}</label>
+                        <label className="block text-xs sm:text-sm font-medium mb-1">{t('title')}</label>
                         <Input
                           value={editingTranslation.fields.title || ''}
                           onChange={(e) => updateEditingField('title', e.target.value)}
-                          className={translation.language === 'ar' ? 'text-right' : 'text-left'}
+                          className={`text-xs sm:text-sm ${translation.language === 'ar' ? 'text-right' : 'text-left'}`}
                           dir={translation.language === 'ar' ? 'rtl' : 'ltr'}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-1">{t('description')}</label>
+                        <label className="block text-xs sm:text-sm font-medium mb-1">{t('description')}</label>
                         <Textarea
                           value={editingTranslation.fields.description || ''}
                           onChange={(e) => updateEditingField('description', e.target.value)}
-                          className={translation.language === 'ar' ? 'text-right' : 'text-left'}
+                          className={`text-xs sm:text-sm ${translation.language === 'ar' ? 'text-right' : 'text-left'}`}
                           dir={translation.language === 'ar' ? 'rtl' : 'ltr'}
                           rows={3}
                         />
                       </div>
                       {editingTranslation.fields.specifications && (
                         <div>
-                          <label className="block text-sm font-medium mb-1">{t('specifications')}</label>
+                          <label className="block text-xs sm:text-sm font-medium mb-1">{t('specifications')}</label>
                           <Textarea
                             value={editingTranslation.fields.specifications || ''}
                             onChange={(e) => updateEditingField('specifications', e.target.value)}
-                            className={translation.language === 'ar' ? 'text-right' : 'text-left'}
+                            className={`text-xs sm:text-sm ${translation.language === 'ar' ? 'text-right' : 'text-left'}`}
                             dir={translation.language === 'ar' ? 'rtl' : 'ltr'}
                             rows={2}
                           />
                         </div>
                       )}
-                      <div className="flex space-x-2">
+                      <div className="flex flex-col sm:flex-row gap-2">
                         <Button 
                           onClick={saveEdits} 
                           disabled={submitting}
                           size="sm"
-                          className="bg-green-600 hover:bg-green-700"
+                          className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
                         >
-                          {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Save className="w-4 h-4 mr-1" />}
-                          {t('saveAndApprove')}
+                          {submitting ? <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin mr-1" /> : <Save className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />}
+                          <span className="text-xs sm:text-sm">{t('saveAndApprove')}</span>
                         </Button>
                         <Button 
                           onClick={cancelEditing} 
                           variant="outline" 
                           size="sm"
+                          className="w-full sm:w-auto"
                         >
-                          <X className="w-4 h-4 mr-1" />
-                          {t('cancel')}
+                          <X className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                          <span className="text-xs sm:text-sm">{t('cancel')}</span>
                         </Button>
                       </div>
                     </div>
                   ) : (
                     // View mode
-                    <div className="space-y-2">
-                      <div>
-                        <span className="font-medium">{t('title')}: </span>
-                        <span className={translation.language === 'ar' ? 'text-right' : 'text-left'} dir={translation.language === 'ar' ? 'rtl' : 'ltr'}>
+                    <div className="space-y-2 sm:space-y-3">
+                      <div className="break-words">
+                        <span className="font-medium text-xs sm:text-sm">{t('title')}: </span>
+                        <span className={`text-xs sm:text-sm break-words ${translation.language === 'ar' ? 'text-right' : 'text-left'}`} dir={translation.language === 'ar' ? 'rtl' : 'ltr'}>
                           {translation.title}
                         </span>
                       </div>
-                      <div>
-                        <span className="font-medium">{t('description')}: </span>
-                        <p className={`mt-1 ${translation.language === 'ar' ? 'text-right' : 'text-left'}`} dir={translation.language === 'ar' ? 'rtl' : 'ltr'}>
+                      <div className="break-words">
+                        <span className="font-medium text-xs sm:text-sm">{t('description')}: </span>
+                        <p className={`mt-1 text-xs sm:text-sm break-words ${translation.language === 'ar' ? 'text-right' : 'text-left'}`} dir={translation.language === 'ar' ? 'rtl' : 'ltr'}>
                           {translation.description}
                         </p>
                       </div>
                       {translation.specifications && (
-                        <div>
-                          <span className="font-medium">{t('specifications')}: </span>
-                          <p className={`mt-1 ${translation.language === 'ar' ? 'text-right' : 'text-left'}`} dir={translation.language === 'ar' ? 'rtl' : 'ltr'}>
+                        <div className="break-words">
+                          <span className="font-medium text-xs sm:text-sm">{t('specifications')}: </span>
+                          <p className={`mt-1 text-xs sm:text-sm break-words ${translation.language === 'ar' ? 'text-right' : 'text-left'}`} dir={translation.language === 'ar' ? 'rtl' : 'ltr'}>
                             {typeof translation.specifications === 'object' 
                               ? JSON.stringify(translation.specifications, null, 2)
                               : translation.specifications}
@@ -408,23 +409,24 @@ export default function TranslationManagement({
                       )}
                       
                       {translation.status === 'DRAFT' && (
-                        <div className="flex space-x-2 mt-3">
+                        <div className="flex flex-col sm:flex-row gap-2 mt-3">
                           <Button 
                             onClick={() => startEditing(item.id, translation)}
                             size="sm"
                             variant="outline"
+                            className="w-full sm:w-auto"
                           >
-                            <Edit3 className="w-4 h-4 mr-1" />
-                            {t('editAndApprove')}
+                            <Edit3 className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                            <span className="text-xs sm:text-sm">{t('editAndApprove')}</span>
                           </Button>
                           <Button 
                             onClick={() => handleApproveTranslation(item.id, translation.language)}
                             size="sm"
-                            className="bg-green-600 hover:bg-green-700"
+                            className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
                             disabled={submitting}
                           >
-                            {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <CheckCircle className="w-4 h-4 mr-1" />}
-                            {t('approve')}
+                            {submitting ? <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin mr-1" /> : <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />}
+                            <span className="text-xs sm:text-sm">{t('approve')}</span>
                           </Button>
                           <Button 
                             onClick={() => {
@@ -436,9 +438,10 @@ export default function TranslationManagement({
                             size="sm"
                             variant="destructive"
                             disabled={submitting}
+                            className="w-full sm:w-auto"
                           >
-                            <XCircle className="w-4 h-4 mr-1" />
-                            {t('reject')}
+                            <XCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                            <span className="text-xs sm:text-sm">{t('reject')}</span>
                           </Button>
                         </div>
                       )}

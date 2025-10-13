@@ -89,8 +89,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
       <CardContent className="pt-2">
         <Link href={`/products/${product.id}`}>
-          <Button variant="link" className="font-semibold p-0 text-gray-900 mb-2 line-clamp-2">
-            {product.title}
+          <Button variant="link" className="font-semibold p-0 text-gray-900 mb-2 block text-left overflow-hidden">
+            <span className="line-clamp-2">
+              {product.title}
+            </span>
           </Button>
         </Link>
 

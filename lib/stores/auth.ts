@@ -479,6 +479,22 @@ const useAuthStoreBase = create<AuthState & AuthActions>()(
           console.log('AuthStore: Initializing with existing token');
           apiClient.setAuthToken(token);
         }
+        
+        // Listen for token expiration events
+        if (typeof window !== 'undefined') {
+          const handleTokenExpiration = () => {
+            console.log('AuthStore: Token expiration event received');
+            const { logout } = get();
+            logout();
+          };
+          
+          window.addEventListener('tokenExpired', handleTokenExpiration);
+          
+          // Cleanup listener on unmount (handled by the component using the store)
+          return () => {
+            window.removeEventListener('tokenExpired', handleTokenExpiration);
+          };
+        }
       },
     }),
     {

@@ -123,17 +123,24 @@ export default function ProductsPage({ searchParams }: ProductsPageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [params, setParams] = useState<any>(null);
   
-  // Location state (like services page)
-  const [location, setLocation] = useState('');
-  const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
-  const [radiusKm, setRadiusKm] = useState(10);
-  const [showLocationFilter, setShowLocationFilter] = useState(false);
-  
-  // Filter state (like services page)
+  // Applied filter state (used for fetching)
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
+  const [location, setLocation] = useState('');
+  const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+  const [radiusKm, setRadiusKm] = useState(10);
+  const [showLocationFilter, setShowLocationFilter] = useState(false);
+
+  // Draft filter state (updated as the user types; applied on Apply/Enter only)
+  const [draftSearchQuery, setDraftSearchQuery] = useState('');
+  const [draftSelectedCategory, setDraftSelectedCategory] = useState('');
+  const [draftMinPrice, setDraftMinPrice] = useState('');
+  const [draftMaxPrice, setDraftMaxPrice] = useState('');
+  const [draftLocation, setDraftLocation] = useState('');
+  const [draftCoordinates, setDraftCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+  const [draftRadiusKm, setDraftRadiusKm] = useState(10);
 
   // Initialize all state from URL parameters (like services page)
   useEffect(() => {
@@ -141,24 +148,43 @@ export default function ProductsPage({ searchParams }: ProductsPageProps) {
       const resolvedParams = await searchParams;
       
       // Initialize all filter state from URL
-      if (resolvedParams.search) setSearchQuery(resolvedParams.search);
-      if (resolvedParams.category) setSelectedCategory(resolvedParams.category);
-      if (resolvedParams.minPrice) setMinPrice(resolvedParams.minPrice);
-      if (resolvedParams.maxPrice) setMaxPrice(resolvedParams.maxPrice);
-      if (resolvedParams.location) setLocation(resolvedParams.location);
+      if (resolvedParams.search) {
+        setSearchQuery(resolvedParams.search);
+        setDraftSearchQuery(resolvedParams.search);
+      }
+      if (resolvedParams.category) {
+        setSelectedCategory(resolvedParams.category);
+        setDraftSelectedCategory(resolvedParams.category);
+      }
+      if (resolvedParams.minPrice) {
+        setMinPrice(resolvedParams.minPrice);
+        setDraftMinPrice(resolvedParams.minPrice);
+      }
+      if (resolvedParams.maxPrice) {
+        setMaxPrice(resolvedParams.maxPrice);
+        setDraftMaxPrice(resolvedParams.maxPrice);
+      }
+      if (resolvedParams.location) {
+        setLocation(resolvedParams.location);
+        setDraftLocation(resolvedParams.location);
+      }
       
       const lat = resolvedParams.latitude;
       const lng = resolvedParams.longitude;
       const radius = resolvedParams.radiusKm;
       
       if (lat && lng) {
-        setCoordinates({
+        const applied = {
           lat: parseFloat(lat),
           lng: parseFloat(lng)
-        });
+        };
+        setCoordinates(applied);
+        setDraftCoordinates(applied);
       }
       if (radius) {
-        setRadiusKm(parseFloat(radius));
+        const r = parseFloat(radius);
+        setRadiusKm(r);
+        setDraftRadiusKm(r);
       }
     };
     
@@ -167,7 +193,7 @@ export default function ProductsPage({ searchParams }: ProductsPageProps) {
 
   useEffect(() => {
     loadData();
-  }, [searchParams, coordinates, radiusKm, searchQuery, selectedCategory, minPrice, maxPrice, currentLocale]);
+  }, [coordinates, radiusKm, searchQuery, selectedCategory, minPrice, maxPrice, currentLocale]);
 
   const loadData = async () => {
     try {
@@ -200,14 +226,14 @@ export default function ProductsPage({ searchParams }: ProductsPageProps) {
     }
   };
 
-  // Location handlers (like services page)
+  // Location handlers update drafts only; apply via Apply button
   const handleLocationChange = (newLocation: string | null, coords?: { lat: number; lng: number }) => {
-    setLocation(newLocation || '');
-    setCoordinates(coords || null);
+    setDraftLocation(newLocation || '');
+    setDraftCoordinates(coords || null);
   };
 
   const handleRadiusChange = (newRadius: number) => {
-    setRadiusKm(newRadius);
+    setDraftRadiusKm(newRadius);
   };
 
   const handleUseCurrentLocation = () => {
@@ -222,12 +248,29 @@ export default function ProductsPage({ searchParams }: ProductsPageProps) {
 
   // Apply filters (no page refresh)
   const applyFilters = () => {
-    // Just trigger data reload - no router navigation
-    loadData();
+    // Copy drafts into applied state, then fetch
+    setSearchQuery(draftSearchQuery);
+    setSelectedCategory(draftSelectedCategory);
+    setMinPrice(draftMinPrice);
+    setMaxPrice(draftMaxPrice);
+    setLocation(draftLocation);
+    setCoordinates(draftCoordinates);
+    setRadiusKm(draftRadiusKm);
+    // Fetch after state updates are flushed
+    setTimeout(() => loadData(), 0);
   };
 
   // Clear all filters (no page refresh)
   const clearFilters = () => {
+    // Clear drafts
+    setDraftSearchQuery('');
+    setDraftSelectedCategory('');
+    setDraftMinPrice('');
+    setDraftMaxPrice('');
+    setDraftLocation('');
+    setDraftCoordinates(null);
+    setDraftRadiusKm(10);
+    // Clear applied
     setSearchQuery('');
     setSelectedCategory('');
     setMinPrice('');
@@ -240,13 +283,7 @@ export default function ProductsPage({ searchParams }: ProductsPageProps) {
     setTimeout(() => loadData(), 0);
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    );
-  }
+  // Keep the filter UI visible while loading; show spinner only in catalog area
 
   return (
     <div className="min-h-screen bg-wrench-bg-primary">
@@ -287,9 +324,9 @@ export default function ProductsPage({ searchParams }: ProductsPageProps) {
                   <Input
                     type="text"
                     placeholder={t('searchPlaceholder')}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && applyFilters()}
+                  value={draftSearchQuery}
+                  onChange={(e) => setDraftSearchQuery(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && applyFilters()}
                     className="pl-9 pr-3 py-2 text-sm"
                   />
                 </div>
@@ -299,8 +336,8 @@ export default function ProductsPage({ searchParams }: ProductsPageProps) {
               {/* Category Dropdown */}
               <div className="min-w-[120px]">
                 <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  value={draftSelectedCategory}
+                  onChange={(e) => setDraftSelectedCategory(e.target.value)}
                   className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-wrench-accent"
                 >
                   <option value="">{t('allCategories')}</option>
@@ -317,16 +354,16 @@ export default function ProductsPage({ searchParams }: ProductsPageProps) {
                 <Input
                   type="number"
                   placeholder={t('min')}
-                  value={minPrice}
-                  onChange={(e) => setMinPrice(e.target.value)}
+                  value={draftMinPrice}
+                  onChange={(e) => setDraftMinPrice(e.target.value)}
                   className="w-20 text-sm py-2"
                 />
                 <span className="text-gray-500">-</span>
                 <Input
                   type="number"
                   placeholder={t('max')}
-                  value={maxPrice}
-                  onChange={(e) => setMaxPrice(e.target.value)}
+                  value={draftMaxPrice}
+                  onChange={(e) => setDraftMaxPrice(e.target.value)}
                   className="w-20 text-sm py-2"
                 />
                 <Button
@@ -340,13 +377,13 @@ export default function ProductsPage({ searchParams }: ProductsPageProps) {
 
               {/* Location Filter Toggle (like services page) */}
               <Button
-                variant={location && coordinates ? "primary" : "outline"}
+                variant={(draftLocation && draftCoordinates) || (location && coordinates) ? "primary" : "outline"}
                 size="sm"
                 onClick={() => setShowLocationFilter(!showLocationFilter)}
                 className="min-w-[120px]"
               >
                 <MapPin className="h-4 w-4 mr-1" />
-                {location && coordinates ? t('locationChecked') : t('location')}
+                {(draftLocation && draftCoordinates) || (location && coordinates) ? t('locationChecked') : t('location')}
               </Button>
 
               {/* Clear Filters */}
@@ -366,8 +403,8 @@ export default function ProductsPage({ searchParams }: ProductsPageProps) {
             {showLocationFilter && (
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <LocationFilter
-                  currentLocation={location}
-                  currentRadius={radiusKm}
+                  currentLocation={draftLocation}
+                  currentRadius={draftRadiusKm}
                   onLocationChange={handleLocationChange}
                   onRadiusChange={handleRadiusChange}
                   onUseCurrentLocation={handleUseCurrentLocation}
@@ -381,7 +418,9 @@ export default function ProductsPage({ searchParams }: ProductsPageProps) {
         {/* Products Catalog */}
         <div>
           <Suspense fallback={<LoadingSpinner />}>
-            {products ? (
+            {isLoading ? (
+              <div className="py-16 flex justify-center"><LoadingSpinner /></div>
+            ) : products ? (
               <ProductCatalog 
                 searchResult={products}
                 currentFilters={params}

@@ -145,39 +145,39 @@ export default function AppointmentCard({
 
   return (
     <Card className="hover:shadow-lg transition-shadow">
-      <CardContent className="p-6">
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-1">
+      <CardContent className="p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-4 mb-4">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-1 ">
               {appointment.service?.title || t('serviceTitleNA')}
             </h3>
-            <p className="text-gray-600 text-sm">
+            <p className="text-xs sm:text-sm text-gray-600">
               {t('appointmentNumber', { num: appointment.appointmentNumber })}
             </p>
           </div>
           
           <div className="flex items-center gap-2">
-            <Badge className={getStatusColor(appointment.status)}>
+            <Badge className={`${getStatusColor(appointment.status)} text-xs sm:text-sm`}>
               {getStatusIcon(appointment.status)}
               <span className="ml-1">{appointment.status}</span>
             </Badge>
             
-            <button
+            {/* <button
               onClick={() => setShowActions(!showActions)}
               className="p-1 hover:bg-gray-100 rounded"
             >
               <MoreVertical className="h-4 w-4" />
-            </button>
+            </button> */}
           </div>
         </div>
 
         {/* Date & Time */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
           <div className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-blue-600" />
-            <div>
-              <div className="font-medium">{format(appointmentDate, 'EEEE, MMMM do, yyyy')}</div>
-              <div className="text-sm text-gray-600">
+            <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 flex-shrink-0" />
+            <div className="min-w-0">
+              <div className="font-medium text-sm sm:text-base">{format(appointmentDate, 'EEEE, MMMM do, yyyy')}</div>
+              <div className="text-xs sm:text-sm text-gray-600">
                 {isUpcoming ? t('inDuration', { duration: formatDistanceToNow(appointmentDate) }) : 
                  isPastAppointment ? t('durationAgo', { duration: formatDistanceToNow(appointmentDate) }) : t('today')}
               </div>
@@ -185,24 +185,24 @@ export default function AppointmentCard({
           </div>
           
           <div className="flex items-center gap-2">
-            <Clock className="h-5 w-5 text-blue-600" />
-            <div>
-              <div className="font-medium">
+            <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 flex-shrink-0" />
+            <div className="min-w-0">
+              <div className="font-medium text-sm sm:text-base">
                 {format(appointmentDate, 'HH:mm')} - {format(new Date(appointment.scheduledTimeEnd), 'HH:mm')}
               </div>
-              <div className="text-sm text-gray-600">{t('minutes', { count: appointment.service?.durationMinutes || 0 })}</div>
+              <div className="text-xs sm:text-sm text-gray-600">{t('minutes', { count: appointment.service?.durationMinutes || 0 })}</div>
             </div>
           </div>
         </div>
 
         {/* Service Provider / Customer Info */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
           {userRole === 'buyer' ? (
             <div className="flex items-center gap-2">
-              <User className="h-5 w-5 text-green-600" />
-              <div>
-                <div className="font-medium">{appointment.seller?.shopName || t('shopNameNA')}</div>
-                <div className="text-sm text-gray-600 flex items-center gap-1">
+              <User className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 flex-shrink-0" />
+              <div className="min-w-0">
+                <div className="font-medium text-sm sm:text-base">{appointment.seller?.shopName || t('shopNameNA')}</div>
+                <div className="text-xs sm:text-sm text-gray-600 flex items-center gap-1">
                   <MapPin className="h-3 w-3" />
                   {t('locationNA')}
                 </div>
@@ -210,20 +210,20 @@ export default function AppointmentCard({
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <User className="h-5 w-5 text-green-600" />
-              <div>
-                <div className="font-medium">
+              <User className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 flex-shrink-0" />
+              <div className="min-w-0">
+                <div className="font-medium text-sm sm:text-base">
                   {appointment.buyer?.firstName} {appointment.buyer?.lastName}
                 </div>
-                <div className="text-sm text-gray-600">{appointment.buyer?.email}</div>
+                <div className="text-xs sm:text-sm text-gray-600 break-words">{appointment.buyer?.email}</div>
               </div>
             </div>
           )}
           
           <div className="flex items-center gap-2">
             <div>
-              <div className="font-medium">{formatPrice(appointment.totalAmount, (appointment.service as any)?.currency || 'AED', currentLocale)}</div>
-              <div className="text-sm text-gray-600">{t('totalAmount')}</div>
+              <div className="font-medium text-sm sm:text-base">{formatPrice(appointment.totalAmount, (appointment.service as any)?.currency || 'AED', currentLocale)}</div>
+              <div className="text-xs sm:text-sm text-gray-600">{t('totalAmount')}</div>
             </div>
           </div>
         </div>
@@ -231,10 +231,10 @@ export default function AppointmentCard({
         {/* Location (for mobile services) */}
         {appointment.serviceLocation && (
           <div className="flex items-start gap-2 mb-4 p-3 bg-blue-50 rounded-lg">
-            <Navigation className="h-5 w-5 text-blue-600 mt-0.5" />
-            <div>
-              <div className="font-medium text-blue-900">{t('mobileServiceLocation')}</div>
-              <div className="text-sm text-blue-700">
+            <Navigation className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div className="min-w-0">
+              <div className="font-medium text-blue-900 text-sm sm:text-base">{t('mobileServiceLocation')}</div>
+              <div className="text-xs sm:text-sm text-blue-700 break-words">
                 {typeof appointment.serviceLocation === 'object' && appointment.serviceLocation.address}
               </div>
             </div>
@@ -244,8 +244,8 @@ export default function AppointmentCard({
         {/* Notes */}
         {appointment.notes && (
           <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-            <div className="font-medium text-gray-900 mb-1">{t('notes')}</div>
-            <div className="text-sm text-gray-700">{appointment.notes}</div>
+            <div className="font-medium text-gray-900 mb-1 text-sm sm:text-base">{t('notes')}</div>
+            <div className="text-xs sm:text-sm text-gray-700 break-words">{appointment.notes}</div>
           </div>
         )}
 
@@ -256,7 +256,8 @@ export default function AppointmentCard({
               size="sm"
               onClick={() => handleStatusUpdate('CONFIRMED')}
               disabled={isUpdating}
-              leftIcon={<CheckCircle className="h-4 w-4" />}
+              leftIcon={<CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />}
+              className="text-xs sm:text-sm"
             >
               {t('confirm')}
             </Button>
@@ -267,7 +268,8 @@ export default function AppointmentCard({
               size="sm"
               onClick={() => handleStatusUpdate('IN_PROGRESS')}
               disabled={isUpdating}
-              leftIcon={<Clock className="h-4 w-4" />}
+              leftIcon={<Clock className="h-3 w-3 sm:h-4 sm:w-4" />}
+              className="text-xs sm:text-sm"
             >
               {t('startService')}
             </Button>
@@ -278,7 +280,8 @@ export default function AppointmentCard({
               size="sm"
               onClick={() => handleStatusUpdate('COMPLETED')}
               disabled={isUpdating}
-              leftIcon={<CheckCircle className="h-4 w-4" />}
+              leftIcon={<CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />}
+              className="text-xs sm:text-sm"
             >
               {t('markComplete')}
             </Button>
@@ -287,7 +290,8 @@ export default function AppointmentCard({
           <Button
             variant="outline"
             size="sm"
-            leftIcon={<MessageCircle className="h-4 w-4" />}
+            leftIcon={<MessageCircle className="h-3 w-3 sm:h-4 sm:w-4" />}
+            className="text-xs sm:text-sm"
           >
             {t('message')}
           </Button>
@@ -296,8 +300,9 @@ export default function AppointmentCard({
             <Button
               variant="outline"
               size="sm"
-              leftIcon={<Phone className="h-4 w-4" />}
+              leftIcon={<Phone className="h-3 w-3 sm:h-4 sm:w-4" />}
               onClick={() => window.open(`tel:${appointment.buyer?.phone}`)}
+              className="text-xs sm:text-sm"
             >
               {t('call')}
             </Button>
@@ -309,8 +314,8 @@ export default function AppointmentCard({
               size="sm"
               onClick={handleCancel}
               disabled={isUpdating}
-              leftIcon={<XCircle className="h-4 w-4" />}
-              className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
+              leftIcon={<XCircle className="h-3 w-3 sm:h-4 sm:w-4" />}
+              className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300 text-xs sm:text-sm"
             >
               {t('cancel')}
             </Button>

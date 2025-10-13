@@ -150,6 +150,9 @@ export default function ServiceBookingModal({
         setSelectedTimeSlot(null);
         setNotes('');
         setServiceLocation('');
+        
+        // Redirect to appointments page
+        window.location.href = `/${currentLocale}/buyer/appointments`;
       } else {
         toast.error(response.error?.message || t('failedToBookAppointment'));
       }
@@ -168,7 +171,7 @@ export default function ServiceBookingModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -176,44 +179,44 @@ export default function ServiceBookingModal({
       />
       
       {/* Modal */}
-      <div className="relative w-full max-w-md mx-4 overflow-y-auto max-h-[90vh]">
+      <div className="relative w-full max-w-sm sm:max-w-md mx-auto overflow-y-auto max-h-[95vh] sm:max-h-[90vh]">
         <Card className="shadow-2xl border-0 bg-white overflow-y-auto">
-          <CardHeader className="text-center pb-4 relative">
+          <CardHeader className="text-center pb-3 sm:pb-4 relative p-4 sm:p-6">
             <Button
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="absolute right-4 top-4 h-8 w-8 p-0"
+              className="absolute right-3 sm:right-4 top-3 sm:top-4 h-7 w-7 sm:h-8 sm:w-8 p-0"
             >
-              <X className="h-4 w-4" />
+              <X className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
             
-            <div className="text-4xl font-bold mb-2 text-black">
+            <div className="text-2xl sm:text-4xl font-bold mb-2 text-black">
               {formatPrice(service.price, service.currency || 'AED', currentLocale)}
             </div>
-            <div className="text-black/70">{t('price')}</div>
+            <div className="text-sm sm:text-base text-black/70">{t('price')}</div>
           </CardHeader>
           
-          <CardContent className="space-y-6 p-6">
+          <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6">
             {/* Date Selection */}
             <div>
-              <label className="block text-black font-medium mb-2">{t('selectDate')}</label>
+              <label className="block text-black font-medium mb-2 text-sm sm:text-base">{t('selectDate')}</label>
               <Input
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
                 min={minDate}
-                className="bg-white border-gray-300 text-black placeholder-gray-500"
+                className="bg-white border-gray-300 text-black placeholder-gray-500 text-sm sm:text-base"
               />
             </div>
 
             {/* Time Slots */}
             {selectedDate && (
               <div>
-                <label className="block text-black font-medium mb-2">{t('availableSlots')}</label>
+                <label className="block text-black font-medium mb-2 text-sm sm:text-base">{t('availableSlots')}</label>
                 {loadingSlots ? (
                   <div className="text-center py-4">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-wrench-accent mx-auto"></div>
+                    <div className="animate-spin rounded-full h-5 w-5 sm:h-6 sm:w-6 border-b-2 border-wrench-accent mx-auto"></div>
                   </div>
                 ) : availableSlots.length > 0 ? (
                   <div className="grid grid-cols-2 gap-2">
@@ -224,7 +227,7 @@ export default function ServiceBookingModal({
                         size="sm"
                         onClick={() => setSelectedTimeSlot(slot)}
                         disabled={!slot.isAvailable}
-                        className={`text-xs ${
+                        className={`text-xs sm:text-sm ${
                           selectedTimeSlot === slot
                             ? 'bg-wrench-accent text-black border-wrench-accent'
                             : 'bg-white border-gray-300 text-black hover:bg-gray-50'
@@ -235,8 +238,8 @@ export default function ServiceBookingModal({
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-500 text-sm text-center py-4">
-{t('noSlotsAvailable')}
+                  <p className="text-gray-500 text-xs sm:text-sm text-center py-4">
+                    {t('noSlotsAvailable')}
                   </p>
                 )}
               </div>
@@ -245,37 +248,37 @@ export default function ServiceBookingModal({
             {/* Mobile Service Location */}
             {service.isMobileService && (
               <div>
-                <label className="block text-black font-medium mb-2">{t('serviceLocation')}</label>
+                <label className="block text-black font-medium mb-2 text-sm sm:text-base">{t('serviceLocation')}</label>
                 <Textarea
                   placeholder={t('enterLocation')}
                   value={serviceLocation}
                   onChange={(e) => setServiceLocation(e.target.value)}
                   rows={3}
-                  className="bg-white border-gray-300 text-black placeholder-gray-500"
+                  className="bg-white border-gray-300 text-black placeholder-gray-500 text-sm sm:text-base"
                 />
               </div>
             )}
 
             {/* Notes */}
             <div>
-              <label className="block text-black font-medium mb-2">{t('notes')}</label>
+              <label className="block text-black font-medium mb-2 text-sm sm:text-base">{t('notes')}</label>
               <Textarea
                 placeholder={t('addNotes')}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
-                className="bg-white border-gray-300 text-black placeholder-gray-500"
+                className="bg-white border-gray-300 text-black placeholder-gray-500 text-sm sm:text-base"
               />
             </div>
 
             {/* Booking Summary */}
             {selectedDate && selectedTimeSlot && (
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-semibold mb-2 text-black">{t('bookingConfirmation')}</h4>
-                <div className="space-y-1 text-sm text-gray-700">
+              <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
+                <h4 className="font-semibold mb-2 text-black text-sm sm:text-base">{t('bookingConfirmation')}</h4>
+                <div className="space-y-1 text-xs sm:text-sm text-gray-700">
                   <div className="flex justify-between">
                     <span>{t('serviceDetails')}:</span>
-                    <span className="text-black font-medium">{service.title}</span>
+                    <span className="text-black font-medium break-words">{service.title}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>{t('date')}:</span>
@@ -298,23 +301,23 @@ export default function ServiceBookingModal({
               <Button
                 onClick={handleBookAppointment}
                 disabled={!selectedDate || !selectedTimeSlot || isBooking}
-                className="w-full bg-wrench-accent hover:bg-wrench-accent/90 text-black font-semibold py-3"
+                className="w-full bg-wrench-accent hover:bg-wrench-accent/90 text-black font-semibold py-2 sm:py-3 text-sm sm:text-base"
               >
                 {isBooking ? (
                   <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black"></div>
-{t('booking')}
+                    <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 border-black"></div>
+                    <span className="text-xs sm:text-sm">{t('booking')}</span>
                   </div>
                 ) : (
-t('bookNow')
+                  <span className="text-sm sm:text-base">{t('bookNow')}</span>
                 )}
               </Button>
               <Button
                 variant="outline"
                 onClick={onClose}
-                className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
+                className="w-full border-gray-300 text-gray-700 hover:bg-gray-50 text-sm sm:text-base"
               >
-{t('close')}
+                <span className="text-sm sm:text-base">{t('close')}</span>
               </Button>
             </div>
           </CardContent>

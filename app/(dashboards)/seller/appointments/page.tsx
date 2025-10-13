@@ -136,15 +136,15 @@ export default function SellerAppointmentsPage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-6">{t('myAppointments')}</h1>
+    <div className="container mx-auto px-4 py-4 sm:py-8">
+      <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">{t('myAppointments')}</h1>
 
       {/* Filters */}
-      <div className="mb-4 flex items-center space-x-4">
+      <div className="mb-4 sm:mb-6">
         <select
           value={statusFilter || ''}
           onChange={(e) => handleStatusFilterChange(e.target.value)}
-          className="px-3 py-2 border rounded-lg"
+          className="w-full sm:w-auto px-3 py-2 border rounded-lg text-sm sm:text-base"
         >
           <option value="">{t('allStatuses')}</option>
           {Object.values(AppointmentStatus).map(status => (
@@ -159,26 +159,26 @@ export default function SellerAppointmentsPage() {
           {appointmentsData.appointments.map((appointment) => (
             <div
               key={appointment.id}
-              className="border rounded-lg p-6 bg-white shadow-md hover:shadow-lg transition-shadow"
+              className="border rounded-lg p-4 sm:p-6 bg-white shadow-md hover:shadow-lg transition-shadow"
             >
               {/* Appointment Header */}
-              <div className="flex justify-between items-center mb-4 pb-4 border-b">
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 pb-4 border-b gap-3 sm:gap-0">
+                <div className="flex-1">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900">
                     {appointment.service?.title || t('serviceTitleNotAvailable')}
                   </h3>
                   <p className="text-sm text-gray-600">
                     {t('appointmentNumber', { number: appointment.appointmentNumber })}
                   </p>
                 </div>
-                <div className="flex items-center space-x-2">
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${appointment.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' :
-                  appointment.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
-                    appointment.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-blue-100 text-blue-800'
-                  }`}>
-                  {t(`status.${appointment.status.toLowerCase()}`)}
-                </span>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-2">
+                  <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${appointment.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' :
+                    appointment.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
+                      appointment.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-blue-100 text-blue-800'
+                    }`}>
+                    {t(`status.${appointment.status.toLowerCase()}`)}
+                  </span>
 
                   {/* Status Update Button */}
                   <Button
@@ -191,24 +191,25 @@ export default function SellerAppointmentsPage() {
                       setUpdateNote('');
                     }}
                     variant="primary"
-                    className="text-gray-600 hover:text-gray-800 transition-colors"
+                    className="text-gray-600 hover:text-gray-800 transition-colors w-full sm:w-auto"
                     title={t('updateAppointmentStatus')}
                     size="sm"
                     >
-                      <Edit className="h-5 w-5 mr-2" /> {t('updateStatus')}
+                      <Edit className="h-4 w-4 sm:h-5 sm:w-5 mr-2" /> 
+                      <span className="text-sm sm:text-base">{t('updateStatus')}</span>
                     </Button>
                 </div>
               </div>
 
               {/* Appointment Details Grid */}
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 {/* Left Column */}
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <Calendar className="h-5 w-5 text-wrench-accent" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">{t('scheduledDate')}</p>
-                      <p className="text-gray-900">
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="flex items-start sm:items-center space-x-3">
+                    <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-wrench-accent flex-shrink-0 mt-0.5 sm:mt-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm font-medium text-gray-700">{t('scheduledDate')}</p>
+                      <p className="text-sm sm:text-base text-gray-900 break-words">
                         {new Date(appointment.scheduledTimeStart).toLocaleDateString(currentLocale === 'ar' ? 'ar-AE' : 'en-US', {
                           weekday: 'long',
                           year: 'numeric',
@@ -219,27 +220,27 @@ export default function SellerAppointmentsPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-3">
-                    <Clock className="h-5 w-5 text-wrench-accent" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">{t('timeSlot')}</p>
-                      <p className="text-gray-900">
+                  <div className="flex items-start sm:items-center space-x-3">
+                    <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-wrench-accent flex-shrink-0 mt-0.5 sm:mt-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm font-medium text-gray-700">{t('timeSlot')}</p>
+                      <p className="text-sm sm:text-base text-gray-900 break-words">
                         {new Date(appointment.scheduledTimeStart).toLocaleTimeString(currentLocale === 'ar' ? 'ar-AE' : 'en-US')} -
                         {new Date(appointment.scheduledTimeEnd).toLocaleTimeString(currentLocale === 'ar' ? 'ar-AE' : 'en-US')}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-3">
-                    <MapPin className="h-5 w-5 text-wrench-accent" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">{t('location')}</p>
-                      <p className="text-gray-900">
+                  <div className="flex items-start sm:items-center space-x-3">
+                    <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-wrench-accent flex-shrink-0 mt-0.5 sm:mt-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm font-medium text-gray-700">{t('location')}</p>
+                      <p className="text-sm sm:text-base text-gray-900 break-words">
                         {appointment?.serviceLocation?.type === 'CUSTOMER_LOCATION'
                           ? t('customerLocation')
                           : t('shopLocation')}
                       </p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-xs sm:text-sm text-gray-600 break-words">
                         {appointment?.serviceLocation?.address}
                       </p>
                     </div>
@@ -247,24 +248,24 @@ export default function SellerAppointmentsPage() {
                 </div>
 
                 {/* Right Column */}
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <User className="h-5 w-5 text-wrench-accent" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">{t('customer')}</p>
-                      <p className="text-gray-900">
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="flex items-start sm:items-center space-x-3">
+                    <User className="h-4 w-4 sm:h-5 sm:w-5 text-wrench-accent flex-shrink-0 mt-0.5 sm:mt-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm font-medium text-gray-700">{t('customer')}</p>
+                      <p className="text-sm sm:text-base text-gray-900 break-words">
                         {appointment.buyer?.firstName} {appointment.buyer?.lastName}
                       </p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-xs sm:text-sm text-gray-600 break-words">
                         {appointment.buyer?.email}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-3">
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">{t('totalAmount')}</p>
-                      <p className="text-gray-900 font-bold">
+                  <div className="flex items-start sm:items-center space-x-3">
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm font-medium text-gray-700">{t('totalAmount')}</p>
+                      <p className="text-sm sm:text-base text-gray-900 font-bold break-words">
                         {formatPrice(appointment.totalAmount, (appointment.service as any)?.currency || 'AED', currentLocale)}
                       </p>
                     </div>
@@ -272,11 +273,11 @@ export default function SellerAppointmentsPage() {
 
                   {/* Additional Notes */}
                   {appointment.notes && (
-                    <div className="flex items-center space-x-3">
-                      <MessageCircle className="h-5 w-5 text-wrench-accent" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">{t('specialNotes')}</p>
-                        <p className="text-gray-600 italic">
+                    <div className="flex items-start sm:items-center space-x-3">
+                      <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 text-wrench-accent flex-shrink-0 mt-0.5 sm:mt-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs sm:text-sm font-medium text-gray-700">{t('specialNotes')}</p>
+                        <p className="text-xs sm:text-sm text-gray-600 italic break-words">
                           "{appointment.notes}"
                         </p>
                       </div>
@@ -376,21 +377,21 @@ export default function SellerAppointmentsPage() {
 
       {/* Pagination */}
       {appointmentsData.totalPages > 1 && (
-        <div className="flex justify-center mt-6 space-x-2">
+        <div className="flex flex-col sm:flex-row justify-center items-center mt-6 gap-2 sm:gap-2">
           <button
             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
             disabled={!appointmentsData.hasPreviousPage}
-            className="px-4 py-2 border rounded-lg disabled:opacity-50"
+            className="w-full sm:w-auto px-4 py-2 border rounded-lg disabled:opacity-50 text-sm sm:text-base"
           >
             {t('previous')}
           </button>
-          <span className="px-4 py-2">
+          <span className="px-4 py-2 text-sm sm:text-base">
             {t('pageOf', { current: appointmentsData.currentPage, total: appointmentsData.totalPages })}
           </span>
           <button
             onClick={() => setCurrentPage(prev => prev + 1)}
             disabled={!appointmentsData.hasNextPage}
-            className="px-4 py-2 border rounded-lg disabled:opacity-50"
+            className="w-full sm:w-auto px-4 py-2 border rounded-lg disabled:opacity-50 text-sm sm:text-base"
           >
             {t('next')}
           </button>

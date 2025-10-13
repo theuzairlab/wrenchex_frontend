@@ -187,18 +187,19 @@ export default function AdminSellersPage() {
 
   return (
     
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6 px-4 sm:px-0">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{t('sellerManagement')}</h1>
-            <p className="text-gray-600">{t('reviewAndApproveSellerApplications')}</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{t('sellerManagement')}</h1>
+            <p className="text-sm sm:text-base text-gray-600">{t('reviewAndApproveSellerApplications')}</p>
           </div>
           <Button 
             onClick={fetchSellers} 
             variant="outline" 
             leftIcon={<RefreshCw className="h-4 w-4" />}
             disabled={loading}
+            className="w-full sm:w-auto"
           >
             {t('refresh')}
           </Button>
@@ -206,9 +207,9 @@ export default function AdminSellersPage() {
 
         {/* Filters and Search */}
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <form onSubmit={handleSearch} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t('searchSellers')}
@@ -220,7 +221,7 @@ export default function AdminSellersPage() {
                       placeholder={t('searchPlaceholder')}
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
-                      className="pl-10"
+                      className="pl-10 text-sm sm:text-base"
                     />
                   </div>
                 </div>
@@ -232,7 +233,7 @@ export default function AdminSellersPage() {
                   <select
                     value={approvalFilter}
                     onChange={(e) => handleApprovalFilterChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wrench-accent focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wrench-accent focus:border-transparent text-sm sm:text-base"
                   >
                     <option value="">{t('allSellers')}</option>
                     <option value="false">{t('pendingApproval')}</option>
@@ -243,7 +244,7 @@ export default function AdminSellersPage() {
                 <div className="flex items-end">
                   <Button type="submit" variant="primary" className="w-full">
                     <Search className="h-4 w-4 mr-2" />
-                    {t('search')}
+                    <span className="text-sm sm:text-base">{t('search')}</span>
                   </Button>
                 </div>
               </div>
@@ -253,13 +254,13 @@ export default function AdminSellersPage() {
 
         {/* Sellers List */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Store className="h-5 w-5" />
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              <Store className="h-4 w-4 sm:h-5 sm:w-5" />
               {t('sellers', { count: pagination.total })}
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6">
             {loading ? (
               <div className="flex items-center justify-center py-8">
                 <div className="flex flex-col items-center space-y-2">
@@ -284,84 +285,85 @@ export default function AdminSellersPage() {
                 {sellers.map((seller) => (
                   <div
                     key={seller.id}
-                    className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                   >
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-medium text-gray-900">{seller.shopName}</h3>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                          <h3 className="font-medium text-gray-900 text-sm sm:text-base">{seller.shopName}</h3>
                           {getApprovalBadge(seller.isApproved)}
                         </div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600">
                           <div>
                             <p className="font-medium text-gray-700">{t('owner')}</p>
-                            <p>{seller.user.firstName} {seller.user.lastName}</p>
-                            <p>{seller.user.email}</p>
-                            {seller.user.phone && <p>{seller.user.phone}</p>}
+                            <p className="break-words">{seller.user.firstName} {seller.user.lastName}</p>
+                            <p className="break-words">{seller.user.email}</p>
+                            {seller.user.phone && <p className="break-words">{seller.user.phone}</p>}
                           </div>
                           
                           <div>
                             <p className="font-medium text-gray-700">{t('location')}</p>
                             <div className="flex items-center gap-1">
-                              <MapPin className="h-4 w-4" />
-                              <p>{seller.city}, {seller.area}</p>
+                              <MapPin className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                              <p className="break-words">{seller.city}, {seller.area}</p>
                             </div>
-                            <p className="text-xs">{seller.shopAddress}</p>
+                            <p className="text-xs break-words">{seller.shopAddress}</p>
                           </div>
                         </div>
 
                         {seller.shopDescription && (
                           <div className="mt-2">
-                            <p className="text-sm text-gray-600">{seller.shopDescription}</p>
+                            <p className="text-xs sm:text-sm text-gray-600 break-words">{seller.shopDescription}</p>
                           </div>
                         )}
 
-                        <div className="flex items-center gap-4 mt-3 text-sm">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-3 text-xs sm:text-sm">
                           <div className="flex items-center gap-1">
-                            <Package className="h-4 w-4 text-blue-600" />
+                            <Package className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600 flex-shrink-0" />
                             <span>{t('products', { count: seller._count.products })}</span>
                           </div>
                           <div className="flex items-center gap-1">
-                            <Store className="h-4 w-4 text-green-600" />
+                            <Store className="h-3 w-3 sm:h-4 sm:w-4 text-green-600 flex-shrink-0" />
                             <span>{t('services', { count: seller._count.services })}</span>
                           </div>
                           <div className="flex items-center gap-1">
-                            <Calendar className="h-4 w-4 text-purple-600" />
+                            <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-purple-600 flex-shrink-0" />
                             <span>{t('appointments', { count: seller._count.appointments })}</span>
                           </div>
                           <div className="flex items-center gap-1">
-                            <Calendar className="h-4 w-4 text-gray-600" />
+                            <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600 flex-shrink-0" />
                             <span>{t('joined', { date: formatDate(seller.createdAt) })}</span>
                           </div>
                         </div>
                       </div>
                       
-                      <div className="flex flex-col gap-2 min-w-fit">
-                        <Button variant="outline" size="sm" leftIcon={<Eye className="h-4 w-4" />}>
-                          {t('viewDetails')}
+                      <div className="flex flex-col sm:flex-row xl:flex-col gap-2 min-w-fit">
+                        <Button variant="outline" size="sm" leftIcon={<Eye className="h-3 w-3 sm:h-4 sm:w-4" />} className="w-full sm:w-auto">
+                          <span className="text-xs sm:text-sm">{t('viewDetails')}</span>
                         </Button>
                         
                         {!seller.isApproved ? (
                           <Button
                             variant="primary"
                             size="sm"
-                            leftIcon={<CheckCircle className="h-4 w-4" />}
+                            leftIcon={<CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />}
                             onClick={() => handleSellerApproval(seller.id, true)}
                             disabled={updatingSeller === seller.id}
+                            className="w-full sm:w-auto"
                           >
-                            {updatingSeller === seller.id ? t('approving') : t('approve')}
+                            <span className="text-xs sm:text-sm">{updatingSeller === seller.id ? t('approving') : t('approve')}</span>
                           </Button>
                         ) : (
                           <Button
                             variant="outline"
                             size="sm"
-                            leftIcon={<XCircle className="h-4 w-4" />}
+                            leftIcon={<XCircle className="h-3 w-3 sm:h-4 sm:w-4" />}
                             onClick={() => handleSellerApproval(seller.id, false)}
                             disabled={updatingSeller === seller.id}
-                            className="text-red-600 border-red-200 hover:bg-red-50"
+                            className="text-red-600 border-red-200 hover:bg-red-50 w-full sm:w-auto"
                           >
-                            {updatingSeller === seller.id ? t('updating') : t('revokeApproval')}
+                            <span className="text-xs sm:text-sm">{updatingSeller === seller.id ? t('updating') : t('revokeApproval')}</span>
                           </Button>
                         )}
                       </div>
@@ -377,8 +379,8 @@ export default function AdminSellersPage() {
         {pagination.pages > 1 && (
           <Card>
             <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-600">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="text-xs sm:text-sm text-gray-600 text-center sm:text-left">
                   {t('showingResults', { 
                     start: ((pagination.page - 1) * pagination.limit) + 1,
                     end: Math.min(pagination.page * pagination.limit, pagination.total),
@@ -392,12 +394,13 @@ export default function AdminSellersPage() {
                     size="sm"
                     onClick={() => setCurrentPage(currentPage - 1)}
                     disabled={currentPage === 1}
+                    className="text-xs sm:text-sm"
                   >
-                    <ChevronLeft className="h-4 w-4" />
-                    {t('previous')}
+                    <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">{t('previous')}</span>
                   </Button>
                   
-                  <span className="text-sm text-gray-600">
+                  <span className="text-xs sm:text-sm text-gray-600">
                     {t('pageOf', { current: currentPage, total: pagination.pages })}
                   </span>
                   
@@ -406,9 +409,10 @@ export default function AdminSellersPage() {
                     size="sm"
                     onClick={() => setCurrentPage(currentPage + 1)}
                     disabled={currentPage === pagination.pages}
+                    className="text-xs sm:text-sm"
                   >
-                    {t('next')}
-                    <ChevronRight className="h-4 w-4" />
+                    <span className="hidden sm:inline">{t('next')}</span>
+                    <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
                 </div>
               </div>
