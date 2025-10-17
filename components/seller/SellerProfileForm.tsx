@@ -5,13 +5,13 @@ import { usePathname } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { 
-  User, 
-  Store, 
-  MapPin, 
-  Phone, 
-  Mail, 
-  Globe, 
+import {
+  User,
+  Store,
+  MapPin,
+  Phone,
+  Mail,
+  Globe,
   Edit,
   Save,
   X,
@@ -72,7 +72,7 @@ export function SellerProfileForm({ profile, isUpdating, onUpdate, onRefresh }: 
     const updateData = Object.fromEntries(
       Object.entries(formData).filter(([_, value]) => value && value.trim() !== '')
     );
-    
+
     // Always include required fields if they exist in the original profile
     if (profile.shopAddress && !updateData.shopAddress) {
       updateData.shopAddress = profile.shopAddress;
@@ -83,7 +83,7 @@ export function SellerProfileForm({ profile, isUpdating, onUpdate, onRefresh }: 
     if (profile.city && !updateData.city) {
       updateData.city = profile.city;
     }
-    
+
     onUpdate(updateData);
     setIsEditing(false);
   };
@@ -167,10 +167,10 @@ export function SellerProfileForm({ profile, isUpdating, onUpdate, onRefresh }: 
               <div className="text-2xl font-bold text-blue-600">{profile.productCount || 0}</div>
               <div className="text-sm text-blue-700">{t('productsListed')}</div>
             </div>
-                         <div className="text-center p-4 bg-green-50 rounded-lg">
-               <div className="text-2xl font-bold text-green-600">{profile.chatCount || 0}</div>
-               <div className="text-sm text-green-700">{t('totalChats')}</div>
-             </div>
+            <div className="text-center p-4 bg-green-50 rounded-lg">
+              <div className="text-2xl font-bold text-green-600">{profile.chatCount || 0}</div>
+              <div className="text-sm text-green-700">{t('totalChats')}</div>
+            </div>
             <div className="text-center p-4 bg-purple-50 rounded-lg">
               <div className="text-2xl font-bold text-purple-600">{profile.serviceCount || 0}</div>
               <div className="text-sm text-purple-700">{t('servicesOffered')}</div>
@@ -263,16 +263,8 @@ export function SellerProfileForm({ profile, isUpdating, onUpdate, onRefresh }: 
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t('emailAddress')}
                   </label>
-                  {isEditing ? (
-                    <Input
-                      value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      placeholder={t('enterEmailAddress')}
-                      type="email"
-                    />
-                  ) : (
                     <p className="text-gray-900">{profile.email || t('notProvided')}</p>
-                  )}
+                  
                 </div>
 
                 <div>

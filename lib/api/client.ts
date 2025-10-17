@@ -197,6 +197,14 @@ class APIClient {
     return this.post('/auth/register', userData);
   }
 
+  async forgotPassword(email: string): Promise<ApiResponse<{ message: string }>> {
+    return this.post('/auth/forgot-password', { email });
+  }
+
+  async resetPassword(payload: { email: string; token: string; password: string }): Promise<ApiResponse<{ message: string }>> {
+    return this.post('/auth/reset-password', payload);
+  }
+
   async logout(): Promise<ApiResponse<null>> {
     return this.post('/auth/logout');
   }
@@ -376,6 +384,10 @@ class APIClient {
 
   async updateSellerProfile(profileData: any): Promise<ApiResponse<any>> {
     return this.put('/sellers/profile', profileData);
+  }
+
+  async canContactSeller(sellerId: string): Promise<ApiResponse<{ canContact: boolean }>> {
+    return this.get(`/sellers/${sellerId}/can-contact`);
   }
 
   async getSellerAppointments(filters: any): Promise<ApiResponse<any>> {

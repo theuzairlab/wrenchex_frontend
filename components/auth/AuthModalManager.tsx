@@ -28,6 +28,9 @@ export function AuthModalManager({ isOpen, onClose, initialType = 'login' }: Aut
     handleClose();
   };
 
+  // Do NOT auto-close on errors; the LoginForm already displays errors at the top.
+  // Ensure modal stays open while errors are present.
+
   // Get redirect path based on current page
   const getRedirectPath = () => {
     // If user is on a product or service page, redirect back there

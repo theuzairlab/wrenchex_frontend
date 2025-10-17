@@ -10,7 +10,10 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { LocationFilter } from '@/components/location/LocationFilter';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Search, MapPin } from 'lucide-react';
+import { Search, MapPin, X } from 'lucide-react';
+import { useLiveSearch } from '@/hooks/useLiveSearch';
+import { apiClient } from '@/lib/api/client';
+import { AnimatePresence, motion } from 'framer-motion';
 
 // Define props type for the page
 interface ProductsPageProps {
@@ -115,172 +118,117 @@ async function getProductsData(searchParams: any, locale: 'en' | 'ar' = 'en') {
 
 export default function ProductsPage({ searchParams }: ProductsPageProps) {
   const t = useTranslations('common.products');
-  const router = useRouter();
   const pathname = usePathname();
   const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
+  
   const [products, setProducts] = useState<ProductSearchResult | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [params, setParams] = useState<any>(null);
-  
-  // Applied filter state (used for fetching)
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [minPrice, setMinPrice] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
-  const [location, setLocation] = useState('');
-  const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
-  const [radiusKm, setRadiusKm] = useState(10);
+  const [isLoading, setIsLoading] = useState(false);
   const [showLocationFilter, setShowLocationFilter] = useState(false);
 
-  // Draft filter state (updated as the user types; applied on Apply/Enter only)
-  const [draftSearchQuery, setDraftSearchQuery] = useState('');
-  const [draftSelectedCategory, setDraftSelectedCategory] = useState('');
-  const [draftMinPrice, setDraftMinPrice] = useState('');
-  const [draftMaxPrice, setDraftMaxPrice] = useState('');
-  const [draftLocation, setDraftLocation] = useState('');
-  const [draftCoordinates, setDraftCoordinates] = useState<{ lat: number; lng: number } | null>(null);
-  const [draftRadiusKm, setDraftRadiusKm] = useState(10);
+  // Live search hook - auto-updates on filter changes
+  const { filters, updateFilter, clearFilters: clearAllFilters, isSearching } = useLiveSearch({
+    debounceMs: 500,
+    onSearch: loadProducts
+  });
 
-  // Initialize all state from URL parameters (like services page)
+  // Load categories on mount
   useEffect(() => {
-    const initializeFromParams = async () => {
-      const resolvedParams = await searchParams;
+    loadCategories();
+  }, [currentLocale]);
+
+  // Initialize filters from URL on mount
+  useEffect(() => {
+    const initFromURL = async () => {
+      const params = await searchParams;
+      const initialFilters: Record<string, any> = {};
       
-      // Initialize all filter state from URL
-      if (resolvedParams.search) {
-        setSearchQuery(resolvedParams.search);
-        setDraftSearchQuery(resolvedParams.search);
-      }
-      if (resolvedParams.category) {
-        setSelectedCategory(resolvedParams.category);
-        setDraftSelectedCategory(resolvedParams.category);
-      }
-      if (resolvedParams.minPrice) {
-        setMinPrice(resolvedParams.minPrice);
-        setDraftMinPrice(resolvedParams.minPrice);
-      }
-      if (resolvedParams.maxPrice) {
-        setMaxPrice(resolvedParams.maxPrice);
-        setDraftMaxPrice(resolvedParams.maxPrice);
-      }
-      if (resolvedParams.location) {
-        setLocation(resolvedParams.location);
-        setDraftLocation(resolvedParams.location);
-      }
+      if (params.search) initialFilters.search = params.search;
+      if (params.category) initialFilters.category = params.category;
+      if (params.minPrice) initialFilters.minPrice = params.minPrice;
+      if (params.maxPrice) initialFilters.maxPrice = params.maxPrice;
+      if (params.latitude) initialFilters.latitude = params.latitude;
+      if (params.longitude) initialFilters.longitude = params.longitude;
+      if (params.radiusKm) initialFilters.radiusKm = params.radiusKm;
+      if (params.location) initialFilters.location = params.location;
       
-      const lat = resolvedParams.latitude;
-      const lng = resolvedParams.longitude;
-      const radius = resolvedParams.radiusKm;
-      
-      if (lat && lng) {
-        const applied = {
-          lat: parseFloat(lat),
-          lng: parseFloat(lng)
-        };
-        setCoordinates(applied);
-        setDraftCoordinates(applied);
-      }
-      if (radius) {
-        const r = parseFloat(radius);
-        setRadiusKm(r);
-        setDraftRadiusKm(r);
+      // Set initial filters (won't trigger search due to isInitialMount flag in hook)
+      Object.entries(initialFilters).forEach(([key, value]) => {
+        updateFilter(key, value);
+      });
+
+      // Load initial data
+      if (Object.keys(initialFilters).length > 0 || !params.search) {
+        await loadProducts(initialFilters);
       }
     };
     
-    initializeFromParams();
-  }, [searchParams]);
+    initFromURL();
+  }, []);
 
-  useEffect(() => {
-    loadData();
-  }, [coordinates, radiusKm, searchQuery, selectedCategory, minPrice, maxPrice, currentLocale]);
-
-  const loadData = async () => {
+  async function loadCategories() {
     try {
-      setIsLoading(true);
-      const resolvedParams = await searchParams;
-      console.log('🔍 Products page - URL params:', resolvedParams);
-      setParams(resolvedParams);
-      
-      // Create modified searchParams with current state (like services page)
-      const modifiedSearchParams = {
-        ...resolvedParams,
-        search: searchQuery || undefined,
-        category: selectedCategory || undefined,
-        minPrice: minPrice || undefined,
-        maxPrice: maxPrice || undefined,
-        location: location || undefined,
-        latitude: coordinates?.lat?.toString(),
-        longitude: coordinates?.lng?.toString(),
-        radiusKm: radiusKm.toString()
-      };
-      
-      const data = await getProductsData(modifiedSearchParams, currentLocale);
-      console.log('📦 Products page - API response:', data);
-      setProducts(data.products);
-      setCategories(data.categories);
+      const response = await apiClient.getCategories();
+      if (response.success && response.data) {
+        const list: Category[] = Array.isArray(response.data)
+          ? (response.data as Category[])
+          : ((response.data as any).categories as Category[]) || [];
+        setCategories(list || []);
+      }
     } catch (error) {
-      console.error('Failed to load products data:', error);
+      console.error('Failed to load categories:', error);
+    }
+  }
+
+  async function loadProducts(currentFilters: Record<string, any>) {
+    try {
+      // Avoid redundant calls when nothing changed (hook already guards, this is extra safety)
+      setIsLoading(true);
+      const response = await apiClient.getProducts({
+        ...currentFilters,
+        page: 1,
+        limit: 12
+      });
+      
+      if (response.success && response.data) {
+        setProducts(response.data);
+      }
+    } catch (error) {
+      // do not spam console; API client already logs
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
   // Location handlers update drafts only; apply via Apply button
   const handleLocationChange = (newLocation: string | null, coords?: { lat: number; lng: number }) => {
-    setDraftLocation(newLocation || '');
-    setDraftCoordinates(coords || null);
+    updateFilter('location', newLocation || '');
+    updateFilter('latitude', coords?.lat?.toString() || '');
+    updateFilter('longitude', coords?.lng?.toString() || '');
   };
 
   const handleRadiusChange = (newRadius: number) => {
-    setDraftRadiusKm(newRadius);
+    updateFilter('radiusKm', newRadius.toString());
   };
 
-  const handleUseCurrentLocation = () => {
-    // This will trigger the location permission modal in LocationFilter
-  };
+  const handleUseCurrentLocation = () => {};
 
   const handleClearLocation = () => {
-    setLocation('');
-    setCoordinates(null);
-    setRadiusKm(10);
+    updateFilter('location', '');
+    updateFilter('latitude', '');
+    updateFilter('longitude', '');
+    updateFilter('radiusKm', '10');
   };
 
   // Apply filters (no page refresh)
   const applyFilters = () => {
-    // Copy drafts into applied state, then fetch
-    setSearchQuery(draftSearchQuery);
-    setSelectedCategory(draftSelectedCategory);
-    setMinPrice(draftMinPrice);
-    setMaxPrice(draftMaxPrice);
-    setLocation(draftLocation);
-    setCoordinates(draftCoordinates);
-    setRadiusKm(draftRadiusKm);
-    // Fetch after state updates are flushed
-    setTimeout(() => loadData(), 0);
+    // No-op: live search updates automatically
   };
 
   // Clear all filters (no page refresh)
   const clearFilters = () => {
-    // Clear drafts
-    setDraftSearchQuery('');
-    setDraftSelectedCategory('');
-    setDraftMinPrice('');
-    setDraftMaxPrice('');
-    setDraftLocation('');
-    setDraftCoordinates(null);
-    setDraftRadiusKm(10);
-    // Clear applied
-    setSearchQuery('');
-    setSelectedCategory('');
-    setMinPrice('');
-    setMaxPrice('');
-    setLocation('');
-    setCoordinates(null);
-    setRadiusKm(10);
-    setShowLocationFilter(false);
-    // Trigger data reload after clearing
-    setTimeout(() => loadData(), 0);
+    // Use live search clear
+    clearAllFilters();
   };
 
   // Keep the filter UI visible while loading; show spinner only in catalog area
@@ -324,9 +272,8 @@ export default function ProductsPage({ searchParams }: ProductsPageProps) {
                   <Input
                     type="text"
                     placeholder={t('searchPlaceholder')}
-                  value={draftSearchQuery}
-                  onChange={(e) => setDraftSearchQuery(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && applyFilters()}
+                  value={filters.search || ''}
+                  onChange={(e) => updateFilter('search', e.target.value)}
                     className="pl-9 pr-3 py-2 text-sm"
                   />
                 </div>
@@ -336,12 +283,12 @@ export default function ProductsPage({ searchParams }: ProductsPageProps) {
               {/* Category Dropdown */}
               <div className="min-w-[120px]">
                 <select
-                  value={draftSelectedCategory}
-                  onChange={(e) => setDraftSelectedCategory(e.target.value)}
+                  value={filters.category || ''}
+                  onChange={(e) => updateFilter('category', e.target.value)}
                   className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-wrench-accent"
                 >
                   <option value="">{t('allCategories')}</option>
-                  {categories.map((category) => (
+                  {(categories as Category[]).map((category) => (
                     <option key={category.id} value={category.id}>
                       {category.name}
                     </option>
@@ -354,44 +301,37 @@ export default function ProductsPage({ searchParams }: ProductsPageProps) {
                 <Input
                   type="number"
                   placeholder={t('min')}
-                  value={draftMinPrice}
-                  onChange={(e) => setDraftMinPrice(e.target.value)}
+                  value={filters.minPrice || ''}
+                  onChange={(e) => updateFilter('minPrice', e.target.value)}
                   className="w-20 text-sm py-2"
                 />
                 <span className="text-gray-500">-</span>
                 <Input
                   type="number"
                   placeholder={t('max')}
-                  value={draftMaxPrice}
-                  onChange={(e) => setDraftMaxPrice(e.target.value)}
+                  value={filters.maxPrice || ''}
+                  onChange={(e) => updateFilter('maxPrice', e.target.value)}
                   className="w-20 text-sm py-2"
                 />
-                <Button
-                  size="sm"
-                  onClick={applyFilters}
-                  className="px-3 py-2"
-                >
-                  {t('apply')}
-                </Button>
               </div>
 
               {/* Location Filter Toggle (like services page) */}
               <Button
-                variant={(draftLocation && draftCoordinates) || (location && coordinates) ? "primary" : "outline"}
+                variant={(filters.location && filters.latitude && filters.longitude) ? "primary" : "outline"}
                 size="sm"
                 onClick={() => setShowLocationFilter(!showLocationFilter)}
                 className="min-w-[120px]"
               >
                 <MapPin className="h-4 w-4 mr-1" />
-                {(draftLocation && draftCoordinates) || (location && coordinates) ? t('locationChecked') : t('location')}
+                {(filters.location && filters.latitude && filters.longitude) ? t('locationChecked') : t('location')}
               </Button>
 
               {/* Clear Filters */}
-              {(searchQuery || location || selectedCategory || minPrice || maxPrice || radiusKm !== 10) && (
+              {(filters.search || filters.location || filters.category || filters.minPrice || filters.maxPrice || (filters.radiusKm && filters.radiusKm !== '10')) && (
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={clearFilters}
+                  onClick={clearAllFilters}
                   className="text-gray-600 hover:text-gray-800"
                 >
                   {t('clear')}
@@ -403,12 +343,21 @@ export default function ProductsPage({ searchParams }: ProductsPageProps) {
             {showLocationFilter && (
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <LocationFilter
-                  currentLocation={draftLocation}
-                  currentRadius={draftRadiusKm}
-                  onLocationChange={handleLocationChange}
-                  onRadiusChange={handleRadiusChange}
-                  onUseCurrentLocation={handleUseCurrentLocation}
-                  onClearLocation={handleClearLocation}
+                  currentLocation={filters.location || ''}
+                  currentRadius={filters.radiusKm ? parseInt(filters.radiusKm as string, 10) : 10}
+                  onLocationChange={(loc, coords) => {
+                    updateFilter('location', loc || '');
+                    updateFilter('latitude', coords?.lat?.toString() || '');
+                    updateFilter('longitude', coords?.lng?.toString() || '');
+                  }}
+                  onRadiusChange={(r) => updateFilter('radiusKm', r.toString())}
+                  onUseCurrentLocation={() => {}}
+                  onClearLocation={() => {
+                    updateFilter('location', '');
+                    updateFilter('latitude', '');
+                    updateFilter('longitude', '');
+                    updateFilter('radiusKm', '10');
+                  }}
                 />
               </div>
             )}
@@ -418,13 +367,57 @@ export default function ProductsPage({ searchParams }: ProductsPageProps) {
         {/* Products Catalog */}
         <div>
           <Suspense fallback={<LoadingSpinner />}>
-            {isLoading ? (
-              <div className="py-16 flex justify-center"><LoadingSpinner /></div>
-            ) : products ? (
-              <ProductCatalog 
-                searchResult={products}
-                currentFilters={params}
-              />
+            {products ? (
+              <div className="relative">
+                {/* Results with subtle fade while loading */}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={JSON.stringify({
+                      q: filters.search || '',
+                      c: filters.category || '',
+                      min: filters.minPrice || '',
+                      max: filters.maxPrice || '',
+                      loc: filters.location || '',
+                      r: filters.radiusKm || ''
+                    })}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.18, ease: 'easeOut' }}
+                    className={`transition-opacity duration-200 ${isLoading ? 'opacity-80' : 'opacity-100'}`}
+                  >
+                    <motion.div
+                      layout
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{
+                        duration: 0.3,
+                        ease: 'easeOut',
+                        staggerChildren: 0.08,
+                        delayChildren: 0.1
+                      }}
+                    >
+                      <ProductCatalog 
+                        searchResult={products}
+                        currentFilters={filters}
+                      />
+                    </motion.div>
+                  </motion.div>
+                </AnimatePresence>
+
+                {/* Smooth overlay spinner instead of replacing content */}
+                {isLoading && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute inset-0 bg-white/40 backdrop-blur-[1px] flex items-center justify-center"
+                  >
+                    <LoadingSpinner />
+                  </motion.div>
+                )}
+              </div>
             ) : (
               <div className="text-center py-12">
                 <div className="text-gray-500 mb-4">

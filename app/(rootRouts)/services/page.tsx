@@ -18,6 +18,8 @@ import Image from 'next/image';
 import LocationSearch from '@/components/services/LocationSearch';
 import { LocationFilter } from '@/components/location/LocationFilter';
 import { formatPrice } from '@/lib/utils';
+import { useLiveSearch } from '@/hooks/useLiveSearch';
+import { AnimatePresence, motion } from 'framer-motion';
 
 interface ServicesPageData {
   services: Service[];
@@ -31,178 +33,132 @@ interface ServicesPageData {
 
 export default function ServicesPage() {
   const t = useTranslations('servicesPage');
-  const router = useRouter();
   const pathname = usePathname();
   const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
   const searchParams = useSearchParams();
+  
   const [data, setData] = useState<ServicesPageData | null>(null);
   const [categories, setCategories] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Filter states
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
-  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all');
-  const [serviceType, setServiceType] = useState(searchParams.get('type') || 'all');
-  const [sortBy, setSortBy] = useState(searchParams.get('sortBy') || 'rating');
-  const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') || '');
-  const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') || '');
-  const [location, setLocation] = useState(searchParams.get('location') || '');
-  const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
-  const [radiusKm, setRadiusKm] = useState(parseInt(searchParams.get('radiusKm') || '20'));
+  const [isLoading, setIsLoading] = useState(false);
   const [showLocationFilter, setShowLocationFilter] = useState(false);
 
-  // Initialize coordinates from URL parameters
-  useEffect(() => {
-    const lat = searchParams.get('latitude');
-    const lng = searchParams.get('longitude');
-    if (lat && lng) {
-      setCoordinates({
-        lat: parseFloat(lat),
-        lng: parseFloat(lng)
-      });
-    }
-  }, [searchParams]);
+  // Live search hook - auto-updates on filter changes
+  const { filters, updateFilter, clearFilters: clearAllFilters, isSearching } = useLiveSearch({
+    debounceMs: 500,
+    onSearch: loadServices
+  });
 
+  // Load categories on mount
   useEffect(() => {
-    loadServices();
     loadCategories();
-  }, [searchParams, coordinates, currentLocale]);
+  }, [currentLocale]);
 
-  const loadServices = async () => {
+  // Initialize filters from URL on mount
+  useEffect(() => {
+    const initFromURL = async () => {
+      const params = searchParams;
+      const initialFilters: Record<string, any> = {};
+      
+      if (params.get('search')) initialFilters.search = params.get('search');
+      if (params.get('category')) initialFilters.category = params.get('category');
+      if (params.get('type')) initialFilters.type = params.get('type');
+      if (params.get('minPrice')) initialFilters.minPrice = params.get('minPrice');
+      if (params.get('maxPrice')) initialFilters.maxPrice = params.get('maxPrice');
+      if (params.get('location')) initialFilters.location = params.get('location');
+      if (params.get('latitude')) initialFilters.latitude = params.get('latitude');
+      if (params.get('longitude')) initialFilters.longitude = params.get('longitude');
+      if (params.get('radiusKm')) initialFilters.radiusKm = params.get('radiusKm');
+      
+      // Set initial filters (won't trigger search due to isInitialMount flag in hook)
+      Object.entries(initialFilters).forEach(([key, value]) => {
+        updateFilter(key, value);
+      });
+
+      // Load initial data
+      if (Object.keys(initialFilters).length > 0 || !params.get('search')) {
+        await loadServices(initialFilters);
+      }
+    };
+    
+    initFromURL();
+  }, []);
+
+  async function loadServices(currentFilters: Record<string, any>) {
     try {
       setIsLoading(true);
 
-      const filters: ServiceFilters = {
-        page: parseInt(searchParams.get('page') || '1'),
+      const serviceFilters: ServiceFilters = {
+        page: 1,
         limit: 12,
-        search: searchParams.get('search') || undefined,
-        categoryId: searchParams.get('category') || undefined,
-        isMobileService: searchParams.get('type') === 'mobile' ? true : searchParams.get('type') === 'shop' ? false : undefined,
-        minPrice: searchParams.get('minPrice') ? parseFloat(searchParams.get('minPrice')!) : undefined,
-        maxPrice: searchParams.get('maxPrice') ? parseFloat(searchParams.get('maxPrice')!) : undefined,
-        city: searchParams.get('location') || undefined,
-        latitude: coordinates?.lat ? Number(coordinates.lat) : undefined,
-        longitude: coordinates?.lng ? Number(coordinates.lng) : undefined,
-        radiusKm: Number(radiusKm),
+        search: currentFilters.search || undefined,
+        categoryId: currentFilters.category || undefined,
+        isMobileService: currentFilters.type === 'mobile' ? true : currentFilters.type === 'shop' ? false : undefined,
+        minPrice: currentFilters.minPrice ? parseFloat(currentFilters.minPrice) : undefined,
+        maxPrice: currentFilters.maxPrice ? parseFloat(currentFilters.maxPrice) : undefined,
+        city: currentFilters.location || undefined,
+        latitude: currentFilters.latitude ? parseFloat(currentFilters.latitude) : undefined,
+        longitude: currentFilters.longitude ? parseFloat(currentFilters.longitude) : undefined,
+        radiusKm: currentFilters.radiusKm ? parseFloat(currentFilters.radiusKm) : 20,
       };
 
-      console.log('Services API filters before sending:', {
-        latitude: filters.latitude,
-        longitude: filters.longitude,
-        radiusKm: filters.radiusKm,
-        types: {
-          latitude: typeof filters.latitude,
-          longitude: typeof filters.longitude,
-          radiusKm: typeof filters.radiusKm
-        }
-      });
-
       // Remove undefined values
-      Object.keys(filters).forEach(key =>
-        filters[key as keyof ServiceFilters] === undefined && delete filters[key as keyof ServiceFilters]
+      Object.keys(serviceFilters).forEach(key =>
+        serviceFilters[key as keyof ServiceFilters] === undefined && delete serviceFilters[key as keyof ServiceFilters]
       );
 
       let response;
 
       // Use location-based search if coordinates are available
-      if (coordinates) {
-        console.log('🌍 Using location-based search with coordinates:', coordinates, 'radius:', radiusKm);
+      if (serviceFilters.latitude && serviceFilters.longitude) {
         response = await apiClient.searchServicesNearLocation(
-          coordinates.lat,
-          coordinates.lng,
-          radiusKm, // Use the user-selected radius
-          filters
+          serviceFilters.latitude,
+          serviceFilters.longitude,
+          serviceFilters.radiusKm || 20,
+          serviceFilters
         );
       } else {
-        console.log('📍 No coordinates available, using regular search');
-        response = await apiClient.getServices(filters);
+        response = await apiClient.getServices(serviceFilters);
       }
 
       if (response.success && response.data) {
-        console.log('Services API response:', response.data);
-
-        // Log services to check if inactive ones are being returned
-        if (response.data.services) {
-          console.log('Services received:', response.data.services.length);
-          const inactiveServices = response.data.services.filter((s: any) => !s.isActive);
-          if (inactiveServices.length > 0) {
-            console.warn('Found inactive services in response:', inactiveServices);
-          }
-        }
-
         setData(response.data);
-      } else {
-        toast.error(t('loadServicesFailed'));
       }
     } catch (error) {
       console.error('Failed to load services:', error);
-      toast.error(t('loadServicesFailed'));
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
-  const loadCategories = async () => {
+  async function loadCategories() {
     try {
       const response = await apiClient.getServiceCategories();
       if (response.success && response.data) {
-        setCategories(response.data);
+        setCategories(Array.isArray(response.data) ? response.data : response.data.categories || []);
       }
     } catch (error) {
       console.error('Failed to load categories:', error);
     }
-  };
+  }
 
-  const applyFilters = () => {
-    const params = new URLSearchParams();
-
-    if (searchQuery.trim()) params.set('search', searchQuery.trim());
-    if (selectedCategory && selectedCategory !== 'all') params.set('category', selectedCategory);
-    if (serviceType && serviceType !== 'all') params.set('type', serviceType);
-    if (sortBy !== 'rating') params.set('sortBy', sortBy);
-    if (minPrice) params.set('minPrice', minPrice);
-    if (maxPrice) params.set('maxPrice', maxPrice);
-    if (location.trim()) params.set('location', location.trim());
-    if (coordinates) {
-      params.set('latitude', coordinates.lat.toString());
-      params.set('longitude', coordinates.lng.toString());
-    }
-    if (radiusKm !== 20) params.set('radiusKm', radiusKm.toString());
-
-    router.push(`/services?${params.toString()}`);
-  };
-
-  const clearFilters = () => {
-    setSearchQuery('');
-    setSelectedCategory('all');
-    setServiceType('all');
-    setSortBy('rating');
-    setMinPrice('');
-    setMaxPrice('');
-    setLocation('');
-    setCoordinates(null);
-    setRadiusKm(20);
-    router.push('/services');
-  };
-
-  // Location filter handlers
+  // Location handlers - update live
   const handleLocationChange = (newLocation: string | null, coords?: { lat: number; lng: number }) => {
-    setLocation(newLocation || '');
-    setCoordinates(coords || null);
+    updateFilter('location', newLocation || '');
+    updateFilter('latitude', coords?.lat?.toString() || '');
+    updateFilter('longitude', coords?.lng?.toString() || '');
   };
 
   const handleRadiusChange = (newRadius: number) => {
-    setRadiusKm(newRadius);
+    updateFilter('radiusKm', newRadius.toString());
   };
 
-  const handleUseCurrentLocation = () => {
-    // This will trigger the location permission modal in LocationFilter
-  };
+  const handleUseCurrentLocation = () => {};
 
   const handleClearLocation = () => {
-    setLocation('');
-    setCoordinates(null);
-    setRadiusKm(20);
+    updateFilter('location', '');
+    updateFilter('latitude', '');
+    updateFilter('longitude', '');
+    updateFilter('radiusKm', '20');
   };
 
 
@@ -250,9 +206,8 @@ export default function ServicesPage() {
               <Input
                 type="text"
                 placeholder={t('searchPlaceholder')}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && applyFilters()}
+                value={filters.search || ''}
+                onChange={(e) => updateFilter('search', e.target.value)}
                 className="pl-9 pr-3 py-2 text-sm"
               />
             </div>
@@ -261,8 +216,8 @@ export default function ServicesPage() {
           {/* Service Type Dropdown */}
           <div className="min-w-[120px]">
             <select
-              value={serviceType}
-              onChange={(e) => setServiceType(e.target.value)}
+              value={filters.type || 'all'}
+              onChange={(e) => updateFilter('type', e.target.value)}
               className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-wrench-accent"
             >
               <option value="all">{t('allTypes')}</option>
@@ -276,44 +231,37 @@ export default function ServicesPage() {
             <Input
               type="number"
               placeholder={t('min')}
-              value={minPrice}
-              onChange={(e) => setMinPrice(e.target.value)}
+              value={filters.minPrice || ''}
+              onChange={(e) => updateFilter('minPrice', e.target.value)}
               className="w-20 text-sm py-2"
             />
             <span className="text-gray-500">-</span>
             <Input
               type="number"
               placeholder={t('max')}
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(e.target.value)}
+              value={filters.maxPrice || ''}
+              onChange={(e) => updateFilter('maxPrice', e.target.value)}
               className="w-20 text-sm py-2"
             />
-            <Button
-              size="sm"
-              onClick={applyFilters}
-              className="px-3 py-2"
-            >
-              {t('apply')}
-            </Button>
           </div>
 
           {/* Location Filter Toggle */}
           <Button
-            variant={location && coordinates ? "primary" : "outline"}
+            variant={(filters.location && filters.latitude && filters.longitude) ? "primary" : "outline"}
             size="sm"
             onClick={() => setShowLocationFilter(!showLocationFilter)}
             className="min-w-[120px]"
           >
             <MapPin className="h-4 w-4 mr-1" />
-            {location && coordinates ? t('locationChecked') : t('location')}
+            {(filters.location && filters.latitude && filters.longitude) ? t('locationChecked') : t('location')}
           </Button>
 
           {/* Clear Filters */}
-          {(searchQuery || location || serviceType !== 'all' || minPrice || maxPrice || radiusKm !== 20) && (
+          {(filters.search || filters.location || filters.type !== 'all' || filters.minPrice || filters.maxPrice || (filters.radiusKm && filters.radiusKm !== '20')) && (
             <Button
               variant="outline"
               size="sm"
-              onClick={clearFilters}
+              onClick={clearAllFilters}
               className="text-gray-600 hover:text-gray-800"
             >
               {t('clear')}
@@ -325,8 +273,8 @@ export default function ServicesPage() {
         {showLocationFilter && (
           <div className="mt-4 pt-4 border-t border-gray-200">
             <LocationFilter
-              currentLocation={location}
-              currentRadius={radiusKm}
+              currentLocation={filters.location || ''}
+              currentRadius={filters.radiusKm ? parseInt(filters.radiusKm as string, 10) : 20}
               onLocationChange={handleLocationChange}
               onRadiusChange={handleRadiusChange}
               onUseCurrentLocation={handleUseCurrentLocation}
@@ -338,52 +286,101 @@ export default function ServicesPage() {
 
       {/* Results */}
       <div className="container-responsive py-8">
-        {isLoading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">{t('loading')}</p>
-            </div>
-          </div>
-        ) : !data?.services?.length ? (
-          <div className="text-center py-20">
-            <Wrench className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('noResults')}</h3>
-            <p className="text-gray-600 mb-4">{t('tryAdjusting')}</p>
-            <Button onClick={clearFilters}>{t('clear')}</Button>
+        {data ? (
+          <div className="relative">
+            {/* Results with subtle fade while loading */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={JSON.stringify({
+                  q: filters.search || '',
+                  t: filters.type || '',
+                  min: filters.minPrice || '',
+                  max: filters.maxPrice || '',
+                  loc: filters.location || '',
+                  r: filters.radiusKm || ''
+                })}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.18, ease: 'easeOut' }}
+                className={`transition-opacity duration-200 ${isSearching ? 'opacity-80' : 'opacity-100'}`}
+              >
+                {!data?.services?.length ? (
+                  <div className="text-center py-20">
+                    <Wrench className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('noResults')}</h3>
+                    <p className="text-gray-600 mb-4">{t('tryAdjusting')}</p>
+                    <Button onClick={clearAllFilters}>{t('clear')}</Button>
+                  </div>
+                ) : (
+                  <motion.div
+                    layout
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{
+                      duration: 0.3,
+                      ease: 'easeOut',
+                      staggerChildren: 0.08,
+                      delayChildren: 0.1
+                    }}
+                    className="flex justify-center flex-wrap gap-4"
+                  >
+                    {data.services.map((service, index) => (
+                      <motion.div
+                        key={service.id}
+                        layout
+                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                        transition={{
+                          duration: 0.4,
+                          delay: index * 0.05,
+                          ease: [0.25, 0.46, 0.45, 0.94],
+                          layout: { duration: 0.3 }
+                        }}
+                        whileHover={{
+                          y: -4,
+                          scale: 1.02,
+                          transition: { duration: 0.2 }
+                        }}
+                      >
+                        <ServiceCard
+                          service={service}
+                          formatDuration={formatDuration}
+                        />
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                )}
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Smooth overlay spinner instead of replacing content */}
+            {isSearching && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="absolute inset-0 flex items-center justify-center bg-white/50 backdrop-blur-[1px] z-10 rounded-lg"
+              >
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">{t('loading')}</p>
+                </div>
+              </motion.div>
+            )}
           </div>
         ) : (
-          <>
-            {/* Services Grid */}
-            <div className="flex justify-center flex-wrap gap-4">
-              {data.services.map((service) => (
-                <ServiceCard
-                  key={service.id}
-                  service={service}
-                  formatDuration={formatDuration}
-                />
-              ))}
+          <div className="text-center py-12">
+            <div className="text-gray-500 mb-4">
+              <svg className="w-12 h-12 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              <p className="text-lg font-medium">{t('unableToLoad')}</p>
+              <p className="text-sm">{t('pleaseTryLater')}</p>
             </div>
-
-            {/* Pagination */}
-            {data.pagination.pages > 1 && (
-              <div className="flex justify-center gap-2">
-                {[...Array(data.pagination.pages)].map((_, i) => (
-                  <Button
-                    key={i + 1}
-                    variant={data.pagination.page === i + 1 ? 'primary' : 'outline'}
-                    onClick={() => {
-                      const params = new URLSearchParams(searchParams);
-                      params.set('page', (i + 1).toString());
-                      router.push(`/services?${params.toString()}`);
-                    }}
-                  >
-                    {i + 1}
-                  </Button>
-                ))}
-              </div>
-            )}
-          </>
+          </div>
         )}
       </div>
     </div>

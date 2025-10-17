@@ -320,6 +320,10 @@
       "enterShopName": "Enter your shop name",
       "businessType": "Business Type",
       "selectBusinessType": "Select business type",
+      "shopRole": "Shop Role",
+      "selectShopRole": "Select your role in the shop",
+      "customShopRole": "Custom Shop Role",
+      "enterCustomShopRole": "Enter your custom role",
       "shopLocation": "Shop Location",
       "useSimpleAddressInput": "Use Simple Address Input",
       "useStepByStepSelection": "Use Step-by-Step Selection",
@@ -370,7 +374,8 @@
       "imageRemoved": "Image Removed",
       "failedToLoadServiceCategories": "Failed to load service categories",
       "failedToLoadServicesData": "Failed to load services data",
-      "failedToSendMessage": "Failed to send message"
+      "failedToSendMessage": "Failed to send message",
+      "forgotPassword": "Forgot Password"
     },
     "dashboard": {
       "welcomeBack": "Welcome back, {name}! 👋",
@@ -592,7 +597,10 @@
       "error": "Error",
       "tryAgain": "Try Again",
       "month": "Month",
-      "getDirectionsAddressOnly": "Get Directions (Address Only)"
+      "getDirectionsAddressOnly": "Get Directions (Address Only)",
+      "days": "Days",
+      "months": "Months",
+      "years": "Years"
     },
     "whyChooseUs": {
       "bestAutoWorkshop": "Best Auto Workshop In Your Area",
@@ -2115,7 +2123,9 @@
     "shopBadge": "Shop Service",
     "mobileBadge": "Mobile Service",
     "noResults": "No services found",
-    "tryAdjusting": "Try adjusting your search criteria or location"
+    "tryAdjusting": "Try adjusting your search criteria or location",
+    "unableToLoad": "Unable to load services",
+    "pleaseTryLater": "Please try again later"
   },
   "serviceDetail": {
     "service": "Service",

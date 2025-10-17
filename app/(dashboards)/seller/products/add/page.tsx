@@ -34,7 +34,9 @@ export default function AddProductPage() {
       material: '',
       compatibility: '',
       warranty: '',
-      brand: ''
+      brand: '',
+      condition: '',
+      model: ''
     },
     images: [] as string[]
   });
@@ -44,6 +46,9 @@ export default function AddProductPage() {
   const [selectedCurrency, setSelectedCurrency] = useState<CurrencyInfo | null>(null);
   const { token } = useAuthStore();
   const [categories, setCategories] = useState<Category[]>([]);
+  const [rootCategories, setRootCategories] = useState<Category[]>([]);
+  const [childCategories, setChildCategories] = useState<Category[]>([]);
+  const [selectedRootCategory, setSelectedRootCategory] = useState<string>('');
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -52,15 +57,41 @@ export default function AddProductPage() {
           // Handle both direct array and wrapped response formats
           const categoriesData = Array.isArray(response.data) ? response.data : (response.data as any).categories;
           setCategories(categoriesData || []);
+          
+          // Separate root categories (no parent) from child categories
+          const roots = categoriesData.filter((cat: Category) => !cat.parentId);
+          const children = categoriesData.filter((cat: Category) => cat.parentId);
+          
+          setRootCategories(roots);
+          setChildCategories(children);
         }
       } catch (error) {
         console.error('Failed to fetch categories:', error);
         toast.error(t('loadCategoriesFailed'));
         setCategories([]);
+        setRootCategories([]);
+        setChildCategories([]);
       }
     };
     fetchCategories();
   }, []);
+
+  // Initialize root category selection when form data changes
+  useEffect(() => {
+    if (formData.categoryId && !selectedRootCategory) {
+      // Check if the selected category is a root category
+      const rootCategory = rootCategories.find(cat => cat.id === formData.categoryId);
+      if (rootCategory) {
+        setSelectedRootCategory(formData.categoryId);
+      } else {
+        // Check if it's a child category and set its parent as root
+        const childCategory = childCategories.find(cat => cat.id === formData.categoryId);
+        if (childCategory) {
+          setSelectedRootCategory(childCategory.parentId || '');
+        }
+      }
+    }
+  }, [formData.categoryId, rootCategories, childCategories, selectedRootCategory]);
 
   // Detect currency from seller's location
   useEffect(() => {
@@ -149,6 +180,24 @@ export default function AddProductPage() {
     }));
   };
 
+  // Handle root category change
+  const handleRootCategoryChange = (rootCategoryId: string) => {
+    setSelectedRootCategory(rootCategoryId);
+    // Reset child category selection when root changes
+    setFormData(prev => ({
+      ...prev,
+      categoryId: rootCategoryId
+    }));
+  };
+
+  // Handle child category change
+  const handleChildCategoryChange = (childCategoryId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      categoryId: childCategoryId
+    }));
+  };
+
   // Update the image upload handler in the component
   // Image upload handler
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -222,6 +271,13 @@ export default function AddProductPage() {
     setIsSubmitting(true);
 
     try {
+      // Validate category selection
+      if (!formData.categoryId) {
+        toast.error('Please select a category');
+        setIsSubmitting(false);
+        return;
+      }
+
       // Merge fixed and dynamic specifications
       const mergedSpecifications: Record<string, string> = { ...formData.specifications };
       
@@ -301,13 +357,13 @@ export default function AddProductPage() {
           </div>
 
           <div>
-            <label htmlFor="categoryId" className="block mb-2">{t('category')}</label>
-            <Select value={formData.categoryId} onValueChange={(value) => setFormData({ ...formData, categoryId: value })}>
+            <label htmlFor="rootCategory" className="block mb-2">Main Category</label>
+            <Select value={selectedRootCategory} onValueChange={handleRootCategoryChange}>
               <SelectTrigger className="w-full px-3 py-5 border rounded-lg border-wrench-accent focus:border-wrench-accent focus:ring-wrench-accent focus:ring-1 outline-none">
-                <SelectValue placeholder={t('selectCategory')} />
+                <SelectValue placeholder="Select main category" />
               </SelectTrigger>
               <SelectContent>
-                {categories && Array.isArray(categories) && categories.map((category) => (
+                {rootCategories && Array.isArray(rootCategories) && rootCategories.map((category) => (
                   <SelectItem key={category.id} value={category.id} className="py-2 px-3 rounded-lg">
                     {category.name}
                   </SelectItem>
@@ -315,6 +371,30 @@ export default function AddProductPage() {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Child Category - Only show if root category has children */}
+          {selectedRootCategory && childCategories.some(child => child.parentId === selectedRootCategory) && (
+            <div>
+              <label htmlFor="childCategory" className="block mb-2">Sub Category</label>
+              <Select value={formData.categoryId} onValueChange={handleChildCategoryChange}>
+                <SelectTrigger className="w-full px-3 py-5 border rounded-lg border-wrench-accent focus:border-wrench-accent focus:ring-wrench-accent focus:ring-1 outline-none">
+                  <SelectValue placeholder="Select sub category (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {childCategories
+                    .filter(child => child.parentId === selectedRootCategory)
+                    .map((category) => (
+                      <SelectItem key={category.id} value={category.id} className="py-2 px-3 rounded-lg">
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500 mt-1">
+                Choose a sub category for more specific classification
+              </p>
+            </div>
+          )}
 
           <div>
             <label htmlFor="language" className="block mb-2">{t('originalLanguage')}</label>
@@ -430,6 +510,21 @@ export default function AddProductPage() {
               />
             </div>
             <div>
+              <label htmlFor="specifications.model" className="block mb-2">Car Model</label>
+              <Input
+                type="text"
+                id="specifications.model"
+                name="specifications.model"
+                value={formData.specifications.model}
+                onChange={handleChange}
+                placeholder="e.g., Camry, Civic, Accord, Corolla, Altima"
+                className="w-full px-3 py-2 border rounded-lg"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Specify the car model(s) this part is compatible with
+              </p>
+            </div>
+            <div>
               <label htmlFor="specifications.warranty" className="block mb-2">{t('warranty')}</label>
               <Input
                 type="text"
@@ -440,6 +535,49 @@ export default function AddProductPage() {
                 placeholder={t('warrantyPlaceholder')}
                 className="w-full px-3 py-2 border rounded-lg"
               />
+            </div>
+            <div>
+              <label htmlFor="specifications.condition" className="block mb-2">Product Condition</label>
+              <Select 
+                value={formData.specifications.condition} 
+                onValueChange={(value) => setFormData(prev => ({
+                  ...prev,
+                  specifications: {
+                    ...prev.specifications,
+                    condition: value
+                  }
+                }))}
+              >
+                <SelectTrigger className="w-full px-3 py-2 border rounded-lg border-wrench-accent focus:border-wrench-accent focus:ring-wrench-accent focus:ring-1 outline-none">
+                  <SelectValue placeholder="Select product condition" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="new" className="py-2 px-3 rounded-lg">
+                    🆕 New
+                  </SelectItem>
+                  <SelectItem value="like_new" className="py-2 px-3 rounded-lg">
+                    ✨ Like New
+                  </SelectItem>
+                  <SelectItem value="good" className="py-2 px-3 rounded-lg">
+                    ✅ Good
+                  </SelectItem>
+                  <SelectItem value="fair" className="py-2 px-3 rounded-lg">
+                    ⚠️ Fair
+                  </SelectItem>
+                  <SelectItem value="poor" className="py-2 px-3 rounded-lg">
+                    🔧 Poor
+                  </SelectItem>
+                  <SelectItem value="refurbished" className="py-2 px-3 rounded-lg">
+                    🔄 Refurbished
+                  </SelectItem>
+                  <SelectItem value="used" className="py-2 px-3 rounded-lg">
+                    📦 Used
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500 mt-1">
+                Select the condition of your product to help buyers make informed decisions
+              </p>
             </div>
           </div>
 

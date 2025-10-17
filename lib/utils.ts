@@ -5,6 +5,51 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+// Shop role mapping utility
+export function getShopRoleLabel(shopRole: string | null | undefined, customShopRole?: string | null): string {
+  if (!shopRole || shopRole.trim() === '') return 'Shop Owner'; // Default fallback
+
+  switch (shopRole) {
+    case 'shop_owner':
+      return 'Shop Owner';
+    case 'manager':
+      return 'Manager';
+    case 'mechanic':
+      return 'Mechanic';
+    case 'technician':
+      return 'Technician';
+    case 'sales_representative':
+      return 'Sales Representative';
+    case 'other':
+      return customShopRole || 'Other';
+    default:
+      return shopRole;
+  }
+}
+
+export function getConditionLabel(condition: string | null | undefined): string {
+  if (!condition || condition.trim() === '') return 'New'; // Default fallback
+
+  switch (condition.toLowerCase()) {
+    case 'new':
+      return '🆕 New';
+    case 'like_new':
+      return '✨ Like New';
+    case 'good':
+      return '✅ Good';
+    case 'fair':
+      return '⚠️ Fair';
+    case 'poor':
+      return '🔧 Poor';
+    case 'refurbished':
+      return '🔄 Refurbished';
+    case 'used':
+      return '📦 Used';
+    default:
+      return condition;
+  }
+}
+
 
 export function formatPrice(price: number, currency: string = 'AED', locale: string = 'en') {
   // Currency symbol mapping for different locales

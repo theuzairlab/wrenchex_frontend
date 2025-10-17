@@ -16,16 +16,21 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
+import { getShopRoleLabel } from '@/lib/utils';
 import ProductCard from '@/components/products/ProductCard';
 import ServiceCard from '@/components/services/ServiceCard';
+import { apiClient } from '@/lib/api/client';
+import { useAuthStore } from '@/lib/stores/auth';
+import { toast } from 'react-hot-toast';
 import { DirectionButton } from '@/components/location/DirectionButton';
 import { DistanceDisplay } from '@/components/location/DistanceDisplay';
-import { apiClient } from '@/lib/api/client';
 import { Seller, Product, Service } from '@/types';
 import ReviewSummary from '@/components/reviews/ReviewSummary';
 import ReviewsList from '@/components/reviews/ReviewsList';
 import SmartReviewButton from '@/components/reviews/SmartReviewButton';
 import { useScrollSpy } from '@/hooks/useScrollSpy';
+import { guardContactSeller } from '@/lib/guards/accessGuard';
+import { Toaster } from 'react-hot-toast';
 
 interface ShopPageData {
   seller: Seller;
@@ -58,6 +63,8 @@ export default function ShopPage() {
   const [shopData, setShopData] = useState<ShopPageData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [canContactSeller, setCanContactSeller] = useState<boolean>(false);
+  const [checkingContactPermission, setCheckingContactPermission] = useState(false);
   // Review system state
   const [selectedRatingFilter, setSelectedRatingFilter] = useState<number | null>(null);
   const [reviewsKey, setReviewsKey] = useState(0);
@@ -65,6 +72,32 @@ export default function ShopPage() {
   // Scroll spy for section navigation
   const sectionIds = ['products', 'services', 'reviews', 'about'];
   const { activeSection, scrollToSection } = useScrollSpy({ sectionIds, offset: 120 });
+
+  // Auth store
+  const { token, user } = useAuthStore();
+
+  // Function to check if user can contact seller
+  const checkContactPermission = async () => {
+    if (!token || !user) {
+      setCanContactSeller(false);
+      return;
+    }
+
+    setCheckingContactPermission(true);
+    try {
+      const response = await apiClient.canContactSeller(sellerId);
+      if (response.success && response.data) {
+        setCanContactSeller(response.data.canContact);
+      } else {
+        setCanContactSeller(false);
+      }
+    } catch (error) {
+      console.error('Error checking contact permission:', error);
+      setCanContactSeller(false);
+    } finally {
+      setCheckingContactPermission(false);
+    }
+  };
 
   // Function to calculate membership duration
   const calculateMembershipDuration = (createdAt: string) => {
@@ -90,8 +123,9 @@ export default function ShopPage() {
   useEffect(() => {
     if (sellerId) {
       fetchShopData(sellerId);
+      checkContactPermission();
     }
-  }, [sellerId, currentLocale]);
+  }, [sellerId, currentLocale, token, user]);
 
   const fetchShopData = async (id: string) => {
     try {
@@ -166,6 +200,7 @@ export default function ShopPage() {
 
   return (
     <div className="min-h-screen bg-wrench-bg-primary">
+      <Toaster position="top-center" />
       {/* Header Section */}
       <div className="bg-wrench-bg-primary shadow-sm pt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
@@ -266,7 +301,10 @@ export default function ShopPage() {
               <Button 
                 variant="primary" 
                 className="flex items-center gap-2 border-[#D4F142] text-[#D4F142] hover:bg-[#D4F142] hover:text-black"
-                onClick={() => {
+                onClick={async () => {
+                  const allowed = await guardContactSeller(seller.id, { token, user });
+                  if (!allowed) return;
+
                   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
                   if (isMobile) {
                     window.open(`tel:${seller.user?.phone}`, '_blank');
@@ -274,9 +312,10 @@ export default function ShopPage() {
                     alert(`Contact Number: ${seller.user?.phone}`);
                   }
                 }}
+                disabled={checkingContactPermission}
               >
                 <Phone className="h-4 w-4" />
-                {t('contactShop')}
+                {checkingContactPermission ? 'Checking...' : t('contactShop')}
               </Button>
             </div>
           </div>
@@ -471,6 +510,13 @@ export default function ShopPage() {
             <Card className="p-6">
               <h3 className="text-lg font-semibold mb-4">Shop Information</h3>
               <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Shop Role</label>
+                  <p className="text-gray-900">
+                    {seller.user?.firstName} {seller.user?.lastName} - {getShopRoleLabel(seller.shopRole, seller.customShopRole)} at {seller.shopName}
+                  </p>
+                </div>
+
                 <div>
                   <label className="text-sm font-medium text-gray-700">Business Type</label>
                   <p className="text-gray-900">{seller.businessType || t('general')}</p>

@@ -103,13 +103,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </div>
           
           {/* Shop Address */}
-          {/* {(product.seller.shopAddress || product.seller.area || product.seller.city) && (
-            <div className="text-xs text-gray-500 mb-1 line-clamp-1">
-              <MapPin className="h-3 w-3 inline mr-1" />
-              {product.seller.shopAddress || `${product.seller.area}, ${product.seller.city}`}
-            </div>
-          )} */}
-          
           <div className="flex items-center justify-between">
             <DistanceDisplay
               sellerLatitude={product.seller.latitude}

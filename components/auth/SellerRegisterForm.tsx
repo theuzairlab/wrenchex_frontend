@@ -13,7 +13,8 @@ import { useAuthStore } from '@/lib/stores/auth';
 import { 
   sellerRegisterSchema, 
   type SellerRegisterFormData, 
-  businessTypeOptions 
+  businessTypeOptions,
+  shopRoleOptions
 } from '@/lib/validations/auth';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -80,6 +81,8 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
       latitude: undefined,
       longitude: undefined,
       businessType: '',
+      shopRole: '',
+      customShopRole: '',
       description: '',
     },
   });
@@ -90,6 +93,7 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
   }, [clearError]);
 
   const password = watch('password');
+  const shopRole = watch('shopRole');
 
   // Handle location change from address input
   const handleLocationChange = (location: LocationData | null) => {
@@ -115,14 +119,19 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
     try {
       clearErrors();
       
-      // Include location data if available
-      const submissionData = {
+      // Prepare submission data
+      const submissionData: any = {
         ...data,
         latitude: locationData?.latitude || data.latitude,
         longitude: locationData?.longitude || data.longitude,
         city: locationData?.city || data.city,
         area: locationData?.area || data.area,
       };
+
+      // Only include customShopRole if shopRole is 'other'
+      if (data.shopRole !== 'other') {
+        delete submissionData.customShopRole;
+      }
       
       console.log('SellerRegisterForm: Submitting data:', {
         ...submissionData,
@@ -304,6 +313,54 @@ export function SellerRegisterForm({ onSuccess, onSwitchToLogin, onSwitchToBuyer
               <p className="text-sm text-red-600">{errors.businessType.message}</p>
             )}
           </div>
+
+          <div className="space-y-2">
+            <label htmlFor="shopRole" className="text-sm font-medium text-wrench-text-primary">
+              {t('shopRole')}
+            </label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-wrench-text-secondary" />
+              <select
+                id="shopRole"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wrench-accent focus:border-wrench-accent"
+                autoComplete="off"
+                {...register('shopRole')}
+              >
+                <option value="">{t('selectShopRole')}</option>
+                {shopRoleOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {errors.shopRole && (
+              <p className="text-sm text-red-600">{errors.shopRole.message}</p>
+            )}
+          </div>
+
+          {/* Custom Shop Role Input - Only show when "Other" is selected */}
+          {shopRole === 'other' && (
+            <div className="space-y-2">
+              <label htmlFor="customShopRole" className="text-sm font-medium text-wrench-text-primary">
+                {t('customShopRole')}
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-wrench-text-secondary" />
+                <Input
+                  id="customShopRole"
+                  type="text"
+                  placeholder={t('enterCustomShopRole')}
+                  className="pl-10"
+                  autoComplete="off"
+                  {...register('customShopRole')}
+                />
+              </div>
+              {errors.customShopRole && (
+                <p className="text-sm text-red-600">{errors.customShopRole.message}</p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Location Selection Method Toggle */}

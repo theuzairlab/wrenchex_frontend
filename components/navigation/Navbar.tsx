@@ -65,10 +65,8 @@ const Navbar = ({ className }: NavbarProps) => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         isSearchDropdownOpen &&
-        (
-          (searchDropdownRef.current && !searchDropdownRef.current.contains(event.target as Node)) &&
-          (mobileSearchDropdownRef.current && !mobileSearchDropdownRef.current.contains(event.target as Node))
-        )
+        searchDropdownRef.current &&
+        !searchDropdownRef.current.contains(event.target as Node)
       ) {
         setIsSearchDropdownOpen(false);
       }
@@ -89,7 +87,14 @@ const Navbar = ({ className }: NavbarProps) => {
       window.removeEventListener('scroll', handleScroll);
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isMobileMenuOpen]);
+  }, [isMobileMenuOpen, isSearchDropdownOpen]);
+
+  // Close search dropdown on route change
+  useEffect(() => {
+    if (isSearchDropdownOpen) {
+      setIsSearchDropdownOpen(false);
+    }
+  }, [pathname]);
 
   // Load unread chat count once on mount
   const loadUnreadChatCount = useCallback(async () => {

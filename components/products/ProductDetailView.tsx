@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { cn, formatPrice } from '@/lib/utils';
+import { cn, formatPrice, getConditionLabel } from '@/lib/utils';
 import { Product } from '@/types';
 import { ChatWithSellerButton } from '@/components/chat/ChatWithSellerButton';
 import { WishlistIcon } from '@/components/ui/WishlistIcon';
@@ -362,7 +362,7 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
                     {tShop('shopInfo')}
                   </Button>
                 </Link>
-                <Button
+                {/* <Button
                   variant="outline"
                   size="sm"
                   className="w-full sm:flex-1"
@@ -378,7 +378,7 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
                 >
                   <Phone className="h-4 w-4 mr-2" />
                   {tShop('contactShop')}
-                </Button>
+                </Button> */}
               </div>
             </CardContent>
           </Card>
@@ -473,7 +473,9 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
                         <span className="font-medium text-gray-900 capitalize">
                           {key.replace(/([A-Z])/g, ' $1').trim()}
                         </span>
-                        <span className="text-gray-600">{String(value)}</span>
+                        <span className="text-gray-600">
+                          {key.toLowerCase() === 'condition' ? getConditionLabel(String(value)) : String(value)}
+                        </span>
                       </div>
                     ))
                   )}
@@ -483,7 +485,9 @@ const ProductDetailView = ({ product }: ProductDetailViewProps) => {
                     <div key={spec.id} className="flex justify-between py-3 border-b border-gray-200">
                       <span className="font-medium text-gray-900">{spec.name}</span>
                       <span className="text-gray-600">
-                        {spec.value} {spec.unit && <span className="text-gray-500">{spec.unit}</span>}
+                        {spec.name.toLowerCase() === 'condition' 
+                          ? getConditionLabel(spec.value) 
+                          : `${spec.value} ${spec.unit ? spec.unit : ''}`}
                       </span>
                     </div>
                   ))}

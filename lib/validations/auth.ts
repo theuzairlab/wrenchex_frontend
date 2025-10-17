@@ -98,6 +98,15 @@ export const sellerRegisterSchema = baseRegisterSchema.extend({
     .string()
     .min(1, 'Business type is required')
     .max(100, 'Business type must be less than 100 characters'),
+  shopRole: z
+    .string()
+    .min(1, 'Shop role is required')
+    .refine((value) => ['shop_owner', 'manager', 'mechanic', 'technician', 'sales_representative', 'other'].includes(value), {
+      message: 'Please select a valid shop role'
+    }),
+  customShopRole: z
+    .string()
+    .optional(),
   description: z
     .string()
     .optional()
@@ -105,6 +114,29 @@ export const sellerRegisterSchema = baseRegisterSchema.extend({
       if (!value) return true;
       return value.length <= 1000;
     }, 'Description must be less than 1000 characters'),
+}).superRefine((data, ctx) => {
+  // Custom validation for customShopRole when shopRole is 'other'
+  if (data.shopRole === 'other') {
+    if (!data.customShopRole || data.customShopRole.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Custom shop role is required when "Other" is selected',
+        path: ['customShopRole'],
+      });
+    } else if (data.customShopRole.length < 2) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Custom shop role must be at least 2 characters',
+        path: ['customShopRole'],
+      });
+    } else if (data.customShopRole.length > 50) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Custom shop role must be less than 50 characters',
+        path: ['customShopRole'],
+      });
+    }
+  }
 });
 
 // Combined registration schema (union of buyer and seller)
@@ -167,5 +199,15 @@ export const businessTypeOptions = [
   { value: 'dealership', label: 'Car Dealership' },
   { value: 'towing', label: 'Towing Service' },
   { value: 'mobile_mechanic', label: 'Mobile Mechanic' },
+  { value: 'other', label: 'Other' },
+] as const;
+
+// Shop role options for sellers
+export const shopRoleOptions = [
+  { value: 'shop_owner', label: 'Shop Owner' },
+  { value: 'manager', label: 'Manager' },
+  { value: 'mechanic', label: 'Mechanic' },
+  { value: 'technician', label: 'Technician' },
+  { value: 'sales_representative', label: 'Sales Representative' },
   { value: 'other', label: 'Other' },
 ] as const; 

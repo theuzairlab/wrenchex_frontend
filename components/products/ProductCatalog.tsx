@@ -22,6 +22,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { cn, formatPrice } from '@/lib/utils';
 import { ProductSearchResult, Product } from '@/types';
+import { motion } from 'framer-motion';
 
 interface ProductCatalogProps {
   searchResult: ProductSearchResult;
@@ -44,7 +45,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
     : 0;
 
   return (
-    <Card className="group hover:shadow-lg transition-shadow p-3 w-[260px] sm:w-[280px]">
+    <Card className="group hover:shadow-lg transition-shadow p-3 w-[260px] sm:w-[280px] h-full">
       <CardHeader className="p-0 relative">
         <div className="relative aspect-square overflow-hidden rounded-t-lg">
           <Image
@@ -184,14 +185,33 @@ const ProductCatalog = ({ searchResult, currentFilters }: ProductCatalogProps) =
 
       {/* Products Grid */}
       {products.length > 0 ? (
-        <div className="flex justify-center flex-wrap gap-4">
-          {products.map((product) => (
-            <ProductCard
+        <motion.div 
+          className="flex justify-center flex-wrap gap-4"
+          layout
+        >
+          {products.map((product, index) => (
+            <motion.div
               key={product.id}
-              product={product}
-            />
+              layout
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.95 }}
+              transition={{ 
+                duration: 0.4, 
+                delay: index * 0.05,
+                ease: [0.25, 0.46, 0.45, 0.94],
+                layout: { duration: 0.3 }
+              }}
+              whileHover={{ 
+                y: -4, 
+                scale: 1.02,
+                transition: { duration: 0.2 }
+              }}
+            >
+              <ProductCard product={product} />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       ) : (
         <div className="text-center py-12">
           <ShoppingCart className="h-16 w-16 text-gray-300 mx-auto mb-4" />

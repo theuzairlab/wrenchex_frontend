@@ -177,7 +177,7 @@ const GlobalSearch = ({
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [searchType]);
 
   // Handle input change with debouncing
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -246,6 +246,7 @@ const GlobalSearch = ({
     } else {
       setIsOpen(false);
       router.push(suggestion.url);
+      onSearch?.();
     }
   };
 
@@ -268,7 +269,9 @@ const GlobalSearch = ({
         type: 'recent',
         id: search,
         title: search,
-        url: `/search?q=${encodeURIComponent(search)}`
+        url: searchType === 'products'
+          ? `/search?q=${encodeURIComponent(search)}`
+          : `/services?search=${encodeURIComponent(search)}`
       }));
       setSuggestions(recentSuggestions);
     }
@@ -485,7 +488,9 @@ placeholder={location
                         type: 'trending',
                         id: search,
                         title: search,
-                        url: `/search?q=${encodeURIComponent(search)}`
+                        url: searchType === 'products'
+                          ? `/search?q=${encodeURIComponent(search)}`
+                          : `/services?search=${encodeURIComponent(search)}`
                       })}
                       className="flex items-center w-full px-2 py-1 text-sm text-gray-700 hover:bg-gray-50 rounded"
                     >

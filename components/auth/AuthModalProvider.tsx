@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { AuthModalManager } from './AuthModalManager';
 
@@ -28,6 +28,14 @@ export function AuthModalProvider({ children }: { children: React.ReactNode }) {
   const closeAuthModal = () => {
     setIsOpen(false);
   };
+
+  // Close modal automatically when navigating to standalone auth pages
+  // like forgot-password or reset-password so the page content is visible
+  useEffect(() => {
+    if (pathname?.includes('/forgot-password') || pathname?.includes('/reset-password')) {
+      setIsOpen(false);
+    }
+  }, [pathname]);
 
   // Get redirect path based on current page
   const getRedirectPath = () => {

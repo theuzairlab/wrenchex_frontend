@@ -14,59 +14,31 @@ import { useAuthStore } from '@/lib/stores/auth';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/Card';
 import { useAuthModal } from '@/components/auth';
 import {
-  Search, ShoppingCart, Wrench, 
+  Search, ShoppingCart, Wrench,
   ArrowRight,
   ArrowLeft
 } from 'lucide-react';
 import { AnimatedTestimonialsDemo } from '@/components/testimonials/Testimonial';
+import HeroSearch from '@/components/search/HeroSearch';
 
 export default function Home() {
   const t = useTranslations('common');
   const router = useRouter();
   const pathname = usePathname();
   const currentLocale = pathname?.split('/').filter(Boolean)[0] === 'ar' ? 'ar' : 'en';
-  const [searchQuery, setSearchQuery] = useState('');
   const { isAuthenticated } = useAuthStore();
   const { openAuthModal } = useAuthModal();
-  
-  // Location state for advanced search
-  const [location, setLocation] = useState('');
-  const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      let searchUrl = `/${currentLocale}/search?q=${encodeURIComponent(searchQuery.trim())}`;
-      
-      // Add location parameters if available
-      if (coordinates) {
-        searchUrl += `&latitude=${coordinates.lat}&longitude=${coordinates.lng}`;
-        if (location) {
-          searchUrl += `&location=${encodeURIComponent(location)}`;
-        }
-      }
-      
-      router.push(searchUrl);
-    }
-  };
 
   const handleQuickSearch = (term: string) => {
-    let searchUrl = `/${currentLocale}/search?q=${encodeURIComponent(term)}`;
-    
-    // Add location parameters if available
-    if (coordinates) {
-      searchUrl += `&latitude=${coordinates.lat}&longitude=${coordinates.lng}`;
-      if (location) {
-        searchUrl += `&location=${encodeURIComponent(location)}`;
-      }
-    }
-    
+    const searchUrl = `/${currentLocale}/search?q=${encodeURIComponent(term)}`;
     router.push(searchUrl);
   };
 
   return (
-    <div className="min-h-screen">
+    <>
+    <div className="">
       {/* Enhanced Hero Section */}
-      <div className="relative overflow-hidden min-h-[80vh] flex items-center">
+      <div className="relative overflow-visible min-h-[80vh] flex items-center">
         {/* Video Background */}
         <div className="absolute inset-0 w-full h-full">
           <video
@@ -88,8 +60,8 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-br from-wrench-bg-primary/20 via-transparent to-wrench-accent/10"></div>
         </div>
 
-        <div className="container mx-auto px-4 py-20 relative z-10 mt-10">
-          <div className={`grid lg:grid-cols-2 gap-12 items-center ${currentLocale === 'ar' ? 'rtl' : 'ltr'}`}>
+        <div className="container mx-auto px-4 py-20 relative z-10 mt-10 overflow-visible">
+          <div className={`grid lg:grid-cols-2 gap-12 items-center ${currentLocale === 'ar' ? 'rtl' : 'ltr'} overflow-visible`}>
             {/* Left Content */}
             <div className={`space-y-8 ${currentLocale === 'ar' ? ' lg:text-right' : ' lg:text-left'}`}>
               <div className="space-y-6">
@@ -126,154 +98,119 @@ export default function Home() {
                   </Button>
                 </Link>
               </div>
-
-
-              {/* Trust Indicators */}
-              {/* <div className={`flex flex-col sm:flex-row gap-8 ${currentLocale === 'ar' ? 'text-center lg:text-right' : 'text-center lg:text-left'}`}>
-                <div>
-                  <div className="text-2xl font-bold text-wrench-accent">10,000+</div>
-                  <div className="text-sm text-white/80">{t('trust.verifiedSellers')}</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-wrench-accent">50,000+</div>
-                  <div className="text-sm text-white/80">{t('trust.autoParts')}</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-wrench-accent">25,000+</div>
-                  <div className="text-sm text-white/80">{t('trust.happyCustomers')}</div>
-                </div>
-              </div> */}
             </div>
 
-             {/* Right Visual */}
-             <div className="relative">
-               <div className="relative z-10 bg-white/40 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-white/20">
-                 <div className="space-y-6">
-                   <div className={`flex items-center ${currentLocale === 'ar' ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
-                     <div className="w-12 h-12 bg-wrench-accent rounded-xl flex items-center justify-center">
-                       <Search className="h-6 w-6 text-black" />
-                     </div>
-                     <div className={`${currentLocale === 'ar' ? 'text-center lg:text-right' : 'text-center lg:text-left'} p-2`}>
-                       <h3 className="font-semibold text-gray-900">{t('quickSearch')}</h3>
-                       <p className="text-sm text-gray-600">{t('quickSearchSubtitle')}</p>
-                     </div>
-                   </div>
+            {/* Right Visual */}
+            <div className="relative overflow-visible">
+               <div className="relative z-50 bg-white/40 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-white/20 overflow-visible">
+                <div className="space-y-6">
+                  <div className={`flex items-center ${currentLocale === 'ar' ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
+                    <div className="w-12 h-12 bg-wrench-accent rounded-xl flex items-center justify-center">
+                      <Search className="h-6 w-6 text-black" />
+                    </div>
+                    <div className={`${currentLocale === 'ar' ? 'text-center lg:text-right' : 'text-center lg:text-left'} p-2`}>
+                      <h3 className="font-semibold text-gray-900">{t('quickSearch')}</h3>
+                      <p className="text-sm text-gray-600">{t('quickSearchSubtitle')}</p>
+                    </div>
+                  </div>
 
-                   <form onSubmit={handleSearch} className="space-y-3">
-                     {/* Product Search */}
-                     <div className="relative">
-                       <input
-                         type="text"
-                         value={searchQuery}
-                         onChange={(e) => setSearchQuery(e.target.value)}
-                         placeholder={t('searchPlaceholder')}
-                         className={`w-full px-2 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-wrench-accent focus:border-wrench-accent bg-white/40 ${currentLocale === 'ar' ? 'text-right pr-4' : 'text-left pl-3'}`}
-                         dir={currentLocale === 'ar' ? 'rtl' : 'ltr'}
-                       />
-                       <Button
-                         type="submit"
-                         className={`absolute ${currentLocale === 'ar' ? 'left-2' : 'right-2'} top-1/2 transform -translate-y-1/2`}
-                         size="sm"
-                       >
-                         <Search className="h-4 w-4" />
-                       </Button>
-                     </div>
+                  {/* Live Search with both Products and Services */}
+                  <div className="space-y-3 relative z-50">
+                    <HeroSearch
+                      placeholder={t('searchPlaceholder')}
+                      className="w-full"
+                    />
+                  </div>
 
-                     {/* Location Status */}
-                     {coordinates && (
-                       <div className={`text-xs text-green-600 bg-green-50/80 px-2 py-1 rounded ${currentLocale === 'ar' ? 'text-right' : 'text-left'}`}>
-                         📍 {t('locationEnabled')}
-                       </div>
-                     )}
-
-                     <div className={`flex flex-wrap gap-2 ${currentLocale === 'ar' ? 'justify-end' : 'justify-start'}`}>
-                       {[
-                         { key: 'brakePads', query: 'brake+pads' },
-                         { key: 'oilFilters', query: 'oil+filter' },
-                         { key: 'sparkPlugs', query: 'spark+plugs' },
-                         { key: 'tires', query: 'tires' }
-                      ].map(({ key, query }) => (
-                         <button
-                           key={key}
-                           type="button"
-                           onClick={() => handleQuickSearch(t(`quickTags.${key}`))}
-                           className="px-3 py-1 bg-wrench-accent/20 hover:bg-wrench-accent/30 rounded-full text-xs text-gray-600 hover:text-gray-800 transition-colors cursor-pointer"
-                         >
-                          {t(`quickTags.${key}`)}
-                         </button>
-                       ))}
-                     </div>
-                   </form>
-                 </div>
-               </div>
-
-              {/* Background decoration */}
-              <div className="absolute -top-4 -right-4 w-72 h-72 bg-wrench-accent/20 rounded-full blur-3xl"></div>
-              <div className="absolute -bottom-8 -left-8 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl"></div>
+                  <div className={`flex flex-wrap gap-2 ${currentLocale === 'ar' ? 'justify-end' : 'justify-start'}`}>
+                    {[
+                      { key: 'brakePads', query: 'brake+pads' },
+                      { key: 'oilFilters', query: 'oil+filter' },
+                      { key: 'sparkPlugs', query: 'spark+plugs' },
+                      { key: 'tires', query: 'tires' }
+                    ].map(({ key, query }) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => handleQuickSearch(t(`quickTags.${key}`))}
+                        className="px-3 py-1 bg-wrench-accent/20 hover:bg-wrench-accent/30 rounded-full text-xs text-gray-600 hover:text-gray-800 transition-colors cursor-pointer"
+                      >
+                        {t(`quickTags.${key}`)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
+
+            {/* Background decoration */}
+            <div className="absolute -top-4 -right-4 w-72 h-72 bg-wrench-accent/20 rounded-full blur-3xl"></div>
+            <div className="absolute -bottom-8 -left-8 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl"></div>
           </div>
         </div>
       </div>
+    </div>
 
-      {/* Why Choose Us Section */}
-      <WhyChooseUs />
+      {/* Why Choose Us Section */ }
+  <WhyChooseUs />
 
-      {/* Top Categories Section */}
-      <TopCategories />
+  {/* Top Categories Section */ }
+  <TopCategories />
 
-      {/* Featured Products Section */}
-      <FeaturedProducts />
+  {/* Featured Products Section */ }
+  <FeaturedProducts />
 
-      {/* Top Services Section */}
-      <TopServices />
+  {/* Top Services Section */ }
+  <TopServices />
 
-      {/* Maps Section */}
-      <MapsSection />
+  {/* Maps Section */ }
+  <MapsSection />
 
-      {/* Testimonials Section */}
-      <div className="py-20 bg-gray-50">
-        <div className="container-responsive">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-              {t('testimonials.heading', { count: 'Thousands' })}
-            </h2>
-            <p className="text-xl text-text-secondary">
-              {t('testimonials.subheading')}
-            </p>
+  {/* Testimonials Section */ }
+  <div className="py-20 bg-gray-50">
+    <div className="container-responsive">
+      <div className="text-center mb-16">
+        <h2 className="text-3xl lg:text-4xl font-bold mb-4">
+          {t('testimonials.heading', { count: 'Thousands' })}
+        </h2>
+        <p className="text-xl text-text-secondary">
+          {t('testimonials.subheading')}
+        </p>
+      </div>
+
+      <AnimatedTestimonialsDemo />
+
+      <div className="text-center mt-12 px-4">
+        <div className="flex flex-row w-full max-w-4xl mx-auto justify-center items-center space-x-2 sm:space-x-4 md:space-x-8 bg-white rounded-xl px-3 sm:px-6 py-3 sm:py-4 shadow-md">
+
+          <div className="text-center flex-1">
+            <div className="text-lg sm:text-xl md:text-2xl font-bold text-wrench-accent">4.9/5</div>
+            <div className="text-xs sm:text-sm text-text-secondary">{t('testimonials.averageRating')}</div>
           </div>
 
-          <AnimatedTestimonialsDemo />
+          <div className="w-px h-6 sm:h-8 bg-gray-200"></div>
 
-          <div className="text-center mt-12 px-4">
-            <div className="flex flex-row w-full max-w-4xl mx-auto justify-center items-center space-x-2 sm:space-x-4 md:space-x-8 bg-white rounded-xl px-3 sm:px-6 py-3 sm:py-4 shadow-md">
+          <div className="text-center flex-1">
+            <div className="text-lg sm:text-xl md:text-2xl font-bold text-wrench-accent">25,000+</div>
+            <div className="text-xs sm:text-sm text-text-secondary">{t('testimonials.happyCustomers')}</div>
+          </div>
 
-              <div className="text-center flex-1">
-                <div className="text-lg sm:text-xl md:text-2xl font-bold text-wrench-accent">4.9/5</div>
-                <div className="text-xs sm:text-sm text-text-secondary">{t('testimonials.averageRating')}</div>
-              </div>
+          <div className="w-px h-6 sm:h-8 bg-gray-200"></div>
 
-              <div className="w-px h-6 sm:h-8 bg-gray-200"></div>
-
-              <div className="text-center flex-1">
-                <div className="text-lg sm:text-xl md:text-2xl font-bold text-wrench-accent">25,000+</div>
-                <div className="text-xs sm:text-sm text-text-secondary">{t('testimonials.happyCustomers')}</div>
-              </div>
-
-              <div className="w-px h-6 sm:h-8 bg-gray-200"></div>
-
-              <div className="text-center flex-1">
-                <div className="text-lg sm:text-xl md:text-2xl font-bold text-wrench-accent">98%</div>
-                <div className="text-xs sm:text-sm text-text-secondary">{t('testimonials.satisfactionRate')}</div>
-              </div>
-
-            </div>
+          <div className="text-center flex-1">
+            <div className="text-lg sm:text-xl md:text-2xl font-bold text-wrench-accent">98%</div>
+            <div className="text-xs sm:text-sm text-text-secondary">{t('testimonials.satisfactionRate')}</div>
           </div>
 
         </div>
       </div>
 
-      {/* Role Selection CTA */}
-      {!isAuthenticated && (
+    </div>
+  </div>
+
+  {/* Role Selection CTA */ }
+  {
+    !isAuthenticated && (
       <div className="container-responsive py-16">
         <div className="text-center space-y-8">
           <h2 className="text-heading-2">{t('getStartedToday')}</h2>
@@ -291,8 +228,8 @@ export default function Home() {
                 <CardDescription>
                   {t('buyerCardDesc')}
                 </CardDescription>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full"
                   onClick={() => openAuthModal('buyer-register')}
                 >
@@ -310,8 +247,8 @@ export default function Home() {
                 <CardDescription>
                   {t('sellerCardDesc')}
                 </CardDescription>
-                <Button 
-                  variant="primary" 
+                <Button
+                  variant="primary"
                   className="w-full"
                   onClick={() => openAuthModal('seller-register')}
                 >
@@ -324,8 +261,8 @@ export default function Home() {
           <div className="pt-8">
             <p className="text-body-sm text-text-muted">
               {t('alreadyHaveAccount')}{' '}
-              <Button 
-                variant="link" 
+              <Button
+                variant="link"
                 className="p-0 h-auto"
                 onClick={() => openAuthModal('login')}
               >
@@ -335,7 +272,7 @@ export default function Home() {
           </div>
         </div>
       </div>
-      )}
-    </div>
+    )}
+    </>
   );
 }

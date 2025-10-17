@@ -11,9 +11,10 @@ interface AuthModalProps {
   children: React.ReactNode;
   title?: string;
   className?: string;
+  disableBackdropClick?: boolean;
 }
 
-export function AuthModal({ isOpen, onClose, children, title, className }: AuthModalProps) {
+export function AuthModal({ isOpen, onClose, children, title, className, disableBackdropClick = false }: AuthModalProps) {
   // Handle escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -41,7 +42,7 @@ export function AuthModal({ isOpen, onClose, children, title, className }: AuthM
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={disableBackdropClick ? undefined : onClose}
       />
       
       {/* Modal */}

@@ -1,4 +1,4 @@
-import { toast } from 'react-hot-toast';
+
 
 // Extend Window interface to include google maps
 declare global {

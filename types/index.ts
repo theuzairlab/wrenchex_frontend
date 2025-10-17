@@ -137,6 +137,8 @@ export interface Seller {
   createdAt: string;
   updatedAt: string;
   user?: User;
+  shopRole?: string;
+  customShopRole?: string;
 }
 
 export interface SellerRegistrationData {

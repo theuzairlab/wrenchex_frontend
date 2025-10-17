@@ -222,8 +222,10 @@ export default function WishlistPage() {
 
               <CardContent className="pt-2">
                 <Link href={item.type === 'product' ? `/${currentLocale}/products/${item.id}` : `/${currentLocale}/services/${item.id}`}>
-                <Button variant="link" className="font-semibold p-0 text-gray-900 mb-2 line-clamp-2">
-                    {item.title}
+                <Button variant="link" className="font-semibold p-0 text-gray-900 mb-2 block overflow-hidden text-start">
+                    <span className="line-clamp-2">
+                      {item.title}
+                    </span>
                   </Button>
                 </Link>
 
