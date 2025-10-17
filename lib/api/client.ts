@@ -390,6 +390,16 @@ class APIClient {
     return this.get(`/sellers/${sellerId}/can-contact`);
   }
 
+  async getNearbySellers(latitude: number, longitude: number, radius: number = 50, limit: number = 20): Promise<ApiResponse<any>> {
+    const params = new URLSearchParams({
+      latitude: latitude.toString(),
+      longitude: longitude.toString(),
+      radius: radius.toString(),
+      limit: limit.toString()
+    });
+    return this.get(`/sellers/nearby?${params.toString()}`);
+  }
+
   async getSellerAppointments(filters: any): Promise<ApiResponse<any>> {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {

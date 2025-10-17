@@ -101,22 +101,28 @@ export function LeafletMap({
           ? { lat: location.latitude, lng: location.longitude }
           : { lat: 25.2048, lng: 55.2708 };
 
-        // Get nearby sellers using public endpoint
-        const response = await apiClient.get('/sellers/public?limit=50');
+        // Get nearby sellers using location-based endpoint
+        const response = await apiClient.getNearbySellers(
+          center.lat, 
+          center.lng, 
+          50, // 50km radius
+          20  // max 20 shops
+        );
 
         if (response.data.success) {
           const sellers = response.data.data.sellers || [];
           
-          // Filter sellers with coordinates and calculate distance
+          // Filter sellers with coordinates (they should already have distance from API)
           const shopsWithLocation = sellers
             .filter((seller: any) => seller.latitude && seller.longitude)
             .map((seller: any) => {
-              const distance = location ? calculateDistance(
+              // Use distance from API response, or calculate if not available
+              const distance = seller.distance || (location ? calculateDistance(
                 location.latitude,
                 location.longitude,
                 seller.latitude,
                 seller.longitude
-              ) : 0;
+              ) : 0);
 
               return {
                 seller,
@@ -124,9 +130,7 @@ export function LeafletMap({
                 distance
               };
             })
-            .filter((shop: any) => !location || shop.distance <= 50) // Within 50km if user location available
-            .sort((a: any, b: any) => a.distance - b.distance)
-            .slice(0, 20); // Limit to 20 shops for performance
+            .sort((a: any, b: any) => a.distance - b.distance); // Sort by distance (API already filtered by radius)
 
           setShops(shopsWithLocation);
         }

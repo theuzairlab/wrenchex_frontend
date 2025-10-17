@@ -279,30 +279,46 @@ export function InteractiveMap({
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
       
-      // Get nearby sellers using public endpoint
-      const response = await apiClient.get('/sellers/public?limit=50', {
-        signal: controller.signal
-      });
+      // Get nearby sellers using location-based endpoint
+      console.log('🌍 Requesting nearby sellers for:', center.lat, center.lng);
+      const response = await apiClient.getNearbySellers(
+        center.lat, 
+        center.lng, 
+        50, // 50km radius
+        20  // max 20 shops
+      );
       
       clearTimeout(timeoutId);
       console.log('🔍 Full API response:', response);
       console.log('🔍 Response data:', response.data);
-      console.log('🔍 Response data success:', response.data.success);
+      console.log('🔍 Response data success:', response.data?.success);
       console.log('🔍 Response data type:', typeof response.data);
       
-      // Handle both response structures: {success: true, data: {sellers: []}} or {sellers: []}
+      // Handle nearby sellers response structure: {success: true, data: {sellers: [], total: number, center: {}, radius: number}}
       let sellers = [];
-      if (response.data.success && response.data.data && response.data.data.sellers) {
-        // Standard API response structure
+      if (response.data && response.data.success && response.data.data && response.data.data.sellers) {
         sellers = response.data.data.sellers;
-        console.log(`🏪 InteractiveMap: API returned ${sellers.length} sellers (standard structure)`);
-      } else if (response.data.sellers) {
-        // Direct response structure
+        console.log(`🏪 InteractiveMap: API returned ${sellers.length} nearby sellers within ${response.data.data.radius}km radius`);
+      } else if (response.data && response.data.sellers) {
+        // Fallback to old structure
         sellers = response.data.sellers;
-        console.log(`🏪 InteractiveMap: API returned ${sellers.length} sellers (direct structure)`);
+        console.log(`🏪 InteractiveMap: API returned ${sellers.length} sellers (fallback structure)`);
       } else {
         console.error('❌ Unknown API response structure:', response.data);
-        throw new Error('Unknown API response structure');
+        console.log('🔄 Falling back to old sellers endpoint...');
+        
+        // Fallback to old endpoint
+        const fallbackResponse = await apiClient.get('/sellers/public?limit=20');
+        if (fallbackResponse.data.success && fallbackResponse.data.data && fallbackResponse.data.data.sellers) {
+          sellers = fallbackResponse.data.data.sellers;
+          console.log(`🏪 InteractiveMap: Fallback returned ${sellers.length} sellers`);
+        } else if (fallbackResponse.data.sellers) {
+          sellers = fallbackResponse.data.sellers;
+          console.log(`🏪 InteractiveMap: Fallback returned ${sellers.length} sellers (direct structure)`);
+        } else {
+          console.error('❌ Both endpoints failed');
+          throw new Error('Failed to fetch sellers from both endpoints');
+        }
       }
       
       if (sellers && sellers.length >= 0) {
@@ -312,12 +328,13 @@ export function InteractiveMap({
         console.log(`📍 InteractiveMap: ${sellersWithCoords.length} sellers have coordinates`);
         
         const shopsWithLocation = sellersWithCoords.map((seller: any) => {
-          const distance = location ? calculateDistance(
+          // Use distance from API response, or calculate if not available
+          const distance = seller.distance || (location ? calculateDistance(
             location.latitude,
             location.longitude,
             seller.latitude,
             seller.longitude
-          ) : 0;
+          ) : 0);
 
           return {
             seller,
@@ -327,9 +344,7 @@ export function InteractiveMap({
             popularServices: []  // We could fetch these if needed
           };
         })
-        .filter((shop: any) => !location || shop.distance <= 50) // Within 50km if user location available
-        .sort((a: any, b: any) => a.distance - b.distance)
-        .slice(0, 20); // Limit to 20 shops for performance
+        .sort((a: any, b: any) => a.distance - b.distance); // Sort by distance (API already filtered by radius)
 
         console.log(`🎯 InteractiveMap: Setting ${shopsWithLocation.length} shops on map, updating state...`);
         setShops(shopsWithLocation);
